@@ -1,0 +1,61 @@
+---
+title: サンドボックス化
+excerpt: Effect.sandbox 関数を利用して、あなたのコードのエラーの原因をカプセル化し、理解する方法を学びましょう。このガイドでは、エラーのサンドボックス化を探求し、エラーの詳細な原因を明らかにするとともに、`Effect.catchAll` や `Effect.catchTags` のような標準的なエラー処理演算子を使用して特定のエラー条件を効果的に処理する方法を示します。
+bottomNavigation: pagination
+---
+
+エラーはプログラミングの一般的な一部であり、失敗、欠陥、ファイバーの中断、またはこれらの要因の組み合わせなど、さまざまな理由で発生する可能性があります。このガイドでは、`Effect.sandbox` 関数を使用して、コード内のエラーの原因を特定し、理解する方法を探ります。
+
+## サンドボックス
+
+`Effect.sandbox` 関数は、エラーのすべての潜在的な原因をエフェクト内にカプセル化することができます。それは、失敗、欠陥、ファイバーの中断、またはこれらの要因の組み合わせによるものであるかどうかにかかわらず、エフェクトの完全な原因を明らかにします。
+
+以下は `Effect.sandbox` 関数のシグネチャです：
+
+```ts
+sandbox: Effect<A, E, R> -> Effect<A, Cause<E>, R>
+```
+
+簡単に言うと、これはエフェクト `Effect<A, E, R>` を取り、エラー・チャンネルがエラーの詳細な原因を含むエフェクト `Effect<A, Cause<E>, R>` に変換します。
+
+`Effect.sandbox` 関数を使用することで、例外的なエフェクトの根本的な原因にアクセスできるようになります。これらの原因は `Cause<E>` という型で表され、`Effect` データ型のエラー・チャンネルに利用可能です。
+
+原因を明らかにしたら、`Effect.catchAll` や `Effect.catchTags` のような標準的なエラー処理演算子を使用して、より効果的にエラーを処理することができます。これらの演算子を使用することで、特定のエラー条件に応じた対応が可能になります。
+
+エラーのサンドボックス化がどのように機能するのかを示すために、例を見てみましょう：
+
+```ts twoslash
+import { Effect, Console } from "effect"
+
+const effect = Effect.fail("ああ、うまくいかなかった！").pipe(
+  Effect.as("主要な結果")
+)
+
+const sandboxed = Effect.sandbox(effect)
+
+const program = Effect.catchTags(sandboxed, {
+  Die: (cause) =>
+    Console.log(`欠陥をキャッチしました: ${cause.defect}`).pipe(
+      Effect.as("欠陥によるフォールバック結果")
+    ),
+  Interrupt: (cause) =>
+    Console.log(`欠陥をキャッチしました: ${cause.fiberId}`).pipe(
+      Effect.as("ファイバー中断によるフォールバック結果")
+    ),
+  Fail: (cause) =>
+    Console.log(`欠陥をキャッチしました: ${cause.error}`).pipe(
+      Effect.as("失敗によるフォールバック結果")
+    )
+})
+
+const main = Effect.unsandbox(program)
+
+Effect.runPromise(main).then(console.log)
+/*
+Output:
+欠陥をキャッチしました: ああ、うまくいかなかった！
+失敗によるフォールバック結果
+*/
+```
+
+この例では、`Effect.sandbox` を使用してエフェクトの完全な原因を明らかにします。その後、`Effect.catchTags` を使用して特定のエラー条件を処理します。必要に応じて、`Effect.unsandbox` を使用してサンドボックス化の操作を元に戻すこともできます。

@@ -1,0 +1,149 @@
+---
+title: 例
+excerpt: スケジュールの実用例
+bottomNavigation: pagination
+---
+
+## API 呼び出しとタイムアウトの処理
+
+サードパーティサービスへの API 呼び出しにおいて、いくつかの要件があります。
+全体の関数が `4` 秒以上かかる場合は中断するようにします。
+さらに、API 呼び出しを最大 `2` 回再試行するように設定します。
+
+**解決策**
+
+```ts twoslash
+import { NodeRuntime } from "@effect/platform-node";
+import { Console, Effect } from "effect";
+
+const getJson = (url: string) =>
+  Effect.tryPromise(() =>
+    fetch(url).then((res) => {
+      if (!res.ok) {
+        console.log("エラー");
+        throw new Error(res.statusText);
+      }
+      console.log("成功");
+      return res.json() as unknown;
+    })
+  );
+
+const program = (url: string) =>
+  getJson(url).pipe(
+    Effect.retry({ times: 2 }),
+    Effect.timeout("4 seconds"),
+    Effect.catchAll(Console.error)
+  );
+
+// ハッピーパスのテスト
+NodeRuntime.runMain(program("https://dummyjson.com/products/1?delay=1000"));
+/*
+出力：
+成功
+*/
+
+// タイムアウトのテスト
+// NodeRuntime.runMain(program("https://dummyjson.com/products/1?delay=5000"))
+/*
+出力：
+TimeoutException
+*/
+
+// APIエラーのテスト
+// NodeRuntime.runMain(
+//   program("https://dummyjson.com/auth/products/1?delay=500")
+// )
+/*
+出力：
+エラー
+エラー
+エラー
+UnknownException: Forbidden
+*/
+```
+
+## 条件付き再試行の実装
+
+特定の種類のエラーが発生したときのみ API 呼び出しを再試行するメカニズムを実装したいと思います。
+
+**解決策**
+
+```ts twoslash
+import { NodeRuntime } from "@effect/platform-node";
+import { Console, Effect } from "effect";
+
+class Err extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
+
+const getJson = (url: string) =>
+  Effect.tryPromise({
+    try: () =>
+      fetch(url).then((res) => {
+        if (!res.ok) {
+          console.log(res.status);
+          throw new Err(res.statusText, res.status);
+        }
+        return res.json() as unknown;
+      }),
+    catch: (e) => e as Err,
+  });
+
+const program = (url: string) =>
+  getJson(url).pipe(
+    // エラーが403の場合に再試行
+    Effect.retry({ while: (err) => err.status === 403 }),
+    Effect.catchAll(Console.error)
+  );
+
+// 403のテスト
+NodeRuntime.runMain(
+  program("https://dummyjson.com/auth/products/1?delay=1000")
+);
+/*
+出力：
+403
+403
+403
+403
+...
+*/
+
+// 404のテスト
+// NodeRuntime.runMain(program("https://dummyjson.com/-"))
+/*
+出力：
+404
+Err [Error]: Not Found
+*/
+```
+
+## 完了までのスケジュールされた Effect の実行
+
+スケジュールを使用して、別の長時間実行される Effect が完了するまで定期的に Effect を実行することができます。これは、ポーリングや定期的なログ記録のようなタスクに便利です。
+
+**解決策**
+
+```ts twoslash
+import { Effect, Console, Schedule } from "effect";
+
+const longRunningEffect = Console.log("完了").pipe(Effect.delay("5 seconds"));
+
+const action = Console.log("アクション...");
+
+const schedule = Schedule.fixed("1.5 seconds");
+
+const program = Effect.race(Effect.repeat(action, schedule), longRunningEffect);
+
+Effect.runPromise(program);
+/*
+出力：
+アクション...
+アクション...
+アクション...
+アクション...
+完了
+*/
+```

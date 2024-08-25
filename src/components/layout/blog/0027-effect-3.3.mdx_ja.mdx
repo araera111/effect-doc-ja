@@ -1,0 +1,122 @@
+---
+title: Effect 3.3 (リリース)
+excerpt: 新機能や変更点をまとめたリリースポスト
+date: 2024-06-06
+authors:
+  - name: Tim Smart
+    description: 創業エンジニア
+    avatar: https://pbs.twimg.com/profile_images/3642301555/77cc6dab66dc94fdd77e503fd6d1c1cf_400x400.jpeg
+    twitter: https://twitter.com/tim_smart
+---
+
+Effect 3.3.0 がリリースされました！このリリースには、新しい機能や改善がいくつか含まれています。新機能の概要は以下の通りです。
+
+## Stream.zipLatestAll
+
+この API を使うことで、複数のストリームを一緒に結合することができます。いずれかのストリームから値が発行されると、それは他のストリームの最新値と組み合わされて結果が生成されます。
+
+```ts
+import { Stream, Schedule, Console, Effect } from "effect";
+
+const stream = Stream.zipLatestAll(
+  Stream.fromSchedule(Schedule.spaced("1 millis")),
+  Stream.fromSchedule(Schedule.spaced("2 millis")),
+  Stream.fromSchedule(Schedule.spaced("4 millis"))
+).pipe(Stream.take(6), Stream.tap(Console.log));
+
+Effect.runPromise(Stream.runDrain(stream));
+// 出力:
+// [ 0, 0, 0 ]
+// [ 1, 0, 0 ]
+// [ 1, 1, 0 ]
+// [ 2, 1, 0 ]
+// [ 3, 1, 0 ]
+// [ 3, 1, 1 ]
+// .....
+```
+
+## Stream.toReadableStream にキューイング戦略オプションを追加
+
+このオプションは、基盤となる `ReadableStream` コンストラクタに渡されます。ストリームのバックプレッシャー戦略を制御することができます。
+
+[詳細については MDN を参照してください。](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/ReadableStream#queuingstrategy)
+
+## Pool コンストラクタに新しいオプションを追加
+
+Pool コンストラクタに新しい同時実行性とサイズ変更オプションが追加され、パフォーマンスの改善も行われました。
+
+#### 同時実行性
+
+プールアイテムごとの同時アクセスを指定できるようになりました。これは、複数の同時リクエストを処理できるプールアイテムを持つ場合に便利です。
+
+#### targetUtilization
+
+このオプションは、新しいプールアイテムが作成されるタイミングを決定します。`0` と `1` の間の値であり、`1` は既存のすべてのアイテムが完全に利用されているときのみ新しいプールアイテムを作成することを意味します。
+
+`targetUtilization` が `0.5` の場合、既存のアイテムが 50% 使用されているときに新しいプールアイテムが作成されます。
+
+デフォルト値は `1` に設定されています。
+
+#### timeToLiveStrategy
+
+このオプションは、プールのサイズ変更を決定する戦略を指定できるようにします。デフォルト戦略は `"usage"` であり、`targetUtilization` に基づいてプールアイテムを無効化します。
+
+もう 1 つの戦略は `"creation"` で、作成された時間に基づいてプールアイテムを無効化します。
+
+## STM.gen, Either.gen & Option.gen が this を渡すことをサポート
+
+`this` にバインドする値は、.gen 関数の最初の引数として渡すことができます。
+
+```ts
+import { Option } from "effect";
+
+class MyClass {
+  readonly value = 1;
+
+  readonly option = Option.gen(this, function* () {
+    // ここで `this.value` にアクセスできます
+  });
+}
+```
+
+## 新しい Redacted モジュール
+
+`Redacted<T>` データ型は、センシティブなデータを表します。これはジェネリックであり、任意の種類のデータをレダクトするために使用できます。
+
+`Redacted` のサポートが @effect/schema および @effect/cli に追加されました。
+
+`Secret` モジュールは非推奨としてマークされ、今後のリリースで削除される予定です。
+
+## Layer 注釈 API
+
+#### Layer.annotateLogs
+
+この API は、レイヤーの実行中に発生したログに注釈を付けます。レイヤーからフォークされたファイバーもログに注釈が付きます。
+
+#### Layer.annotateSpans
+
+`Layer.annotateLogs` に似ていますが、トレーススパンに対するものです。
+
+## /platform http クライアントにおける URL 処理の改善
+
+`URL` オブジェクトを ClientRequest コンストラクタに渡すと、リクエストの URL パラメータとハッシュも自動的に設定されるようになりました。
+
+```ts
+// https://example.com/foo?foo=bar&baz=qux#hash にリクエストを作成
+Http.request
+  .get(new URL("https://example.com/?foo=bar#hash"))
+  .pipe(Http.request.appendUrl("/foo"), Http.request.setUrlParam("baz", "qux"));
+```
+
+## タプル型ガード
+
+以下の型ガードが `Predicate` モジュールに追加されました：
+
+- `isTupleOf` - 特定の長さのタプルであるかどうかを確認するリファイメント
+- `isTupleOfAtLeast` - 指定された長さ以上のタプルであるかどうかを確認するリファイメント
+
+## その他の変更
+
+いくつかの他の小規模な変更も行われました。すべての変更点は CHANGELOG をご覧ください: [CHANGELOG](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)。
+
+最新のアップデートをフォローし、あらゆる詳細を議論するために、ぜひ [Discord コミュニティ](https://discord.gg/effect-ts) に参加してください！

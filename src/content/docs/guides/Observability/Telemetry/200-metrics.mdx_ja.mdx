@@ -1,0 +1,454 @@
+---
+title: Effectにおけるメトリクスの導入
+navTitle: メトリクス
+excerpt: Effect Metricsは、カウンタ、ゲージ、ヒストグラム、サマリー、頻度をサポートし、さまざまなメトリクスを監視および分析するための強力なソリューションを提供します。これらのメトリクスがあなたのアプリケーションのパフォーマンスと挙動の可視性をどのように向上させるかを学びましょう。
+bottomNavigation: pagination
+---
+
+複雑で高い同時実行性を持つアプリケーションにおいて、さまざまな相互接続されたコンポーネントを管理することは非常に難しい場合があります。すべてがスムーズに動作し、アプリケーションのダウンタイムを避けることが重要です。
+
+ここで、数多くのサービスを持つ洗練されたインフラを想像してみましょう。これらのサービスは、サーバーに複製され、分散されています。しかし、エラーレート、応答時間、サービスの稼働時間など、これらのサービスの動作に関する洞察が欠けていることがよくあります。この可視性の欠如は、問題を特定し、効果的に対応するのが難しいことを意味します。ここで Effect Metrics が登場します。それは、さまざまなメトリクスをキャプチャし、分析することで、後の調査に役立つ貴重なデータを提供します。
+
+Effect Metrics は、5 種類の異なるメトリクスをサポートしています。
+
+1. **Counter**: カウンタは、リクエスト数など、時間の経過とともに増加する値を追跡するために使用されます。特定のイベントやアクションが何回発生したかを把握するのに役立ちます。
+
+2. **Gauge**: ゲージは、時間の経過とともに上昇したり下降したりする単一の数値を表します。メモリ使用量など、継続的に変わるメトリクスを監視するためによく使用されます。
+
+3. **Histogram**: ヒストグラムは、異なるバケットにわたる観測値の分布を追跡するのに役立ちます。リクエストの待機時間などのメトリクスで一般的に使用され、応答時間の分布を理解するのに役立ちます。
+
+4. **Summary**: サマリーは、時系列のスライディングウィンドウに関する洞察を提供し、特定のパーセンタイルのメトリクスを提供します。これは、リクエスト応答時間のような遅延関連メトリクスを理解するのに特に役立ちます。
+
+5. **Frequency**: 頻度メトリクスは、異なる文字列値の発生回数をカウントします。アプリケーションで異なるイベントや条件がどのくらい頻繁に発生しているかを追跡したいときに便利です。
+
+## Counter
+
+メトリクスの世界において、カウンタは時間の経過とともに増加したり減少したりできる単一の数値を表します。特定のタイプのリクエストがアプリケーションに届いた回数を追跡するための集計のようなものと考えてください。
+
+カウンタは、特定の瞬間の値に興味を持つゲージなどとは対照的に、時間の経過における累積値が重要です。これは、変更のランニングトータルを提供し、上昇したり下降したりできることを意味し、特定のメトリクスの動的な性質を反映しています。
+
+### カウンタの作成方法
+
+カウンタを作成するには、コード内で`Metric.counter`コンストラクタを使用できます。カウンタの型を`number`または`bigint`として指定するオプションがあります。以下のようにできます。
+
+```ts twoslash
+import { Metric } from "effect";
+
+const numberCounter = Metric.counter("request_count", {
+  description: "リクエストを追跡するためのカウンタ",
+});
+
+const bigintCounter = Metric.counter("error_count", {
+  description: "エラーを追跡するためのカウンタ",
+  bigint: true,
+});
+```
+
+もし値だけが増加するカウンタを作成したい場合は、`incremental: true`オプションを利用できます。
+
+```ts twoslash
+import { Metric } from "effect";
+
+const incrementalCounter = Metric.counter("count", {
+  description: "値のみを増やすカウンタ",
+  incremental: true,
+});
+```
+
+この設定により、Effect は非増加の更新がカウンタに影響を与えないようにし、カウントアップ専用として設定されます。
+
+### カウンタを使用するタイミング
+
+カウンタは、時間の経過とともに増加したり減少したりできる累積値を追跡する必要がある場合に非常に便利です。では、いつカウンタを使用すべきでしょうか？
+
+1. **時間の経過による値の追跡**: 受信するリクエストの数のように、時間の経過とともに一貫して増加するものを監視する必要がある場合、カウンタが最適です。
+
+2. **成長率の測定**: カウンタは、何かがどれだけ速く成長しているかを測定したいときにも便利です。リクエストレートを監視するのに使えます。
+
+カウンタは以下のようなさまざまなシナリオで活用されます：
+
+- **リクエスト数**: サーバーへの受信リクエストの数の監視。
+
+- **完了したタスク**: 成功裏に完了したタスクやプロセスの数を追跡。
+
+- **エラー数**: アプリケーション内のエラー発生回数のカウント。
+
+### 例
+
+以下は、コード内でカウンタを作成し、使用する実用的な例です。
+
+```ts twoslash
+import { Metric, Effect, Console } from "effect";
+
+// 'task_count'という名前のカウンタを作成し、呼び出されるたびに1増やす
+const taskCount = Metric.counter("task_count").pipe(
+  Metric.withConstantInput(1)
+);
+
+const task1 = Effect.succeed(1).pipe(Effect.delay("100 millis"));
+const task2 = Effect.succeed(2).pipe(Effect.delay("200 millis"));
+
+const program = Effect.gen(function* () {
+  const a = yield* taskCount(task1);
+  const b = yield* taskCount(task2);
+  return a + b;
+});
+
+const showMetric = Metric.value(taskCount).pipe(Effect.andThen(Console.log));
+
+Effect.runPromise(program.pipe(Effect.tap(() => showMetric))).then(console.log);
+/*
+出力:
+CounterState {
+  count: 2,
+  ...
+}
+3
+*/
+```
+
+この例では、`taskCount`というカウンタを作成し、呼び出されるたびに 1 増加させます。そして、特定のタスクが実行された回数を監視するために使用しています。この結果は、これらのタスクの累積カウントに関する貴重な洞察を提供します。
+
+`taskCount`メトリクスをエフェクトに適用しても、その型は変更されない点にも留意してください。したがって、`task1`の型が`Effect<number>`である場合、`taskCount(task1)`の型も`Effect<number>`のままとなります。
+
+## Gauge
+
+メトリクスの世界において、ゲージは設定または調整できる単一の数値を表します。これは、時間の経過とともに変化する動的な変数のように考えることができます。ゲージの一般的な使用例の一つは、アプリケーションの現在のメモリ使用量を監視することです。
+
+カウンタが時間の経過における累積値に興味を持つのに対し、ゲージは特定の瞬間における現在の値に焦点を当てます。
+
+### ゲージの作成方法
+
+ゲージを作成するには、コード内で`Metric.gauge`コンストラクタを使用できます。ゲージの型を`number`または`bigint`として指定するオプションがあります。以下のようにできます。
+
+```ts twoslash
+import { Metric } from "effect";
+
+const numberGauge = Metric.gauge("memory_usage", {
+  description: "メモリ使用量のためのゲージ",
+});
+
+const bigintGauge = Metric.gauge("cpu_load", {
+  description: "CPU負荷のためのゲージ",
+  bigint: true,
+});
+```
+
+### ゲージを使用するタイミング
+
+ゲージは、増加したり減少したりできる値を監視したい場合に最適です。また、変化率を追跡する必要がない場合にも効果的です。言い換えれば、ゲージは特定の瞬間に特定の値を測定するのに役立ちます：
+
+- **メモリ使用量**: 現在アプリケーションが使用しているメモリ量を監視。
+
+- **キューサイズ**: タスクが処理を待っている現在のキューサイズを監視。
+
+- **進行中のリクエスト数**: サーバーが現在処理中のリクエスト数を追跡。
+
+- **温度**: 上下に変動する現在の温度を測定。
+
+### 例
+
+以下は、コード内でゲージを作成し、使用する実用的な例です。
+
+```ts twoslash
+import { Metric, Effect, Random, Console } from "effect";
+
+const temperature = Metric.gauge("temperature");
+
+const getTemperature = Effect.gen(function* () {
+  const n = yield* Random.nextIntBetween(-10, 10);
+  console.log(`変動: ${n}`);
+  return n;
+});
+
+const program = Effect.gen(function* () {
+  const series: Array<number> = [];
+  series.push(yield* temperature(getTemperature));
+  series.push(yield* temperature(getTemperature));
+  series.push(yield* temperature(getTemperature));
+  return series;
+});
+
+const showMetric = Metric.value(temperature).pipe(Effect.andThen(Console.log));
+
+Effect.runPromise(program.pipe(Effect.tap(() => showMetric))).then(console.log);
+/*
+出力:
+変動: 6
+変動: -4
+変動: -9
+GaugeState {
+  value: -9,
+  ...
+}
+[ 6, -4, -9 ]
+*/
+```
+
+## Histogram
+
+ヒストグラムは、数値値のコレクションが時間の経過とともにどのように分布しているかを理解するのに役立つメトリクスです。個々の値だけに焦点を当てるのではなく、これらの値をバケットと呼ばれる異なる間隔に整理し、そのバケット内の値の頻度を記録します。
+
+ヒストグラムは、実際の値だけでなく、それらの分布に関する洞察も提供するため、貴重です。これは、データセットの概要のようなものであり、データをバケットに分解し、各バケットにどれだけのデータポイントが含まれているかを示します。
+
+### ヒストグラムの動作
+
+ヒストグラムでは、各受信サンプルが事前に定義されたバケットに割り当てられます。データポイントが到着すると、それに対応するバケットのカウントが 1 増加し、そのサンプルは破棄されます。このバケット方式により、複数のインスタンス間でデータを集約することができます。ヒストグラムは特にパーセンタイルを測定するのに便利であり、バケットカウントを確認することで特定のパーセンタイルを推定できます。
+
+### 重要な概念
+
+- **観測値の観察**: ヒストグラムは数値値を観測し、特定のバケットにどれだけの観測があるかをカウントします。各バケットには上限があり、観測された値がそのバケットの上限以下であれば、そのバケットのカウントが 1 増えます。
+
+- **総カウント**: ヒストグラムは観測された値の合計および合計観測数を追跡します。
+
+- **Prometheus からの着想**: ヒストグラムの概念は、人気のある監視およびアラートツールキットである[Prometheus](https://prometheus.io/docs/concepts/metric_types/#histogram)からインスパイアされています。
+
+### ヒストグラムを使用するタイミング
+
+ヒストグラムは、特にソフトウェアシステムのパフォーマンスを分析するために広く使用されています。応答時間、待機時間、スループットなどのメトリクスに対して非常に有用です。これらのメトリクスをヒストグラムで視覚化することで、開発者はパフォーマンスボトルネックや外れ値、変動を特定できます。この情報は、全体的なパフォーマンスを向上させるためにコード、インフラ、およびシステム設定を最適化するのに役立ちます。
+
+以下のような状況でヒストグラムは最適です：
+
+- 多くの値を観察し、後でその観測された値のパーセンタイルを計算したい場合。
+
+- チューニングされた値の範囲をあらかじめ見積もることができ、ヒストグラムが事前に設定されたバケットに観測を整理するのに適している場合。
+
+- ヒストグラム内でのデータのバケット化に自然に伴うロスがあるため、正確な値を必要としない場合。
+
+- 複数のインスタンスでヒストグラムを集約する必要がある場合。
+
+### 例
+
+#### 線形バケットのヒストグラム
+
+以下の例では、0 から 100 までの 10 刻みの線形バケットを持つヒストグラムを作成します。また「Infinity」バケットも含まれています。`number`を返すエフェクトに適しており、プログラムはランダムな値を生成し、ヒストグラムに記録し、ヒストグラムの状態を表示します。
+
+```ts twoslash
+import { Effect, Metric, MetricBoundaries, Random } from "effect";
+
+const latencyHistogram = Metric.histogram(
+  "request_latency",
+  MetricBoundaries.linear({ start: 0, width: 10, count: 11 })
+);
+
+const program = latencyHistogram(Random.nextIntBetween(1, 120)).pipe(
+  Effect.repeatN(99)
+);
+
+Effect.runPromise(
+  program.pipe(Effect.andThen(Metric.value(latencyHistogram)))
+).then((histogramState) => console.log("%o", histogramState));
+/*
+出力:
+HistogramState {
+  buckets: [
+    [ 0, 0 ],
+    [ 10, 7 ],
+    [ 20, 11 ],
+    [ 30, 20 ],
+    [ 40, 27 ],
+    [ 50, 38 ],
+    [ 60, 53 ],
+    [ 70, 64 ],
+    [ 80, 73 ],
+    [ 90, 84 ],
+    [ Infinity, 100 ],
+    [length]: 11
+  ],
+  count: 100,
+  min: 1,
+  max: 119,
+  sum: 5980,
+  ...
+}
+*/
+```
+
+#### タイマーメトリクス
+
+この例では、ワークフローの期間を追跡するためのタイマーメトリクスを使用します。乱数生成、待機時間のシミュレーション、タイマーメトリクスへの期間の記録、そしてヒストグラムの状態を表示します。
+
+```ts twoslash
+import { Metric, Array, Random, Effect } from "effect";
+
+// Metric<Histogram, Duration, Histogram>
+const timer = Metric.timerWithBoundaries("timer", Array.range(1, 10));
+
+const program = Random.nextIntBetween(1, 10).pipe(
+  Effect.andThen((n) => Effect.sleep(`${n} millis`)),
+  Metric.trackDuration(timer),
+  Effect.repeatN(99)
+);
+
+Effect.runPromise(program.pipe(Effect.andThen(Metric.value(timer)))).then(
+  (histogramState) => console.log("%o", histogramState)
+);
+/*
+出力:
+HistogramState {
+  buckets: [
+    [ 1, 3 ],
+    [ 2, 13 ],
+    [ 3, 17 ],
+    [ 4, 26 ],
+    [ 5, 35 ],
+    [ 6, 43 ],
+    [ 7, 53 ],
+    [ 8, 56 ],
+    [ 9, 65 ],
+    [ 10, 72 ],
+    [ Infinity, 100 ],
+    [length]: 11
+  ],
+  count: 100,
+  min: 0.25797,
+  max: 12.25421,
+  sum: 683.0266810000002,
+  ...
+}
+*/
+```
+
+これらの例は、ヒストグラムがさまざまなシナリオでデータの分布を分析し理解するためにどのように使用されるかを示しており、ソフトウェアメトリクスにおいて貴重なツールであることを強調しています。
+
+## Summary
+
+サマリーは、特定のパーセンタイルを計算することによって、時系列に関する貴重な洞察を提供するメトリクスです。これらのパーセンタイルは、時系列内の値の分布を理解するのに役立ちます。たとえば、過去 1 時間にわたってリクエストの応答時間を追跡している場合、パフォーマンスを分析するために 50 パーセンタイル、90 パーセンタイル、95 パーセンタイル、99 パーセンタイルに関心があるかもしれません。
+
+### サマリーの動作
+
+サマリーは、ヒストグラムと同様に`number`値を観測します。ただし、バケットカウンタを直接修正してサンプルを破棄するのではなく、サマリーは内部状態に観測されたサンプルを保持します。サンプルセットの制御されない増加を防ぐために、サマリーは最大年代`maxAge`および最大サイズ`maxSize`で構成されます。統計を計算する際、`maxSize`サンプルの最大数を使用し、それらはすべて`maxAge`以上古くはないものです。
+
+サンプルセットは、指定された条件を満たす最新の観測のスライディングウィンドウのように考えることができます。
+
+サマリーは、現在のサンプルセットのパーセンタイルを計算するために主に使用されます。パーセンタイルは、`0 <= q <= 1`という数値の`q`によって定義され、結果として`number`が得られます。
+
+特定のパーセンタイル`q`の値は、現在のサンプルバッファ（サイズ`n`）から、最大`q * n`の値が`v`以下となる`v`の最大値として決定されます。
+
+観測によく使用される一般的なパーセンタイルとしては、`0.5`（中央値）や`0.95`があります。パーセンタイルは、サービスレベル契約（SLA）を監視する際に特に役立ちます。
+
+Effect Metrics API は、サマリーを誤差マージン`error`で構成することを可能にします。このマージンは、値のカウントに適用されるため、サイズ`s`のセットに対するパーセンタイル`q`は、値`v`に対して、`n`が`(1 - error)q * s <= n <= (1 + error)q`の範囲内に収まる場合に解決されます。
+
+### サマリーを使用するタイミング
+
+サマリーは、ヒストグラムが正確性の懸念から適切でない場合に、レイテンシの監視に最適です。以下のような状況で特に優れています：
+
+- 値の範囲がうまく推定できない場合で、ヒストグラムが適さないとき。
+
+- 複数のインスタンス間での集約や平均化が不要で、サマリーの計算がアプリケーション側で行われる場合。
+
+### 例
+
+最大で`100`サンプルを保持し、最大サンプル年齢を`1日`、誤差マージンを`3%`とするサマリーを作成してみましょう。このサマリーは、`10%`、`50%`、`90%`のパーセンタイルを報告します。整数を返すエフェクトに適用できます。
+
+```ts twoslash
+import { Metric, Random, Effect } from "effect";
+
+const responseTimeSummary = Metric.summary({
+  name: "response_time_summary",
+  maxAge: "1 day",
+  maxSize: 100,
+  error: 0.03,
+  quantiles: [0.1, 0.5, 0.9],
+});
+
+const program = responseTimeSummary(Random.nextIntBetween(1, 120)).pipe(
+  Effect.repeatN(99)
+);
+
+Effect.runPromise(
+  program.pipe(Effect.andThen(Metric.value(responseTimeSummary)))
+).then((summaryState) => console.log("%o", summaryState));
+/*
+出力:
+SummaryState {
+  error: 0.03,
+  quantiles: [
+    [ 0.1, { _id: 'Option', _tag: 'Some', value: 17 } ],
+    [ 0.5, { _id: 'Option', _tag: 'Some', value: 62 } ],
+    [ 0.9, { _id: 'Option', _tag: 'Some', value: 109 } ]
+  ],
+  count: 100,
+  min: 4,
+  max: 119,
+  sum: 6058,
+  ...
+}
+*/
+```
+
+## Frequency
+
+頻度は、特定の値の出現回数をカウントするメトリクスです。これは、各ユニークな値に関連付けられたカウンタのセットとして考えることができます。新しい値が観測されると、頻度は自動的にそれに対する新しいカウンタを作成します。
+
+### 頻度を使用するタイミング
+
+頻度は特定の文字列値の出現回数をカウントするのに非常に便利です。たとえば、アプリケーション内の各サービスの呼び出し数を追跡したり、さまざまなタイプの失敗の頻度を監視するために使用できます。
+
+### 例
+
+ユニークな文字列の出現回数を観察するために Frequency を作成してみましょう。この例は、`string`を返すエフェクトに適用できます。
+
+```ts twoslash
+import { Metric, Random, Effect } from "effect";
+
+const errorFrequency = Metric.frequency("error_frequency");
+
+const program = errorFrequency(
+  Random.nextIntBetween(1, 10).pipe(Effect.andThen((n) => `Error-${n}`))
+).pipe(Effect.repeatN(99));
+
+Effect.runPromise(
+  program.pipe(Effect.andThen(Metric.value(errorFrequency)))
+).then((frequencyState) => console.log("%o", frequencyState));
+/*
+出力:
+FrequencyState {
+  occurrences: Map(9) {
+    'Error-7' => 12,
+    'Error-2' => 12,
+    'Error-4' => 14,
+    'Error-1' => 14,
+    'Error-9' => 8,
+    'Error-6' => 11,
+    'Error-5' => 9,
+    'Error-3' => 14,
+    'Error-8' => 6
+  },
+  ...
+}
+*/
+```
+
+## メトリクスへのタグ付け
+
+メトリクスを作成する際、タグを追加できます。タグは、追加のコンテキストを提供するキーと値のペアです。これにより、メトリクスをカテゴリー分けし、フィルタリングしやすくなります。
+
+### 複数メトリクスへのタグ付け
+
+`Effect.tagMetrics`を使用して、同じコンテキスト内で作成されたすべてのメトリクスにタグを適用できます。これは、複数のメトリクスに適用される共通のタグを追加するのに便利です。
+
+```ts twoslash
+import { Metric, Effect } from "effect";
+
+const taskCount = Metric.counter("task_count");
+const task1 = Effect.succeed(1).pipe(Effect.delay("100 millis"));
+
+Effect.gen(function* () {
+  yield* taskCount(task1);
+}).pipe(Effect.tagMetrics("environment", "production"));
+```
+
+あるいは、`Effect.tagMetricsScoped`を使用して、特定のスコープ内でタグを適用することもできます。
+
+### 特定のメトリクスへのタグ付け
+
+個別のメトリクスには、`Metric.tagged`を使用してタグを適用できます。このメソッドを使用することで、特定のメトリクスにタグを適用できます。
+
+```ts twoslash
+import { Metric } from "effect";
+
+const counter = Metric.counter("request_count").pipe(
+  Metric.tagged("environment", "production")
+);
+```

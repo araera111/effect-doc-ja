@@ -1,0 +1,123 @@
+---
+title: This Week in Effect - 2024-05-31
+excerpt: Effectに関する技術的なアップデート。アレクサンドラ・シコラによる「Effectで次レベルの型安全性」。マッティア・マンザーティによる「Effect RPCを用いたEffect Cluster統合」第2話。
+date: 2024-05-31
+authors:
+  - name: ダビデ・スコニャミッリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-05-24
+  - this-week-in-effect-2024-06-07
+---
+
+こんにちは、Effectersの皆さん！
+
+「This Week In Effect（**TWIE**）」に戻ってきていただき、ありがとうございます。このウィークリーニュースは、Effectコミュニティとエコシステムにおける最新の進展についてお知らせするものです。
+
+Effectは、開発者が複雑な同期・非同期プログラムを作成するのを支援する強力なTypeScriptライブラリです。Effectの特長の一つは、構造的並行性を活用することで、非同期キャンセルや安全なリソース管理といった機能を提供し、堅牢でスケーラブルかつ効率的なプログラムの構築を容易にすることです。
+
+Effectを始めるには、以下のクイックスタートガイドとドキュメントをチェックしてください。
+
+- [Effectクイックスタートガイド](/docs/quickstart)
+- [Effectドキュメント](/docs/introduction)
+
+私たちは、Effectの旅を最大限に楽しむための情報を簡単に見つける手助けをしたいと考えています。また、コミュニティとの積極的な交流も促進しています。ここでは、前週の重要な進展や、Discordでのディスカッション、注目すべき投稿、YouTubeコンテンツ、技術的な進展などのコミュニティ活動が紹介されています。
+
+**最近の主なアップデート**
+
+- EffectがAPI安定版となり、[Effect 3.0リリース](https://effect.website/blog/effect-3.0)が行われました。
+- [Effect 3.2](https://effect.website/blog/effect-3.2)がリリースされました。
+- Discordコミュニティのメンバーが**2900人以上**に達しました！
+- [Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)にて毎週新しいEffect Daysのトークを公開しています。
+
+## 技術
+
+ここでは、先週に発生したすべての技術的な変更を紹介します。
+
+### Effect コア
++ [古くなったRequestResolverの説明を更新し、内部実装で冗長な代入を削除](https://github.com/Effect-TS/effect/pull/2862)（リファクタリング）
++ [修正: DeepMutableタプル](https://github.com/Effect-TS/effect/pull/2879)（バグ修正）
++ [DeepMutable: 冗長な分岐を削除](https://github.com/Effect-TS/effect/pull/2885)（リファクタリング）
++ [Genコンテキスト](https://github.com/Effect-TS/effect/pull/2857)（機能、次のマイナーリリース）
++ [Stream.toReadableStream用のキューイング戦略オプションを追加](https://github.com/Effect-TS/effect/pull/2864)（機能、次のマイナーリリース）
++ [Redacted"T"モジュールを導入](https://github.com/Effect-TS/effect/pull/2856)（機能、次のマイナーリリース）
++ [isTupleOfがReadonlyArrayで動作することを確認](https://github.com/Effect-TS/effect/pull/2883)（バグ修正、次のマイナーリリース）
+
+### Effect プラットフォーム
++ [プラットフォーム: readme: KeyValueStoreセクションを追加](https://github.com/Effect-TS/effect/pull/2845)（ドキュメント更新）
++ [Docs: プラットフォームREADMEにおける生のリクエスト取得の例を追加](https://github.com/Effect-TS/effect/pull/2850)（ドキュメント更新）
++ [FileSystem makeTempFileScoped用の一時ディレクトリを削除](https://github.com/Effect-TS/effect/pull/2859)（バグ修正）
++ [標準出力のストリーミングに関する例を使用してプラットフォームREADMEを更新](https://github.com/Effect-TS/effect/pull/2870)（ドキュメント更新）
++ [機能: KeyValueStore.layerStorageを追加](https://github.com/Effect-TS/effect/pull/2737)（機能）
+
+### Effect CLI
++ [Optionを使用した際にcliウィザードでより良いメッセージを表示](https://github.com/Effect-TS/effect/pull/2847)（バグ修正）
++ [CLI: README: 基本的な使用法を含み、チュートリアルセクションを改訂](https://github.com/Effect-TS/effect/pull/2844)（ドキュメント更新）
++ [Redacted"T"モジュールを導入](https://github.com/Effect-TS/effect/pull/2856)（機能、次のマイナーリリース）
+
+### Effect SQL
++ [sqlite wasm型IDがユニークであることを確認](https://github.com/Effect-TS/effect/pull/2858)（バグ修正）
++ [修正(sql): mysqlマイグレータ](https://github.com/Effect-TS/effect/pull/2867)（バグ修正）
+
+### Effect スキーマ
++ [スキーマ: readme: Transformationsセクションをリファクタリング](https://github.com/Effect-TS/effect/pull/2852)（ドキュメント更新）
++ [Formatting Errorsセクションをリファクタリング](https://github.com/Effect-TS/effect/pull/2861)（ドキュメント更新）
++ [tagおよびTaggedStructコンストラクタを追加](https://github.com/Effect-TS/effect/pull/2851)（機能）
++ [スキーマ: readme: タイプミスを修正](https://github.com/Effect-TS/effect/pull/2863)（ドキュメント更新）
++ [missing makePropertySignatureコンストラクタを追加](https://github.com/Effect-TS/effect/pull/2880)（バグ修正）
++ [SchemaモジュールにrequiredToOptional関数を追加し、クローズ](https://github.com/Effect-TS/effect/pull/2882)（機能、ドキュメント更新）
++ [Redacted"T"モジュールを導入](https://github.com/Effect-TS/effect/pull/2856)（機能、次のマイナーリリース）
+
+### Effect Vitest
++ [flakyTest関数のtimeoutパラメータ型をDurationInputを受け入れるように更新](https://github.com/Effect-TS/effect/pull/2869)（リファクタリング）
++ [Vitest: 基本的なドキュメントを追加](https://github.com/Effect-TS/effect/pull/2868)（ドキュメント更新）
+
+### 一般的な雑務
++ [スキーマ: 古いmdファイルを削除](https://github.com/Effect-TS/effect/pull/2849)
++ [未使用の内部APIを削除](https://github.com/Effect-TS/effect/pull/2866)
++ [changesetを修正](https://github.com/Effect-TS/effect/pull/2891)
+
+## コミュニティのハイライト
+
+先週、私たちは新たに50人以上のEffectersを[Discordコミュニティ](https://discord.gg/effect-ts)に迎え入れました。私たちは皆さんをお迎えできて嬉しいです！
+
+私たちの成長し続けるコミュニティは、Effectを使用する際の体験やフィードバックを積極的に共有しています：
+
++ [アンドレ・ケーニヒ](https://x.com/ItsAndreKoenig)、[オープンフォーメーション](https://openformation.io)のCEO兼ソリューションアーキテクトは、Effectのコアコンセプトを学ぶことについてのフィードバックを共有しました：
+<Tweet id="1794809898250666251" />
+
++ [ジャン＝バティスト・ミュッソ](https://x.com/jbmusso)と[Evryg](https://www.evryg.com)チームは、2年間にわたりEffectを本番環境で使用しており、Effectが彼らのプロジェクトのパフォーマンスを10倍向上させたことを共有しました：
+<Tweet id="1795209873061216660" />
+
++ [ジェス・マーチン](https://x.com/jessmartin)は、5月30日にベルリンで開催された[LocalFirstConf](https://www.localfirstconf.com/)で、[DXOS](https://dxos.org/)とEffectの相互運用性のためにアプリケーション間でスキーマを共有する方法についてのプレゼンテーションを行いました。
+<Tweet id="1796128076100673898" />
+
++ [Evryg](https://www.evryg.com)チームは、第二回[Effectパリミートアップ](https://www.meetup.com/effect-paris/#)の日程を発表しました：**6月25日火曜日午後7時**。トークの提出を受け付け中です—[今すぐ提出してください](https://github.com/evryg-org/effect-paris/issues/new?template=talk.yml)! ミートアップはフランス語で行われることをお知らせします。
+<Tweet id="1793661086291710258" />
+
+### コンテンツの更新
+
++ Effect Days Conferenceからの別のトークが月曜日に公開されました。「Effectで次レベルの型安全性」アレクサンドラ・シコラによる発表です。彼女のプレゼンテーションでは、Effectを使用することの利点が説明されています。EffectはTypeScriptのメタフレームワークであり、コードの複雑さ、非同期コード、依存性注入、エラーハンドリングを型安全に扱うのを助けます。
+<YouTube url="https://www.youtube.com/embed/Wtc7T-9YxYg?si=C7ypYEPVpg4PKV3U" />
+
++ [マッティア・マンザーティ](https://twitter.com/MattiaManzati)による「Effect RPCを用いたEffect Cluster統合」第2話が[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で公開されました。
+<YouTube url="https://www.youtube.com/embed/_C5ZUjbtLi0?si=C3mVoVLVFjSSR9_B" />
+
++ [マイケル・アルナルディ](https://x.com/MichaelArnaldi)、Effectの著者が月曜日に[nickyt.live](https://nickyt.live/)ポッドキャストに出演し、ライブコーディングセッションを通じてEffectを紹介しました。下記でフルストリームをご覧いただき、エピソードのコードデモを含むリポジトリを[チェックしてください](https://github.com/nickytonline/stream-for-effect)。
+<YouTube url="https://www.youtube.com/embed/tDBSYKk9Hqs?si=wsCtMDMlHZnm4Qt8" />
+
+## 終わりに
+
+今週の内容は以上です。私たちのコミュニティの重要な一員でいてくださりありがとうございます。皆さんのフィードバックは私たちにとって非常に重要です。このフォーマットを微調整する際に、ぜひご意見をお寄せください。私たちは、コミュニティのニーズに合わせて最善を尽くします。
+
+_Effectコミュニティチーム_

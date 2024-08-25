@@ -1,0 +1,68 @@
+---
+title: デュアルAPI
+excerpt: Effectエコシステムにおける「data-last」と「data-first」のデュアルAPIのバリアントを、`Effect.map`の例を用いて探ります。あなたのコーディングスタイルと可読性の好みに基づいて、どちらを選択するか学びましょう。
+bottomNavigation: pagination
+---
+
+Effect エコシステムで API を扱う際に、同じ API を異なる方法で使用する二つのスタイルが存在します。この二つのスタイルは「data-last」と「data-first」と呼ばれます。
+
+:::info
+技術的な観点から見ると、これらのバリアントは二つの TypeScript のオーバーロードを使用して実装されています。
+
+:::
+
+API が両方のバリアントをサポートしている場合、それを「デュアル API」と呼びます。
+
+具体的なデュアル API の例として、`Effect.map`を使ってこれらの二つのバリアントを探ってみましょう。
+
+`Effect.map`関数は二つの TypeScript のオーバーロードで定義されています。「data-last」と「data-first」という用語は、二つのオーバーロードのシグネチャにおける`self`引数（データとも呼ばれる）の位置を示しています：
+
+```ts
+export declare const map: {
+  // data-last
+  <A, B>(f: (a: A) => B): <E, R>(self: Effect<A, E, R>) => Effect<B, E, R>;
+  // data-first
+  <A, E, R, B>(self: Effect<A, E, R>, f: (a: A) => B): Effect<B, E, R>;
+};
+```
+
+## data-last
+
+最初のオーバーロードでは、`self`引数が**最後の位置**にあります：
+
+```ts
+<A, B>(f: (a: A) => B): <E, R>(self: Effect<A, E, R>) => Effect<B, E, R>
+```
+
+これは`pipe`を使用する際に使われるバリアントです。最初の引数として`Effect`を`pipe`関数に渡し、その後に`Effect.andThen`を呼び出します：
+
+```ts
+const mappedEffect = pipe(effect, Effect.andThen(func));
+```
+
+このバリアントは、長いパイプライン内で複数の計算をチェーンする必要がある場合に便利です。初回の変換の後にさらに計算を追加することで、パイプラインを続けることができます：
+
+```ts
+pipe(effect, Effect.andThen(func1), Effect.andThen(func2), ...)
+```
+
+## data-first
+
+二つ目のオーバーロードでは、`self`引数が**最初の位置**にあります：
+
+```ts
+<A, E, R, B>(self: Effect<A, E, R>, f: (a: A) => B): Effect<B, E, R>
+```
+
+このバリアントは`pipe`関数を必要としません。その代わり、`Effect.andThen`関数に`Effect`を最初の引数として直接渡すことができます：
+
+```ts
+const mappedEffect = Effect.andThen(effect, func);
+```
+
+このバリアントは、`Effect`に対して単一の操作を実行するだけの時に便利です。
+
+:::tip
+**バリアントの選択**。どちらのオーバーロードも同じ結果を得ることができることに注意することが重要です。単にコードを表現する異なる二つの方法です。自分やチームにとって最も可読性の高いコーディングスタイルに合ったオーバーロードを選択できます。
+
+:::

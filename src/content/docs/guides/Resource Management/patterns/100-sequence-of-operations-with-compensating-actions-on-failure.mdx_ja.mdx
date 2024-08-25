@@ -1,0 +1,547 @@
+---
+title: 失敗時の補償アクションを伴う操作のシーケンス
+excerpt: Effect は、成功が前のステップに依存する順次操作を容易にし、失敗時にはロールバックを行います。
+bottomNavigation: pagination
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+特定のシナリオにおいては、各操作の成功が前の操作に依存する一連の連鎖操作を実行する必要がある場合があります。しかし、いずれかの操作が失敗した場合には、すべての以前の成功した操作の効果を取り消したいと思うでしょう。このパターンは、すべての操作が成功するか、まったく効果がないかを保証する必要があるときに価値があります。
+
+Effect では、[Effect.acquireRelease](../scope#defining-resources) 関数と [Exit](../../../other/data-types/exit) 型を組み合わせることで、このパターンを実現する方法を提供しています。
+[Effect.acquireRelease](../scope#defining-resources) 関数は、リソースを取得し、そのリソースで操作を実行し、終了したときにリソースを解放します。
+[Exit](../../../other/data-types/exit) 型は、効果のある計算の結果を表し、成功したか失敗したかを示します。
+
+このパターンを実装する例を見てみましょう。アプリケーションに「ワークスペース」を作成したいと仮定します。これには、S3 バケット、ElasticSearch インデックス、および前述の 2 つに依存するデータベースエントリを作成することが含まれます。
+
+まず、必要な [サービス](./context-management/services) のドメインモデルを定義します: `S3`, `ElasticSearch`, `Database`.
+
+```twoslash include Services
+import { Effect, Context } from "effect"
+
+export class S3Error {
+  readonly _tag = "S3Error"
+}
+
+export interface Bucket {
+  readonly name: string
+}
+
+export class S3 extends Context.Tag("S3")<
+  S3,
+  {
+    readonly createBucket: Effect.Effect<Bucket, S3Error>
+    readonly deleteBucket: (bucket: Bucket) => Effect.Effect<void>
+  }
+>() {}
+
+export class ElasticSearchError {
+  readonly _tag = "ElasticSearchError"
+}
+
+export interface Index {
+  readonly id: string
+}
+
+export class ElasticSearch extends Context.Tag("ElasticSearch")<
+  ElasticSearch,
+  {
+    readonly createIndex: Effect.Effect<Index, ElasticSearchError>
+    readonly deleteIndex: (index: Index) => Effect.Effect<void>
+  }
+>() {}
+
+export class DatabaseError {
+  readonly _tag = "DatabaseError"
+}
+
+export interface Entry {
+  readonly id: string
+}
+
+export class Database extends Context.Tag("Database")<
+  Database,
+  {
+    readonly createEntry: (
+      bucket: Bucket,
+      index: Index
+    ) => Effect.Effect<Entry, DatabaseError>
+    readonly deleteEntry: (entry: Entry) => Effect.Effect<void>
+  }
+>() {}
+```
+
+```ts filename="Services.ts" twoslash
+// @include: Services
+```
+
+次に、ワークスペースのための 3 つの作成アクションと全体のトランザクション (`make`) を定義します。
+
+<Tabs items={["Effect.gen を使用", "pipe を使用"]}>
+<TabItem
+  label="Effect.gen を使用"
+      >
+
+```ts filename="Workspace.ts" twoslash
+// @filename: Services.ts
+// @include: Services
+
+// @filename: Workspace.ts
+// ---cut---
+import { Effect, Exit } from "effect";
+import * as Services from "./Services";
+
+// バケットを作成し、操作が失敗した場合にバケットを削除するリリース関数を定義します。
+const createBucket = Effect.gen(function* () {
+  const { createBucket, deleteBucket } = yield* Services.S3;
+  return yield* Effect.acquireRelease(createBucket, (bucket, exit) =>
+    // Effect.acquireRelease 操作のリリース関数は、メインエフェクトが完了した後に取得したリソース（バケット）を処理します。
+    // メインエフェクトが成功したか失敗したかに関わらず呼び出されます。
+    // メインエフェクトが失敗した場合、Exit.isFailure(exit) が true となり、deleteBucket(bucket) を呼び出してロールバックを行います。
+    // メインエフェクトが成功した場合、Exit.isFailure(exit) が false となり、Effect.void を返し、成功したが何もしない効果を表します。
+    Exit.isFailure(exit) ? deleteBucket(bucket) : Effect.void
+  );
+});
+
+// インデックスを作成し、操作が失敗した場合にインデックスを削除するリリース関数を定義します。
+const createIndex = Effect.gen(function* () {
+  const { createIndex, deleteIndex } = yield* Services.ElasticSearch;
+  return yield* Effect.acquireRelease(createIndex, (index, exit) =>
+    Exit.isFailure(exit) ? deleteIndex(index) : Effect.void
+  );
+});
+
+// データベースにエントリを作成し、操作が失敗した場合にエントリを削除するリリース関数を定義します。
+const createEntry = (bucket: Services.Bucket, index: Services.Index) =>
+  Effect.gen(function* () {
+    const { createEntry, deleteEntry } = yield* Services.Database;
+    return yield* Effect.acquireRelease(
+      createEntry(bucket, index),
+      (entry, exit) => (Exit.isFailure(exit) ? deleteEntry(entry) : Effect.void)
+    );
+  });
+
+export const make = Effect.scoped(
+  Effect.gen(function* () {
+    const bucket = yield* createBucket;
+    const index = yield* createIndex;
+    return yield* createEntry(bucket, index);
+  })
+);
+```
+
+</TabItem>
+<TabItem
+  label="pipe を使用"
+      >
+
+```ts filename="Workspace.ts" twoslash
+// @filename: Services.ts
+// @include: Services
+
+// @filename: Workspace.ts
+// ---cut---
+import { Effect, Exit } from "effect";
+import * as Services from "./Services";
+
+// バケットを作成し、操作が失敗した場合にバケットを削除するリリース関数を定義します。
+const createBucket = Services.S3.pipe(
+  Effect.andThen(({ createBucket, deleteBucket }) =>
+    Effect.acquireRelease(createBucket, (bucket, exit) =>
+      // Effect.acquireRelease 操作のリリース関数は、メインエフェクトが完了した後に取得したリソース（バケット）を処理します。
+      // メインエフェクトが成功したか失敗したかに関わらず呼び出されます。
+      // メインエフェクトが失敗した場合、Exit.isFailure(exit) が true となり、deleteBucket(bucket) を呼び出してロールバックを行います。
+      // メインエフェクトが成功した場合、Exit.isFailure(exit) が false となり、Effect.void を返し、成功したが何もしない効果を表します。
+      Exit.isFailure(exit) ? deleteBucket(bucket) : Effect.void
+    )
+  )
+);
+
+// インデックスを作成し、操作が失敗した場合にインデックスを削除するリリース関数を定義します。
+const createIndex = Services.ElasticSearch.pipe(
+  Effect.andThen(({ createIndex, deleteIndex }) =>
+    Effect.acquireRelease(createIndex, (index, exit) =>
+      Exit.isFailure(exit) ? deleteIndex(index) : Effect.void
+    )
+  )
+);
+
+// データベースにエントリを作成し、操作が失敗した場合にエントリを削除するリリース関数を定義します。
+const createEntry = (bucket: Services.Bucket, index: Services.Index) =>
+  Services.Database.pipe(
+    Effect.andThen(({ createEntry, deleteEntry }) =>
+      Effect.acquireRelease(createEntry(bucket, index), (entry, exit) =>
+        Exit.isFailure(exit) ? deleteEntry(entry) : Effect.void
+      )
+    )
+  );
+
+export const make = Effect.scoped(
+  Effect.Do.pipe(
+    Effect.bind("bucket", () => createBucket),
+    Effect.bind("index", () => createIndex),
+    Effect.andThen(({ bucket, index }) => createEntry(bucket, index))
+  )
+);
+```
+
+</TabItem>
+</Tabs>
+
+次に、ワークスペースコードの動作をテストするためのシンプルなサービス実装を作成します。
+これを実現するために、[レイヤー](./context-management/layers)を利用してテストサービスを構築します。
+これらのレイヤーは、さまざまなシナリオを処理でき、`FailureCase` 型を使用して制御できるエラーを含みます。
+
+<Tabs items={["Effect.gen を使用", "pipe を使用"]}>
+<TabItem
+  label="Effect.gen を使用"
+      >
+
+```ts filename="WorkspaceTest.ts" twoslash
+// @filename: Services.ts
+// @include: Services
+
+// @filename: Workspace.ts
+import { Effect, Exit } from "effect";
+import * as Services from "./Services";
+
+const createBucket = Services.S3.pipe(
+  Effect.andThen(({ createBucket, deleteBucket }) =>
+    Effect.acquireRelease(createBucket, (bucket, exit) =>
+      Exit.isFailure(exit) ? deleteBucket(bucket) : Effect.void
+    )
+  )
+);
+
+const createIndex = Services.ElasticSearch.pipe(
+  Effect.andThen(({ createIndex, deleteIndex }) =>
+    Effect.acquireRelease(createIndex, (index, exit) =>
+      Exit.isFailure(exit) ? deleteIndex(index) : Effect.void
+    )
+  )
+);
+
+const createEntry = (bucket: Services.Bucket, index: Services.Index) =>
+  Services.Database.pipe(
+    Effect.andThen(({ createEntry, deleteEntry }) =>
+      Effect.acquireRelease(createEntry(bucket, index), (entry, exit) =>
+        Exit.isFailure(exit) ? deleteEntry(entry) : Effect.void
+      )
+    )
+  );
+
+export const make = Effect.scoped(
+  Effect.Do.pipe(
+    Effect.bind("bucket", () => createBucket),
+    Effect.bind("index", () => createIndex),
+    Effect.andThen(({ bucket, index }) => createEntry(bucket, index))
+  )
+);
+
+// @filename: WorkspaceTest.ts
+// ---cut---
+import { Effect, Context, Layer, Console } from "effect";
+import * as Services from "./Services";
+import * as Workspace from "./Workspace";
+
+// `FailureCaseLiterals` 型は、テスト中に異なるエラーシナリオを提供することを可能にします。
+// たとえば、値 "S3" を提供することで、S3 サービス特有のエラーシナリオをシミュレートできます。
+// これにより、プログラムがエラーを正しく処理し、さまざまな状況で期待どおりに動作することを確認できます。
+// 同様に、"ElasticSearch" や "Database" のような他の値を提供して、それぞれのサービスに対するエラーシナリオをシミュレートできます。
+// エラーなしでテストしたい場合は、`undefined` を提供できます。
+// このパラメータを使用することで、サービスを徹底的にテストし、異なるエラー条件での動作を確認できます。
+type FailureCaseLiterals = "S3" | "ElasticSearch" | "Database" | undefined;
+
+class FailureCase extends Context.Tag("FailureCase")<
+  FailureCase,
+  FailureCaseLiterals
+>() {}
+
+// S3 サービスのテストレイヤーを作成します
+
+const S3Test = Layer.effect(
+  Services.S3,
+  Effect.gen(function* () {
+    const failureCase = yield* FailureCase;
+    return {
+      createBucket: Effect.gen(function* () {
+        console.log("[S3] バケットを作成中");
+        if (failureCase === "S3") {
+          return yield* Effect.fail(new Services.S3Error());
+        } else {
+          return { name: "<bucket.name>" };
+        }
+      }),
+      deleteBucket: (bucket) =>
+        Console.log(`[S3] バケット ${bucket.name} を削除`),
+    };
+  })
+);
+
+// ElasticSearch サービスのテストレイヤーを作成します
+
+const ElasticSearchTest = Layer.effect(
+  Services.ElasticSearch,
+  Effect.gen(function* () {
+    const failureCase = yield* FailureCase;
+    return {
+      createIndex: Effect.gen(function* () {
+        console.log("[ElasticSearch] インデックスを作成中");
+        if (failureCase === "ElasticSearch") {
+          return yield* Effect.fail(new Services.ElasticSearchError());
+        } else {
+          return { id: "<index.id>" };
+        }
+      }),
+      deleteIndex: (index) =>
+        Console.log(`[ElasticSearch] インデックス ${index.id} を削除`),
+    };
+  })
+);
+
+// Database サービスのテストレイヤーを作成します
+
+const DatabaseTest = Layer.effect(
+  Services.Database,
+  Effect.gen(function* () {
+    const failureCase = yield* FailureCase;
+    return {
+      createEntry: (bucket, index) =>
+        Effect.gen(function* () {
+          console.log(
+            `[Database] バケット ${bucket.name} およびインデックス ${index.id} のエントリを作成中`
+          );
+          if (failureCase === "Database") {
+            return yield* Effect.fail(new Services.DatabaseError());
+          } else {
+            return { id: "<entry.id>" };
+          }
+        }),
+      deleteEntry: (entry) =>
+        Console.log(`[Database] エントリ ${entry.id} を削除`),
+    };
+  })
+);
+
+// S3, ElasticSearch, Database サービスのすべてのテストレイヤーを一つのレイヤーに統合します
+
+const layer = Layer.mergeAll(S3Test, ElasticSearchTest, DatabaseTest);
+
+// ワークスペースコードをテストするための実行可能なエフェクトを作成します
+// このエフェクトには、テストレイヤーと FailureCase サービスが提供され、undefined（失敗ケースなし）の値が指定されます。
+
+const runnable = Workspace.make.pipe(
+  Effect.provide(layer),
+  Effect.provideService(FailureCase, undefined)
+);
+
+Effect.runPromise(Effect.either(runnable)).then(console.log);
+```
+
+</TabItem>
+<TabItem
+  label="pipe を使用"
+      >
+
+```ts filename="Workspace.ts" twoslash
+// @filename: Services.ts
+// @include: Services
+
+// @filename: Workspace.ts
+import { Effect, Exit } from "effect";
+import * as Services from "./Services";
+
+const createBucket = Services.S3.pipe(
+  Effect.andThen(({ createBucket, deleteBucket }) =>
+    Effect.acquireRelease(createBucket, (bucket, exit) =>
+      Exit.isFailure(exit) ? deleteBucket(bucket) : Effect.void
+    )
+  )
+);
+
+const createIndex = Services.ElasticSearch.pipe(
+  Effect.andThen(({ createIndex, deleteIndex }) =>
+    Effect.acquireRelease(createIndex, (index, exit) =>
+      Exit.isFailure(exit) ? deleteIndex(index) : Effect.void
+    )
+  )
+);
+
+const createEntry = (bucket: Services.Bucket, index: Services.Index) =>
+  Services.Database.pipe(
+    Effect.andThen(({ createEntry, deleteEntry }) =>
+      Effect.acquireRelease(createEntry(bucket, index), (entry, exit) =>
+        Exit.isFailure(exit) ? deleteEntry(entry) : Effect.void
+      )
+    )
+  );
+
+export const make = Effect.scoped(
+  Effect.Do.pipe(
+    Effect.bind("bucket", () => createBucket),
+    Effect.bind("index", () => createIndex),
+    Effect.andThen(({ bucket, index }) => createEntry(bucket, index))
+  )
+);
+
+// @filename: WorkspaceTest.ts
+// ---cut---
+import { Effect, Context, Layer, Console } from "effect";
+import * as Services from "./Services";
+import * as Workspace from "./Workspace";
+
+// `FailureCaseLiterals` 型は、テスト中に異なるエラーシナリオを提供することを可能にします。
+// たとえば、値 "S3" を提供することで、S3 サービス特有のエラーシナリオをシミュレートできます。
+// これにより、プログラムがエラーを正しく処理し、さまざまな状況で期待どおりに動作することを確認できます。
+// 同様に、"ElasticSearch" や "Database" のような他の値を提供して、それぞれのサービスに対するエラーシナリオをシミュレートできます。
+// エラーなしでテストしたい場合は、`undefined` を提供できます。
+// このパラメータを使用することで、サービスを徹底的にテストし、異なるエラー条件での動作を確認できます。
+type FailureCaseLiterals = "S3" | "ElasticSearch" | "Database" | undefined;
+
+class FailureCase extends Context.Tag("FailureCase")<
+  FailureCase,
+  FailureCaseLiterals
+>() {}
+
+// S3 サービスのテストレイヤーを作成します
+
+const S3Test = Layer.effect(
+  Services.S3,
+  Effect.andThen(FailureCase, (failureCase) => ({
+    createBucket: Console.log("[S3] バケットを作成中").pipe(
+      Effect.andThen(
+        failureCase === "S3"
+          ? Effect.fail(new Services.S3Error())
+          : Effect.succeed({ name: "<bucket.name>" })
+      )
+    ),
+    deleteBucket: (bucket) =>
+      Console.log(`[S3] バケット ${bucket.name} を削除`),
+  }))
+);
+
+// ElasticSearch サービスのテストレイヤーを作成します
+
+const ElasticSearchTest = Layer.effect(
+  Services.ElasticSearch,
+  Effect.andThen(FailureCase, (failureCase) => ({
+    createIndex: Console.log("[ElasticSearch] インデックスを作成中").pipe(
+      Effect.andThen(
+        failureCase === "ElasticSearch"
+          ? Effect.fail(new Services.ElasticSearchError())
+          : Effect.succeed({ id: "<index.id>" })
+      )
+    ),
+    deleteIndex: (index) =>
+      Console.log(`[ElasticSearch] インデックス ${index.id} を削除`),
+  }))
+);
+
+// Database サービスのテストレイヤーを作成します
+
+const DatabaseTest = Layer.effect(
+  Services.Database,
+  Effect.andThen(FailureCase, (failureCase) => ({
+    createEntry: (bucket, index) =>
+      Console.log(
+        `[Database] バケット ${bucket.name} およびインデックス ${index.id} のエントリを作成中`
+      ).pipe(
+        Effect.andThen(
+          failureCase === "Database"
+            ? Effect.fail(new Services.DatabaseError())
+            : Effect.succeed({ id: "<entry.id>" })
+        )
+      ),
+    deleteEntry: (entry) =>
+      Console.log(`[Database] エントリ ${entry.id} を削除`),
+  }))
+);
+
+// S3, ElasticSearch, Database サービスのすべてのテストレイヤーを一つのレイヤーに統合します
+
+const layer = Layer.mergeAll(S3Test, ElasticSearchTest, DatabaseTest);
+
+// ワークスペースコードをテストするための実行可能なエフェクトを作成します
+// このエフェクトには、テストレイヤーと FailureCase サービスが提供され、undefined（失敗ケースなし）の値が指定されます。
+
+const runnable = Workspace.make.pipe(
+  Effect.provide(layer),
+  Effect.provideService(FailureCase, undefined)
+);
+
+Effect.runPromise(Effect.either(runnable)).then(console.log);
+```
+
+</TabItem>
+</Tabs>
+
+`FailureCase` が `undefined` に設定されたシナリオのテスト結果を見てみましょう（ハッピーパス）:
+
+```bash
+[S3] バケットを作成中
+[ElasticSearch] インデックスを作成中
+[Database] バケット <bucket.name> とインデックス <index.id> のエントリを作成中
+{
+  _id: "Either",
+  _tag: "Right",
+  right: {
+    id: "<entry.id>"
+  }
+}
+```
+
+この場合、すべての操作が成功し、`right({ id: '<entry.id>' })` という成功した結果が得られます。
+
+次に、`Database` での失敗をシミュレートしてみましょう:
+
+```ts
+const runnable = Workspace.make.pipe(
+  Effect.provide(layer),
+  Effect.provideService(FailureCase, "Database")
+);
+```
+
+コンソール出力は次のようになります:
+
+```bash
+[S3] バケットを作成中
+[ElasticSearch] インデックスを作成中
+[Database] バケット <bucket.name> とインデックス <index.id> のエントリを作成中
+[ElasticSearch] インデックス <index.id> を削除
+[S3] バケット <bucket.name> を削除
+{
+  _id: "Either",
+  _tag: "Left",
+  left: {
+    _tag: "DatabaseError"
+  }
+}
+```
+
+`Database` エラーが発生した後、`ElasticSearch` インデックスが最初に削除され、次に関連する `S3` バケットが削除されることがわかります。結果は `left(new DatabaseError())` で失敗します。
+
+次は、インデックス作成が失敗するケースを見てみましょう:
+
+```ts
+const runnable = Workspace.make.pipe(
+  Effect.provide(layer),
+  Effect.provideService(FailureCase, "ElasticSearch")
+);
+```
+
+この場合、コンソール出力は次のようになります:
+
+```bash
+[S3] バケットを作成中
+[ElasticSearch] インデックスを作成中
+[S3] バケット <bucket.name> を削除
+{
+  _id: "Either",
+  _tag: "Left",
+  left: {
+    _tag: "ElasticSearchError"
+  }
+}
+```
+
+期待通り、`ElasticSearch` インデックス作成が失敗すると、`S3` バケットが削除されることが確認できます。結果は `left(new ElasticSearchError())` という失敗です。

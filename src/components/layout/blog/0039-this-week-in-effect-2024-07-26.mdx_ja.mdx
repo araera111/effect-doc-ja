@@ -1,0 +1,123 @@
+---
+title: This Week in Effect - 2024-07-26
+excerpt: Effect Schema 0.69のリリース、Ethan Niserによる「Concurrencyとは何か？」、Michael ArnaldiとMaxwell Brownによる「Contentlayerの再考」エピソード2が発表されました。
+date: 2024-07-26
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-07-19
+  - this-week-in-effect-2024-08-02
+---
+
+こんにちは、Effectersの皆さん！
+
+今週のThis Week In Effect (**TWIE**)へようこそ – Effectコミュニティとエコシステムの最新の動向をお届けする週刊更新です。
+
+Effectは、開発者が複雑な同期・非同期プログラムを作成するのを助ける強力なTypeScriptライブラリです。Effectの特徴の一つは、構造化された並行性を活用し、非同期キャンセルや安全なリソース管理といった機能を提供することで、堅牢でスケーラブルかつ効率的なプログラムの構築を容易にする点です。
+
+以下のクイックスタートガイドとドキュメンテーションからEffectを始めてみましょう：
+
+- [Effectクイックスタートガイド](/docs/quickstart)
+- [Effectドキュメント](/docs/introduction)
+
+最近の主要な更新：
+
+- EffectはAPI安定版で、[Effect 3.0リリース](https://effect.website/blog/effect-3.0)が発表されました。
+- [Effect 3.5](https://effect.website/blog/effect-3.5)がリリースされました。
+- 我々の[Discordコミュニティ](https://discord.gg/effect-ts)は3280人以上のメンバーに達しました！
+- Effect Days 2024の全トークが[EffectのYouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴できます。
+
+## テクノロジー
+
+[Effect Schema 0.69](https://effect.website/blog/schema-release-0.69)がリリースされました。
+<Tweet id="1815769005619098053" />
+
+先週の技術的な変更点は以下の通りです。
+
+### Effect Core
++ [存在しないAPIへのリンクを削除](https://github.com/Effect-TS/effect/pull/3334)（ドキュメント更新）
++ [typoをpropertyに修正](https://github.com/Effect-TS/effect/pull/3345)（バグ修正）
++ [全てのData.Error引数が.toJSONで保持されることを確認](https://github.com/Effect-TS/effect/pull/3349)（バグ修正）
++ [Hash.numberが一意の値を返さない問題を修正](https://github.com/Effect-TS/effect/pull/3355)（バグ修正）
++ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+### Effect Platform
++ [検索パラメータに関連する関数シグネチャを修正](https://github.com/Effect-TS/effect/pull/3339)（バグ修正）
++ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+### Effect SQL
++ [最近のモジュール再編成を受けてe/sqlドキュメントを最新に更新](https://github.com/Effect-TS/effect/pull/3354)（ドキュメント更新）
+
+### Effect Experimental
++ [DevToolsクライアントが中断時にリクエストをフラッシュすることを保証](https://github.com/Effect-TS/effect/pull/3325)（バグ修正、最適化）
+
+### Effect Schema
++ [クラス定義内の不正確な静的オーバーライド型注釈を削除](https://github.com/Effect-TS/effect/pull/3311)（バグ修正）
++ [JSON Schemaガイドを更新](https://github.com/Effect-TS/effect/pull/3313)（ドキュメント更新）
++ [Schemaの次のマイナー](https://github.com/Effect-TS/effect/pull/3227)（改善）
++ [スキーマベンチマークを修正](https://github.com/Effect-TS/effect/pull/3328)（バグ修正）
++ [TaggedRequestClassインターフェースに成功と失敗のスキーマを公開](https://github.com/Effect-TS/effect/pull/3333)（改善）
++ [クラスAPIからの注釈の取得を改善](https://github.com/Effect-TS/effect/pull/3357)（改善）
++ [List.ConsをNonEmptyIterableに拡張](https://github.com/Effect-TS/effect/pull/3350)（機能、次のマイナー）
++ [Random.choiceを追加](https://github.com/Effect-TS/effect/pull/3314)（機能、次のマイナー）
++ [SchemaインターフェースにContextフィールドを追加](https://github.com/Effect-TS/effect/pull/3359)（機能）
++ [NonEmptyTrimmedString、OptionFromNonEmptyTrimmedStringを追加](https://github.com/Effect-TS/effect/pull/3343)（機能）
+
+### Effect RPC
++ [Schemaの次のマイナー](https://github.com/Effect-TS/effect/pull/3227)（改善）
++ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+### Effect Vitest
++ [vitest skipIfを追加](https://github.com/Effect-TS/effect/pull/3319)（機能）
+
+### Effect CLI
++ [Prompt.allでレコード引数をサポート](https://github.com/Effect-TS/effect/pull/3329)（機能）
++ [Prompt.allのJSDocを改善](https://github.com/Effect-TS/effect/pull/3332)（ドキュメント更新）
++ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+### 一般的な雑用
++ [babel-plugin-annotate-pure-callsのパッチを追加](https://github.com/Effect-TS/effect/pull/3310)
++ [eslintプラグインをアップデート](https://github.com/Effect-TS/effect/pull/3312)
++ [/snapshot出力の変更](https://github.com/Effect-TS/effect/pull/3316)
++ [/snapshotコメント出力の修正](https://github.com/Effect-TS/effect/pull/3317)
++ [すべてのプルリクエストでスナップショットを公開](https://github.com/Effect-TS/effect/pull/3320)（最適化）
++ [スナップショットアクションを修正](https://github.com/Effect-TS/effect/pull/3321)（バグ修正）
++ [スナップショットはプルリクエストでのみ実行を許可](https://github.com/Effect-TS/effect/pull/3324)（バグ修正）
++ [スナップショットワークフローからプッシュトリガーを削除](https://github.com/Effect-TS/effect/pull/3342)（バグ修正）
++ [スナップショットコメントを削除](https://github.com/Effect-TS/effect/pull/3351)（バグ修正）
++ [typescriptをアップグレード](https://github.com/Effect-TS/effect/pull/3360)
+
+## コミュニティのハイライト
+
+先週、40人以上の新しいEffectersを我々の[Discordコミュニティ](https://discord.gg/effect-ts)に迎えました - 皆さんをお迎えできて非常に嬉しいです！ 
+
+長年のEffectコミュニティメンバーである[Stephen Bluck](https://x.com/whatthebluck)が、Effectで動作するプロジェクトの一つ[YTK](https://iyk.app/)を紹介しました：Glimmers、NFC対応のステッカーで、さまざまなオブジェクトをプライベートフォトジャーナルに変えます。
+<Tweet id="1816209112255934617" />
+
+## Effectコンテンツの更新
+
++ Michael ArnaldiとMaxwell Brownによるシリーズ**Reimagining Contentlayer**のエピソード2が水曜日に放送されました。この動画は近日中に[EffectのYouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能になります。その間に、[MikeのTwitch](https://www.twitch.tv/mikearnaldi/video/2206072150)で見ることができます。
+<Tweet id="1816112584484913397" />
+
++ 「Reimagining Contentlayer」の第1話がYouTubeで公開されました。以下からチェックしてください：
+<YouTube url="https://www.youtube.com/embed/i4lYoTV0q6U?si=IiWblmlPZDMYcC3O" />
+
++ Effectの教育者でありEffect Days 2024のワークショップ講師である[Ethan Niser](https://x.com/ethanniser)が、構造化された並行性についての動画を公開しました。この中でEffectの進化した構造化された並行性モデルについても言及しています。下記の動画をご覧ください。
+<YouTube url="https://www.youtube.com/embed/ibxUIL_-LlA?si=u_GeUFW0NXoBKQYe" />
+
+## 終わりの言葉
+
+今週は以上です。我々のコミュニティの重要な一員でいてくれてありがとうございます。皆さんのフィードバックは、この形式を微調整する際に非常に貴重です。ぜひあなたの意見を共有してください。コミュニティのニーズに合わせて最善を尽くします。
+
+_Effectコミュニティチーム_

@@ -1,0 +1,80 @@
+---
+title: Leftovers
+excerpt: 未使用の要素を処理する方法を探る。`Sink.collectLeftover`と`Sink.ignoreLeftover`を使用して、残りを集めるか無視する方法を学びます。データストリームにおける上流ソースからの残存要素を効率的に管理・処理します。
+bottomNavigation: pagination
+---
+
+このセクションでは、シンクによって消費されない可能性のある要素をどのように処理するかを探ります。シンクは上流からさまざまな数の要素を消費することができ、残りの要素を集めるか無視する方法を学びます。
+
+## 残りの要素を集める
+
+シンクが上流ソースから要素を消費する際、すべての要素を使用しない場合があります。これらの未使用の要素は「残り」と呼ばれます。残りの要素を集めるためには、`Sink.collectLeftover`を使用します。これは、前のシンク操作の結果と残りの要素を含むタプルを返します。
+
+```ts twoslash
+import { Stream, Sink, Effect } from "effect";
+
+const s1 = Stream.make(1, 2, 3, 4, 5).pipe(
+  Stream.run(Sink.take<number>(3).pipe(Sink.collectLeftover))
+);
+
+Effect.runPromise(s1).then(console.log);
+/*
+Output:
+[
+  {
+    _id: "Chunk",
+    values: [ 1, 2, 3 ]
+  }, {
+    _id: "Chunk",
+    values: [ 4, 5 ]
+  }
+]
+*/
+
+const s2 = Stream.make(1, 2, 3, 4, 5).pipe(
+  Stream.run(Sink.head<number>().pipe(Sink.collectLeftover))
+);
+
+Effect.runPromise(s2).then(console.log);
+/*
+Output:
+[
+  {
+    _id: "Option",
+    _tag: "Some",
+    value: 1
+  }, {
+    _id: "Chunk",
+    values: [ 2, 3, 4, 5 ]
+  }
+]
+*/
+```
+
+## 残りの要素を無視する
+
+残りの要素が不要な場合、`Sink.ignoreLeftover`を使用して無視することができます。
+
+```ts twoslash
+import { Stream, Sink, Effect } from "effect";
+
+const s1 = Stream.make(1, 2, 3, 4, 5).pipe(
+  Stream.run(
+    Sink.take<number>(3).pipe(Sink.ignoreLeftover).pipe(Sink.collectLeftover)
+  )
+);
+
+Effect.runPromise(s1).then(console.log);
+/*
+Output:
+[
+  {
+    _id: "Chunk",
+    values: [ 1, 2, 3 ]
+  }, {
+    _id: "Chunk",
+    values: []
+  }
+]
+*/
+```

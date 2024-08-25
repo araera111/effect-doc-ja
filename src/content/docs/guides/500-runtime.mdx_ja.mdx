@@ -1,0 +1,268 @@
+---
+title: 実行時システムの紹介(Introduction to Runtime)
+excerpt: Effectは、開発者が複雑な同期および非同期プログラムを簡単に作成できるよう設計された強力なTypeScriptライブラリです。
+bottomNavigation: pagination
+sidebar:
+  order: 7
+---
+
+`Runtime<R>`データ型は、エフェクトを実行できる実行時システムを表します。任意のエフェクトを実行するには、そのエフェクトに必要な要件を満たす`Runtime`が必要です。
+
+`Runtime<R>`は、主に以下の三つのコンポーネントで構成されています。
+
+- 型`Context<R>`の値
+- 型`FiberRefs`の値
+- 型`RuntimeFlags`の値
+
+## デフォルトの実行時
+
+`Effect.run*`のような関数を使用する際、実際には明示的に言及することなく**デフォルトの実行時**を使用しています。これらの関数は、デフォルトの実行時を使用してエフェクトを実行するための便利なショートカットとして設計されています。
+
+たとえば、`Runtime`モジュールには、`Effect.run*`によって内部的に呼び出される`Runtime.run*(defaultRuntime)`関数があります。例えば、`Effect.runSync`は単に`Runtime.runSync(defaultRuntime)`のエイリアスです。
+
+デフォルトの実行時には以下が含まれます：
+
+- 空の`Context<never>`
+- デフォルトのサービスを含む`FiberRefs`のセット
+- `Interruption`と`CooperativeYielding`を有効にする`RuntimeFlags`のデフォルト設定
+
+ほとんどの場合、デフォルトの実行時を使用することで十分です。ただし、特定のコンテキストや設定を再利用するためにカスタム実行時を作成することが有用な場合もあります。`Layer<R, Err, RIn>`を初期化することで`Runtime<R>`を作成するのが一般的です。これにより、React アプリや API リクエストに応じてサーバー上で操作を実行する際に、実行境界を越えたコンテキストの再利用が可能になります。
+
+## 実行時システムとは？
+
+Effect プログラムを書くとき、コンストラクタやコンビネータを使用して`Effect`を構成します。基本的に、プログラムの設計図を作成していることになります。`Effect`は、並行プログラムの実行を記述するデータ構造に過ぎません。これは、`Effect`が何をするべきかを定義するさまざまなプリミティブを組み合わせた木構造を表します。
+
+ただし、このデータ構造自体は何も行いません。これは単に並行プログラムの説明です。
+
+したがって、Effect のような関数型エフェクトシステムを扱う際には、例えばコンソールに出力したり、ファイルを読み込んだり、データベースにクエリを送ったりするためのアクションに関するコードが実際にはアプリケーションのワークフローや設計図を構築しているということを理解することが重要です。我々はデータ構造を構築しています。
+
+では、Effect は実際にこれらのワークフローをどのように実行するのでしょうか？ここで Effect 実行時システムが登場します。`Runtime.run*`関数を呼び出すと、実行時システムが引き継ぎます。最初に、次のものを持つ空のルートファイバーを作成します：
+
+- 初期コンテキスト
+- 初期ファイバーリファレンス
+- 初期エフェクト
+
+ファイバーの作成後、ファイバーの runLoop を呼び出し、`Effect`で記述された命令を順に実行します。
+
+簡単に言えば、実行時システムはエフェクト[Effect&lt;A, E, R&gt;](essentials/the-effect-type)とその関連コンテキスト`Context<R>`を受け取るブラックボックスとしてイメージできます。エフェクトを実行し、結果を[Exit&lt;A, E&gt;](../other/data-types/exit)値として返します。
+
+![Runtime](/images/mmd/runtime.svg)
+
+## 実行時システムの責任
+
+実行時システムには多くの責任があります：
+
+1. **設計図のすべてのステップを実行する**。完了するまで設計図のすべてのステップを while ループで実行する必要があります。
+
+2. **予期しないエラーを処理する**。期待されるエラーだけでなく、予期しないエラーも処理する必要があります。
+
+3. **並行ファイバーを生成する**。エフェクトで`fork`を呼び出すたびに新しいファイバーを生成する責任があります。
+
+4. **他のファイバーに協力的に譲歩する**。CPU リソースを独占してしまうファイバーが出ないよう、他のファイバーに協力的に譲歩する必要があります。
+
+5. **ファイナライザーが適切に実行されることを保証する**。リソースがクリーンアップのロジックを実行するタイミングで適切にファイナライザーが実行されることを保証する必要があります。これは[Scope](./resource-management/scope)と Effect のその他のリソースセーフな構造の機能を支えています。
+
+6. **非同期コールバックを処理する**。非同期コールバックの厄介な処理を担う必要があります。Effect を使用しているとき、すべてがデフォルトで非同期または同期として解釈できます。
+
+## デフォルトの実行時
+
+Effect は、主流の使用のために設計されたデフォルトの実行時`Runtime.defaultRuntime`を提供します。
+
+デフォルトの実行時は、Effect タスクの実行を開始するために必要な最小限の機能を提供します。
+
+以下の二つの実行は等価です：
+
+```ts twoslash
+import { Effect, Runtime } from "effect";
+
+const program = Effect.log("アプリケーションが開始されました！");
+
+Effect.runSync(program);
+/*
+出力:
+... level=INFO fiber=#0 message="アプリケーションが開始されました！"
+*/
+
+Runtime.runSync(Runtime.defaultRuntime)(program);
+/*
+出力:
+... level=INFO fiber=#0 message="アプリケーションが開始されました！"
+*/
+```
+
+実際、`Effect.runSync`（および他の`Effect.run*`関数にも同様の原則が適用されます）は、`Runtime.runSync(Runtime.defaultRuntime)`の便利なショートカットを提供します。
+
+## ローカルスコープの実行時設定
+
+Effect では、実行時の設定は通常、親のワークフローから引き継がれます。つまり、ワークフロー内で実行時の設定にアクセスしたり、実行時を取得したりする場合、実質的に親ワークフローの設定を使用していることになります。ただし、コードの特定の部分に対して一時的に実行時設定をオーバーライドしたい場合があります。この概念はローカルスコープの実行時設定と呼ばれ、そのコード領域の実行が完了すると、実行時設定は元の設定に戻ります。
+
+これを実現するために、特定のコードセクションに新しい実行時設定を提供するために`Effect.provide*`関数を使用します。
+
+### 設定レイヤーを提供することでの実行時の設定
+
+`Effect.provide`関数を利用し、Effect ワークフローに実行時設定レイヤーを提供することで、実行時設定を容易に変更できます。
+
+以下はその例です：
+
+```ts twoslash
+import { Logger, Effect } from "effect";
+
+// 設定レイヤーを定義する
+const addSimpleLogger = Logger.replace(
+  Logger.defaultLogger,
+  Logger.make(({ message }) => console.log(message))
+);
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("アプリケーションが開始されました！");
+  yield* Effect.log("アプリケーションが終了しようとしています！");
+});
+
+Effect.runSync(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="アプリケーションが開始されました！"
+timestamp=... level=INFO fiber=#0 message="アプリケーションが終了しようとしています！"
+*/
+
+// デフォルトのロガーをオーバーライドする
+Effect.runSync(program.pipe(Effect.provide(addSimpleLogger)));
+/*
+出力:
+アプリケーションが開始されました！
+アプリケーションが終了しようとしています！
+*/
+```
+
+この例では、最初に`Logger.replace`を使ってシンプルなロガーの設定レイヤーを作成しました。その後、`Effect.provide`を使用してこの設定をプログラムに提供し、デフォルトのロガーをシンプルなロガーでオーバーライドします。
+
+実行時設定が Effect アプリケーションの特定部分にのみ適用されるようにするためには、設定レイヤーをその特定のセクションにのみ提供する必要があります。次の例がそれを示しています：
+
+```ts twoslash
+import { Logger, Effect } from "effect";
+
+// 設定レイヤーを定義する
+const addSimpleLogger = Logger.replace(
+  Logger.defaultLogger,
+  Logger.make(({ message }) => console.log(message))
+);
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("アプリケーションが開始されました！");
+  yield* Effect.gen(function* () {
+    yield* Effect.log("これはログに記録されません！");
+    yield* Effect.log("これはシンプルなロガーで記録されます。").pipe(
+      Effect.provide(addSimpleLogger)
+    );
+    yield* Effect.log(
+      "前の設定にリセットしましたので、これはログに記録されません。"
+    );
+  }).pipe(Effect.provide(Logger.remove(Logger.defaultLogger)));
+  yield* Effect.log("アプリケーションが終了しようとしています！");
+});
+
+Effect.runSync(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="アプリケーションが開始されました！"
+これはシンプルなロガーで記録されます。
+timestamp=... level=INFO fiber=#0 message="アプリケーションが終了しようとしています！"
+*/
+```
+
+## トップレベルの実行時設定
+
+Effect アプリケーションを開発し、`Effect.run*`関数を使用して実行する場合、アプリケーションは自動的にデフォルトの実行時を使用して裏で実行されます。
+特定の Aspect を追加するために`Effect.provide`操作を利用してローカルスコープの設定レイヤーを提供することで Effect アプリケーションの一部を調整およびカスタマイズできますが、アプリケーション全体の実行時設定をトップレベルからカスタマイズする必要がある場合もあります。
+
+そのような場合、`ManagedRuntime.make`コンストラクターを使用して設定レイヤーを実行時に変換することで、トップレベルの実行時を作成できます。
+
+### ManagedRuntime
+
+```ts twoslash
+import { Effect, ManagedRuntime, Logger } from "effect";
+
+// 設定レイヤーを定義する
+const appLayer = Logger.replace(
+  Logger.defaultLogger,
+  Logger.make(({ message }) => console.log(message))
+);
+
+// 設定レイヤーを実行時に変換する
+const runtime = ManagedRuntime.make(appLayer);
+
+const program = Effect.log("アプリケーションが開始されました！");
+
+// カスタム実行時を使用してプログラムを実行する
+runtime.runSync(program);
+
+// 設定レイヤーで使用されるリソースをクリーンアップする
+Effect.runFork(runtime.disposeEffect);
+/*
+出力:
+アプリケーションが開始されました！
+*/
+```
+
+この例では、最初にロガー設定に変更を加えたカスタム設定レイヤー`appLayer`を作成します。次に、この設定レイヤーを`ManagedRuntime.make`を使用して実行時に変換します。これにより、Effect アプリケーション全体の設定をカプセル化したトップレベルの実行時が得られます。
+
+トップレベルの実行時設定をカスタマイズすることで、Effect アプリケーション全体の動作を特定のニーズや要件に合わせて調整できます。
+
+### Effect.Tag
+
+周囲に渡す実行時を使用すると、`Effect.Tag`を利用して新しいタグを定義し、サービスへのアクセスを簡素化できます。これにより、サービス形状がタグクラスの静的側に直接組み込まれます。
+
+次のようにして新しいタグを定義できます：
+
+```ts twoslash
+import { Effect } from "effect";
+
+class Notifications extends Effect.Tag("Notifications")<
+  Notifications,
+  { readonly notify: (message: string) => Effect.Effect<void> }
+>() {}
+```
+
+この設定では、サービス形状のすべてのフィールドが`Notifications`クラスの静的プロパティになります。
+
+これにより、サービス形状に直接アクセスできます：
+
+```ts twoslash
+import { Effect } from "effect";
+
+class Notifications extends Effect.Tag("Notifications")<
+  Notifications,
+  { readonly notify: (message: string) => Effect.Effect<void> }
+>() {}
+
+// ---ここでカット---
+const action = Notifications.notify("こんにちは、世界！");
+```
+
+ご覧の通り、`action`は`Notifications`に依存していますが、後で`Notifications`を提供する`Layer`を構築し、それを使用して`ManagedRuntime`を構築できるため、問題はありません。
+
+### 統合
+
+`ManagedRuntime`は、他のフレームワークやツールとのサービスやレイヤーの統合を簡素化します。特に、Effect が主要なフレームワークでない環境や、メインのエントリーポイントへのアクセスが制限されている場合に有用です。
+
+例えば、`ManagedRuntime`は、React や他のフレームワークのようにメインアプリケーションエントリーポイントの制御が限られている状況でサービスライフサイクルを管理するのに特に役立つことがあります。以下は、外部フレームワーク内でサービスライフサイクルを管理するための`ManagedRuntime`の使用例です：
+
+```ts twoslash
+import { Effect, ManagedRuntime, Layer, Console } from "effect";
+
+class Notifications extends Effect.Tag("Notifications")<
+  Notifications,
+  { readonly notify: (message: string) => Effect.Effect<void> }
+>() {
+  static Live = Layer.succeed(this, {
+    notify: (message) => Console.log(message),
+  });
+}
+
+// 外部フレームワークのエントリーポイントの例
+async function main() {
+  const runtime = ManagedRuntime.make(Notifications.Live);
+  await runtime.runPromise(Notifications.notify("こんにちは、世界！"));
+  await runtime.dispose();
+}
+```

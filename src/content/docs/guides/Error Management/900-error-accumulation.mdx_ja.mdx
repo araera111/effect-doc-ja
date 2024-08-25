@@ -1,0 +1,150 @@
+---
+title: エラーの蓄積
+excerpt: Effect.zip や Effect.forEach などの逐次的なコンビネータを使って Effect プログラミングにおけるエラー処理を学びます。「速い失敗」ポリシーについて知り、`Effect.validate`、`Effect.validateAll`、`Effect.validateFirst`、`Effect.partition` などの関数を用いたエラーの蓄積の代替アプローチを探ります。
+bottomNavigation: pagination
+---
+
+`Effect.zip` や `Effect.forEach` などの逐次的なコンビネータは、エラー管理に関して「速い失敗」ポリシーを持っています。つまり、最初のエラーに遭遇した時点で停止し、すぐに戻ります。
+
+`Effect.zip` 演算子を使った例を見てみましょう。この例では、`Effect.zip` が最初の失敗に遭遇するとすぐに失敗します。その結果、最初のエラーだけが表示されます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const task1 = Effect.succeed(1);
+const task2 = Effect.fail("Oh uh!").pipe(Effect.as(2));
+const task3 = Effect.succeed(3);
+const task4 = Effect.fail("Oh no!").pipe(Effect.as(4));
+
+const program = task1.pipe(
+  Effect.zip(task2),
+  Effect.zip(task3),
+  Effect.zip(task4)
+);
+
+Effect.runPromise(program).then(console.log, console.error);
+/*
+Output:
+(FiberFailure) Error: Oh uh!
+*/
+```
+
+`Effect.forEach` 関数も同様に動作します。これはコレクションと効果を伴う操作を受け取り、その操作をコレクションのすべての要素に適用しようとします。ただし、ここでも「速い失敗」ポリシーに従い、最初のエラーに遭遇すると失敗します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.forEach([1, 2, 3, 4, 5], (n) => {
+  if (n < 4) {
+    return Effect.succeed(n);
+  } else {
+    return Effect.fail(`${n} is not less than 4`);
+  }
+});
+
+Effect.runPromise(program).then(console.log, console.error);
+/*
+Output:
+(FiberFailure) Error: 4 is not less than 4
+*/
+```
+
+しかし、計算の中で起こりうるすべてのエラーを収集する必要がある場合もあります。このような場合は、エラーと成功の両方を蓄積する演算子を使用できます。
+
+## validate
+
+`Effect.validate` 関数は `Effect.zip` に似ていますが、エラーに遭遇した場合でも、停止せずに zip 操作を続行します。効果を組み合わせ、エラーと成功の両方を蓄積します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const task1 = Effect.succeed(1);
+const task2 = Effect.fail("Oh uh!").pipe(Effect.as(2));
+const task3 = Effect.succeed(3);
+const task4 = Effect.fail("Oh no!").pipe(Effect.as(4));
+
+const program = task1.pipe(
+  Effect.validate(task2),
+  Effect.validate(task3),
+  Effect.validate(task4)
+);
+
+Effect.runPromise(program).then(console.log, console.error);
+/*
+Output:
+(FiberFailure) Error: Oh uh!
+Error: Oh no!
+*/
+```
+
+`Effect.validate` を使えば、計算中に遭遇したすべてのエラーを収集でき、最初のエラーで停止することがありません。これにより、プログラム内のすべての潜在的なエラーと成功の全体像を把握できます。
+
+## validateAll
+
+`Effect.validateAll` 関数は `Effect.forEach` 関数に似ています。提供された効果のある操作を使用してコレクションのすべての要素を変換しますが、エラーのチャネルにすべてのエラーを、成功のチャネルに成功値を収集します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.validateAll([1, 2, 3, 4, 5], (n) => {
+  if (n < 4) {
+    return Effect.succeed(n);
+  } else {
+    return Effect.fail(`${n} is not less than 4`);
+  }
+});
+
+Effect.runPromise(program).then(console.log, console.error);
+/*
+Output:
+(FiberFailure) Error: ["4 is not less than 4","5 is not less than 4"]
+*/
+```
+
+:::caution
+この関数はロスィ（lossy）であることに注意してください。これは、エラーがある場合、すべての成功が失われることを意味します。両方の成功と失敗を保持する必要がある場合は、[partition](#partition)
+関数を参照してください。
+
+:::
+
+## validateFirst
+
+`Effect.validateFirst` 関数は `Effect.validateAll` に似ていますが、最初の成功（またはすべての失敗）を返します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.validateFirst([1, 2, 3, 4, 5], (n) => {
+  if (n < 4) {
+    return Effect.fail(`${n} is not less than 4`);
+  } else {
+    return Effect.succeed(n);
+  }
+});
+
+Effect.runPromise(program).then(console.log, console.error);
+// Output: 4
+```
+
+この場合、戻り値の型は `number` であり、`validateAll` の場合のように `number[]` ではありません。
+
+## partition
+
+`Effect.partition` 関数は、反復可能なものと効果を伴う関数を取り、それぞれの値を変換します。その後、成功のチャネルに失敗と成功の両方を持つタプルを作成します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.partition([0, 1, 2, 3, 4], (n) => {
+  if (n % 2 === 0) {
+    return Effect.succeed(n);
+  } else {
+    return Effect.fail(`${n} is not even`);
+  }
+});
+
+Effect.runPromise(program).then(console.log, console.error);
+// Output: [ [ '1 is not even', '3 is not even' ], [ 0, 2, 4 ] ]
+```
+
+この演算子は例外のない効果であることに注意してください。これは、エラーのチャネルの型が `never` であることを意味します。したがって、失敗の場合が発生しても、全体の効果は失敗しません。

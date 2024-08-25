@@ -1,0 +1,156 @@
+---
+title: This Week in Effect - 2024-04-05
+excerpt: Effectに関する技術的な更新、Tim Smartによる「Effectの最新の偉業」の講演、および今後のイベント。
+date: 2024-04-05
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-03-29
+  - this-week-in-effect-2024-04-12
+---
+
+こんにちは、Effecters の皆さん！
+
+**T**his **W**eek **I**n **E**ffect（**TWIE**）へようこそ。これは私たちのコミュニティや Effect エコシステムで何が起こっているのかを把握する手助けを目的とした週次更新です。
+
+初めての方へ、Effect は開発者が複雑な同期・非同期プログラムを作成するのを支援するために設計された強力な TypeScript ライブラリです。Effect の最大の特徴のひとつは、構造的並行性を活用して、非同期キャンセルや安全なリソース管理などの機能を提供することです。これにより、堅牢でスケーラブルかつ効率的なプログラムを簡単に構築できます。
+
+Effect の旅を始めるために、以下のクイックスタートガイドとドキュメントをご覧ください。お楽しみください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方へ、TWIE が何であり、何を目指しているのかについて少し説明します。
+
+より多くの人々が Effect を採用する中、コミュニティが急速に成長していることに私たちは嬉しく思っています。同時に、Effect エコシステムで何が起こっているのかを把握するのが簡単ではないことも理解しています。
+
+- 私たちの Discord サーバーは数日前に**2180 人以上のメンバー**に到達し、エンゲージメントは過去最高を記録しています。
+- 2024 年 2 月 23 日にウィーンで初めての**[Effect Days Conference](/events/effect-days)**が開催されました。コミュニティと直接つながる素晴らしい経験でした。ウィーンに参加できなかった方々のために、たくさんのエキサイティングなアップデートやコンテンツが届く予定ですので、ご期待ください！
+- Effect に関連するすべてのプロジェクトが**重要なアップデート**を受けており、GitHub 上での活動も盛況です！
+
+私たちは、あなたが Effect の旅を楽しみ、コミュニティに積極的に参加できるように、必要な情報を簡単に見つけられるようにしたいと考えています。
+
+**それが、私たちが TWIE を作った理由です** – これは先週の Effect に関する重要なイベントを、コミュニティ（Discord のディスカッション、X の投稿、YouTube コンテンツなど）と技術的な観点からお知らせするための週次更新です。
+
+さあ、ビジネスに戻りましょう！
+
+## 技術
+
+以下は先週に発生したすべての変更のリストです。
+
+### Effect Core
+
+- [タイプミスを修正](https://github.com/Effect-TS/effect/pull/2448) (ドキュメント更新)
+- [Iterable モジュールを追加](https://github.com/Effect-TS/effect/pull/2415) (機能)
+- [Config.withDefault のために const 型パラメータを使用](https://github.com/Effect-TS/effect/pull/2460) (リファクタリング)
+- [ランタイムの失敗のフォーマットを改善](https://github.com/Effect-TS/effect/pull/2461) (改善)
+- [Effect.retryOrElse から処理されたエラーを削除](https://github.com/Effect-TS/effect/pull/2462) (リファクタリング)
+- [Effect Iterable API で異種エフェクトをサポート](https://github.com/Effect-TS/effect/pull/2438) (機能)
+- [Effect.if ブランチに LazyArg を使用](https://github.com/Effect-TS/effect/pull/2451) (リファクタリング、次のマイナー)
+- [Effect.log で可変引数をサポート](https://github.com/Effect-TS/effect/pull/2452) (機能、次のマイナー)
+- [Tracer.ParentSpan タグにユニーク識別子を追加](https://github.com/Effect-TS/effect/pull/2459) (改善、次のマイナー)
+- [Logger.withConsoleLog/withConsoleError API を追加](https://github.com/Effect-TS/effect/pull/2473) (機能)
+- [Logger.structuredLogger をブラウザのデフォルトに設定](https://github.com/Effect-TS/effect/pull/2466) (リファクタリング)
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+- [TypeScript の最小要件を 5.4 に引き上げ](https://github.com/Effect-TS/effect/commit/cec465cc7a79721bfda164b163a8c8f44ce2efc1) (ドキュメント更新、次のマイナー)
+
+### Effect Opentelemetry
+
+- [Opentelemetry: 空の NodeSDK レイヤーをエクスポート](https://github.com/Effect-TS/effect/pull/2433) (機能)
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect RPC
+
+- [非ストリーミング RPC API を別のモジュールに移動](https://github.com/Effect-TS/effect/pull/2455) (リファクタリング)
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect Vitest
+
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect Platform
+
+- [HTTP クライアントを自動計測](https://github.com/Effect-TS/effect/pull/2450) (機能)
+- [W3C トレースコンテキストの伝播をサポート](https://github.com/Effect-TS/effect/pull/2445) (機能)
+- [FileSystem.remove に force オプションを追加](https://github.com/Effect-TS/effect/pull/2427) (機能)
+- [node fs/promises を readdir に使用し、再帰オプションを修正](https://github.com/Effect-TS/effect/pull/2458) (バグ修正)
+- [正確なオプショナルプロパティ型エラーを修正](https://github.com/Effect-TS/effect/pull/2463) (バグ修正)
+- [isomorphic-ws を isows に置き換え](https://github.com/Effect-TS/effect/pull/2469) (リファクタリング)
+- [フェッチオプションを FiberRef に移動](https://github.com/Effect-TS/effect/pull/2467) (リファクタリング、次のマイナー)
+- [PlatformConfigProvider モジュールを追加](https://github.com/Effect-TS/effect/pull/2477) (機能)
+- [PlatformConfigProvider.layerFileTreeAdd でファイルツリー提供者をデフォルトに設定](https://github.com/Effect-TS/effect/pull/2479) (改善)
+- [SharedWorker で複数のポートを適切に処理](https://github.com/Effect-TS/effect/pull/2468) (バグ修正、次のマイナー)
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect Experimental
+
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect Typeclass
+
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect CLI
+
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect Printer
+
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+
+### Effect Schema
+
+- [enum はもはや schema の enums プロパティに公開される](https://github.com/Effect-TS/effect/pull/2442) (バグ修正)
+- [jsdoc と cmd クリックを保持](https://github.com/Effect-TS/effect/pull/2436) (バグ修正)
+- [ParseResult: TupleType と TypeLiteral に出力フィールドを追加](https://github.com/Effect-TS/effect/pull/2446) (機能)
+- [Schema.BooleanFromUnknown を追加](https://github.com/Effect-TS/effect/pull/2453) (機能)
+- [set、setFromSelf、map、mapFromSelf を追加](https://github.com/Effect-TS/effect/pull/2456) (機能)
+- [Zod との比較](https://github.com/Effect-TS/effect/pull/2430) (ドキュメント更新)
+- [Length は範囲を表現することを許可するようになりました](https://github.com/Effect-TS/effect/pull/2465) (機能)
+- [クラス API: エンコードされた側にデフォルトのタイトル注釈を追加](https://github.com/Effect-TS/effect/pull/2471) (改善)
+- [クリーンアップ: 無駄な内部モジュールを削除](https://github.com/Effect-TS/effect/pull/2481) (リファクタリング)
+- [ユニットの用語を void に置き換え](https://github.com/Effect-TS/effect/pull/2476) (リファクタリング、次のマイナー)
+- [ParseIssueTitle 注釈を追加](https://github.com/Effect-TS/effect/pull/2483) (機能)
+
+### 一般的な雑務
+
+- [Logger.withConsoleLog の変更セットのタイプミスを修正](https://github.com/Effect-TS/effect/pull/2474) (ドキュメント更新)
+- [変更セットのターゲットを@effect/platform-browser に変更](https://github.com/Effect-TS/effect/pull/2475) (ドキュメント更新)
+
+## コミュニティ
+
+先週、私たちの[Discord サーバー](https://discord.gg/effect-ts)に+55 人の新しい Effecters を迎えました！Effect コミュニティに参加してくださった新しいメンバーの皆さん、ありがとうございます。あなたがたをお迎えできて嬉しく思っています！
+
+### コンテンツ更新
+
+Effect Days Conference の旅を続けましょう。
+
+先週の[オープニング基調講演](https://www.youtube.com/watch?reload=9&v=PxIBWjiv3og)の素晴らしい反響を受けて、[Effectful Technologies](https://www.effectful.co/)の創業エンジニアの一人である[Tim Smart](https://twitter.com/tim_smart)によるもう一つの魅力的な講演を公開しました。彼は Effect エコシステムの最新の発展について、VSCode 拡張機能のエキサイティングな新機能を含めて明らかにします。
+
+<YouTube url="https://www.youtube.com/embed/v9lUg6zlaRM?si=vvMT0tfbqA0rK-vc" />
+
+今後のコンテンツを確認したり、フィードバックを共有するために、ぜひ[YouTube](https://www.youtube.com/@effect-ts)と[X](https://twitter.com/EffectTS_)で私たちとつながっていてください。
+
+フランス語を話す皆様へのお知らせです：初めての[Effect Paris Meetup](https://www.meetup.com/fr-FR/effect-paris/)が 4 月に開催されます！イベントの開催にあたり、[Evryg](https://www.evryg.com)チームや[Jean-Baptiste Musso](https://twitter.com/jbmusso)、[Antoine Coulon](https://twitter.com/c9antoine)に感謝します。
+
+<Tweet id="1764621821184262629" />
+
+## 終わりに
+
+今週は以上です。私たちのコミュニティの大切な一員でいてくださってありがとうございます。新しい形式に対するあなたのフィードバックは非常に重要であり、その改善に努めています。あなたの意見を自由に共有してください。コミュニティのニーズに合わせて最善を尽くします。
+
+_The Effect Community Team_

@@ -1,0 +1,113 @@
+---
+title: 今週のEffect - 2024-04-12
+excerpt: Effectの技術更新、Jess Martinによるeffect/schemaに関するトーク、Lucas BarakeによるEffectに関する新しいビデオ、Effect Paris Meetupの最新情報。
+date: 2024-04-12
+authors:
+  - name: ダビデ・スコニャミリオ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: マイケル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  -今週のEffect-2024-04-05
+  -今週のEffect-2024-04-19
+---
+
+こんにちは、Effect者の皆さん！
+
+再び**T**his **W**eek **I**n **E**ffect（**TWIE**）へようこそ！これは、私たちのコミュニティとEffectエコシステム内で起こっているすべてのことを把握するための週次更新です。
+
+初めての方へ、Effectは開発者が複雑で同期および非同期のプログラムを作成するために設計された強力なTypeScriptライブラリです。Effectの特徴の一つは、構造化された並行処理を活用して、非同期キャンセルや安全なリソース管理といった機能を提供する点であり、これにより堅牢でスケーラブル、効率的なプログラムを簡単に構築できます。
+
+Effectの旅を始めるために、以下のクイックスタートガイドとドキュメントをご覧ください。お楽しみください！
+
+[Effectクイックスタートガイド](/docs/quickstart)
+
+[Effectドキュメント](/docs/introduction)
+
+## TWIEの概要
+
+TWIEが初めての方に少し説明します。
+
+私たちはコミュニティが急速に成長していることに喜んでおり、ますます多くの人々がEffectを採用しています。一方で、Effectエコシステム内で起こっているすべてのことに追いつくのは簡単ではないかもしれないことも理解しています。
+
+- 私たちのDiscordサーバーは数日前に**2200人以上のメンバー**に達し、エンゲージメントは過去最高です。
+- Effect Daysのトークを毎週公開し始めました。見逃さないように[私たちのYouTubeチャンネルを購読](https://www.youtube.com/@effect-ts)してください。
+- Effectに関連するすべてのプロジェクトが**主要な更新**を受けており、GitHubでの活動も活発です！
+
+私たちは、あなたがEffectの旅を最大限に楽しみ、コミュニティに積極的に参加するために必要な情報を簡単に見つけられるようにしたいと考えています。
+
+**だからこそ、TWIEを作成しました** – これは、先週のEffectに関する重要なイベント、コミュニティから（Discordの議論、Xの投稿、YouTubeのコンテンツなど）、および技術的な観点の両方からの情報をお知らせするための週次更新です。
+
+さて、本題に戻りましょう！
+
+## 技術
+
+以下は、先週発生したすべての変更のリストです。
+
+### Effect Core
++ [「Readable, Subscribable」のunwrapを追加](https://github.com/Effect-TS/effect/pull/2498)（新機能）
++ [Deferredが解決されるときにFIFO順序を保証](https://github.com/Effect-TS/effect/pull/2499)（バグ修正）
++ [スコープ内部を簡素化](https://github.com/Effect-TS/effect/pull/2500)（リファクタ）
++ [Duration.divideを追加](https://github.com/Effect-TS/effect/pull/2494)（新機能）
++ [トレーススパンの構築を安価にする](https://github.com/Effect-TS/effect/pull/2502)（改善）
++ [バグのエラーメッセージを集中管理](https://github.com/Effect-TS/effect/pull/2503)（改善）
++ [packages/effectにRegExpモジュールを追加](https://github.com/Effect-TS/effect/pull/2493)（新機能）
+
+
+### Effect Platform
++ [プラットフォームSocketにおける文字列のサポートを強化](https://github.com/Effect-TS/effect/pull/2486)（新機能）
++ [プラットフォームServerRequest.upgradeChannelに文字列を追加](https://github.com/Effect-TS/effect/pull/2487)（改善）
++ [Readable & Subscribableモジュールを追加](https://github.com/Effect-TS/effect/pull/2472)（新機能）
++ [プラットフォーム: readmeに「実行中のプロセスに関する情報の取得」セクションを追加](https://github.com/Effect-TS/effect/pull/2492)（ドキュメント更新）
++ [Http.middleware.withTracerDisabledWhenをLayer APIにする](https://github.com/Effect-TS/effect/pull/2491)（新機能、次のマイナー）
++ [FiberSetを使用してHTTPサーバーファイバーを実行](https://github.com/Effect-TS/effect/pull/2504)（新機能）
+
+
+### Effect Schema
++ [Schema: 次のマイナー](https://github.com/Effect-TS/effect/pull/2440)（マイナー、リファクタ）
++ [eitherFromSelfの説明注釈を修正](https://github.com/Effect-TS/effect/pull/2495)（バグ修正）
++ [exitFromSelfの説明注釈を修正](https://github.com/Effect-TS/effect/pull/2496)（バグ修正）
+
+## コミュニティ
+
+先週、私たちは+25人の新しいEffect者を[Discordサーバー](https://discord.gg/effect-ts)に迎えました！Effectコミュニティに参加していただきありがとうございます。皆さんをお迎えできて嬉しいです！
+
+今週のコンテンツに入る前に、最初の[Effect Paris Meetup](https://www.meetup.com/effect-paris/events/300307442/)の日程を発表できることを嬉しく思います。これは[Evryg](https://www.evryg.com)が主催します。このミートアップは**2024年4月23日火曜日の午後7時**に行われ、言語はフランス語であることをお知らせします。再度、Evrygチーム、特に[ジャン＝バティスト・ミュッソ](https://twitter.com/jbmusso)さんと[アントワーヌ・クーロン](https://twitter.com/c9antoine)さんに感謝します！
+
+### コンテンツの更新
+
+Effect Daysカンファレンスから新しいトークが公開されました。「@effect/schemaを用いた分散スキーマ問題の解決」by [Jess Martin](https://twitter.com/jessmartin)。このトークでは、Jessがローカルファーストソフトウェアの考え方と、ピアツーピアシステムを含む新しいソフトウェアアーキテクチャの形を議論します。このアーキテクチャに従った単純なソフトウェアを示し、オフラインサポートやリアルタイムコラボレーションを可能にしています。以下のビデオをご覧ください：
+
+<YouTube url="https://www.youtube.com/embed/o-SvvUA7hik?si=Ir7MlXbe-P72wEWu" />
+
+カンファレンスからの他のトークやコンテンツは、私たちのYouTubeチャンネルにある[Effect Daysプレイリスト](https://www.youtube.com/playlist?list=PLDf3uQLaK2B9a4tbMgGd9wFeEnMA50z4w)でご覧いただけます。
+
+別の話題として、Lucas BarakeがEffectを「あなたが待っていたTypeScriptライブラリ」として紹介するビデオを公開しました["The TypeScript Library You've Been Waiting For"](https://www.youtube.com/watch?v=X98vwMYxRXw&ab_channel=LucasBarake)。その中で、Lucasは既存のコードにライブラリを統合する方法や、エラーハンドリングやHTTPリクエストの例を示しています。Lucasのビデオをぜひチェックしてください。コミュニティが教育コンテンツを作成し、Effectについて広めていることを嬉しく思います！
+
+<YouTube url="https://www.youtube.com/embed/X98vwMYxRXw?si=vO60NCsRLhRRXjMi" />
+
+今週は[ミラード・ヴァファイファード](https://twitter.com/signlanguagete1)が、サインランゲージを使ってEffectにおける「Dual」のサインを教えてくれました。私たちはミラードの効果的なコミュニティへの貢献に感謝しています。彼のYouTubeチャンネルは、サインランゲージでのウェブ開発学習の素晴らしいリソースです。
+
+<Tweet id="1777434202125791354" />
+
+[Sebastian](https://twitter.com/thefubhy)は、自称Effectの清掃員であり、ネタバレをばらまくのが好きなようです。重要な発表が間近に控えているのでしょうか？👀
+
+<Tweet id="1778327330735132848" />
+
+今週の更新を締めくくるにあたり、コミュニティメンバーの一人から送られた素晴らしい写真を共有します。私たちの旅は遠くへと進んでいますが、これは始まりに過ぎません。
+
+<Tweet id="1777302932850946203" />
+
+## 終わりに
+
+今週は以上です。コミュニティの重要な一員でいてくださりありがとうございます。新しいフォーマットを改善するためにあなたのフィードバックを大いに歓迎します。ご意見をお気軽にお知らせください。私たちは、コミュニティのニーズに合わせて最善を尽くします。
+
+_The Effect Community Team_

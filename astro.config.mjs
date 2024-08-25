@@ -1,27 +1,37 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
+import { defineConfig } from "astro/config";
+import starlight from "@astrojs/starlight";
+
+import vercel from "@astrojs/vercel/serverless";
 
 // https://astro.build/config
 export default defineConfig({
-	integrations: [
-		starlight({
-			title: 'My Docs',
-			social: {
-				github: 'https://github.com/withastro/starlight',
-			},
-			sidebar: [
-				{
-					label: 'Guides',
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
-					],
-				},
-				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
-				},
-			],
-		}),
-	],
+  vite: {
+    ssr: {
+      noExternal: ["react-tweet"]
+    }
+  },
+  integrations: [starlight({
+    title: "Effect日本語版ドキュメント",
+    social: {
+      github: "https://github.com/withastro/starlight"
+    },
+    sidebar: [{
+      label: "Introduction",
+      autogenerate: {
+        directory: "introduction"
+      }
+    }, {
+      label: "Guides",
+      autogenerate: {
+        directory: "guides"
+      }
+    }, {
+      label: "Blog",
+      autogenerate: {
+        directory: "blog"
+      }
+    }]
+  })],
+  output: "server",
+  adapter: vercel()
 });

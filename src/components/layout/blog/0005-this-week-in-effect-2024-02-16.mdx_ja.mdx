@@ -1,0 +1,170 @@
+---
+title: 今週のEffect - 2024-02-16
+excerpt: 今週のEffectは、Effectコミュニティとエコシステムで起きた出来事をまとめた週次ブログ記事です。ニュースや機能の変更を把握するのに役立ててください！
+date: 2024-02-16
+authors:
+  - name: ダヴィデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のEffect-2024-02-09
+  - 今週のEffect-2024-03-01
+---
+
+import Tweet from "astro-tweet";
+
+こんにちは、Effecters！
+
+**今週の Effect（TWIE）**へようこそ！ これは、コミュニティや Effect エコシステム内で起こっているすべてのことを把握するための週次更新です。
+
+初めてここに来た方へ、Effect は開発者が複雑な同期プログラムや非同期プログラムを作成するのを支援するために設計された強力な TypeScript ライブラリです。Effect が特に優れている点は、構造的同時実行性を活かして、非同期キャンセルや安全なリソース管理といった機能を提供することです。これにより、堅牢でスケーラブルな効率的なプログラムの構築が容易になります。
+
+始めるためのステップとして、以下に Effect のクイックスタートガイドとドキュメンテーションを掲載しました。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方のために、TWIE が何であるか、何を目指しているのかを簡単に説明します。
+
+コミュニティが急速に成長し、多くの方が Effect を採用している様子を見られることを嬉しく思います。しかし、Effect エコシステム内で何が起こっているのかを把握するのは簡単ではないかもしれません。
+
+- 数日前に、私たちの Discord サーバーのメンバー数が**1889 人以上**に達しました。エンゲージメントは過去最高です。
+- 2024 年 2 月 23 日にウィーンで初の**[Effect Days Conference](/events/effect-days)**が開催される予定です。そして、たくさんの新しいコンテンツが登場します。
+- Effect に関連するすべてのプロジェクトが**重要なアップデート**を受けており、GitHub 上でも多くの活動があります。
+
+そのため、Effect の旅を存分に楽しむために必要な情報を簡単に見つけられるようにしたいと思っています！
+
+**それが TWIE を作成した理由です** – 先週の Effect に関する重要なイベントを、コミュニティ（Discord の議論や X の投稿、YouTube のコンテンツなど）および技術的な観点からお知らせする週次アップデートです。
+
+この方法で、Effect エコシステムで起こっているすべてのことを把握し、積極的にコミュニティに参加できるよう手助けしたいと思います。
+
+それでは、ビジネスに戻りましょう！
+
+## テクノロジー
+
+今週の大ニュース: **Effect 2.3 がリリースされました！** リリース記事は[こちら](https://effect.website/blog/release-2.3)でご覧いただけます！
+
+### 一般的な雑務
+
+### Effect Core
+
+- [Effect および Stream の非同期メソッドを統合](https://github.com/Effect-TS/effect/pull/2087) (次のマイナー)
+- [Either 型のパラメータを入れ替える](https://github.com/Effect-TS/effect/pull/2102) (次のマイナー)
+- [Schedule 型パラメータを入れ替える](https://github.com/Effect-TS/effect/pull/2155) (次のマイナー)
+- [API シグネチャの型パラメータ順序を修正](https://github.com/Effect-TS/effect/pull/2156) (次のマイナー)
+- [Effect.unified と Effect.unifiedFn を Unify.unify に置き換え](https://github.com/Effect-TS/effect/pull/2158) (次のマイナー)
+- [ReadonlyRecord: 一部の API に対して記号を有効なキーとして再追加](https://github.com/Effect-TS/effect/pull/2164) (次のマイナー)
+- [pick、omit、get にオプショナルプロパティのサポートを追加](https://github.com/Effect-TS/effect/pull/2161) (次のマイナー)
+- [GroupBy 型パラメータを入れ替える](https://github.com/Effect-TS/effect/pull/2169) (次のマイナー)
+- [Either に Do 記法を追加](https://github.com/Effect-TS/effect/pull/2157) (次のマイナー)
+- [FiberSet での型パラメータの調整を一部元に戻す](https://github.com/Effect-TS/effect/pull/2094)
+- [Runtime から返す関数のデフォルトを never に設定](https://github.com/Effect-TS/effect/pull/2096)
+- [Effect.zip Left & Right を最適化](https://github.com/Effect-TS/effect/pull/2099)
+- [不必要な./internal/timeout を削除](https://github.com/Effect-TS/effect/pull/2098)
+- [Either と Option の andThen を拡張](https://github.com/Effect-TS/effect/pull/2103)
+- [RateLimiter.withCost コンビネータ + Rate Limiter の合成テスト](https://github.com/Effect-TS/effect/pull/2090)
+- [RateLimiter がトークンバケットアルゴリズムを利用することを確実にする](https://github.com/Effect-TS/effect/pull/2097)
+- [大規模なセマフォが小規模なものをブロックしないようにする](https://github.com/Effect-TS/effect/pull/2107)
+- [バッチリクエストの返却順序を修正](https://github.com/Effect-TS/effect/pull/2114)
+- [特定のランダムサービス実装を使用するための Random Tag と関数を公開](https://github.com/Effect-TS/effect/pull/2137)
+- [TestAnnotationsMap の内部を修正し、等価性を尊重するようにする](https://github.com/Effect-TS/effect/pull/2138)
+- [satisfies 演算子の関数的アナログを追加](https://github.com/Effect-TS/effect/pull/2080)
+- [Cause.pretty が toString が無効な場合に正しく動作しないのを修正](https://github.com/Effect-TS/effect/pull/2143)
+- [withRandom と withClock の型を修正](https://github.com/Effect-TS/effect/pull/2144)
+- [FiberRefs を緩和し、None が Runtime のように動作するようにする](https://github.com/Effect-TS/effect/pull/2139)
+- [組み込みトレイサーのためにランダムスパン ID を生成](https://github.com/Effect-TS/effect/pull/2147)
+- [RequestResolver.aroundRequests API を追加](https://github.com/Effect-TS/effect/pull/2145)
+- [時間を調整した forked のスケジュールタイプを新しいシグネチャに合わせて入れ替え](https://github.com/Effect-TS/effect/pull/2148)
+- [Runtime.updateFiberRefs/setFiberRef/deleteFiberRef を追加](https://github.com/Effect-TS/effect/pull/2149)
+- [ModuleVersion を公開](https://github.com/Effect-TS/effect/pull/2142)
+- [期限切れのエントリのキャッシュヒットのインクリメントを避ける](https://github.com/Effect-TS/effect/pull/2159)
+- [Option.none に対する Hash 実装を修正](https://github.com/Effect-TS/effect/pull/2165)
+
+### Effect Schema
+
+- [MessageAnnotation を非パラメトリックに変更](https://github.com/Effect-TS/effect/pull/2170)
+- [pluck に変換オプションを追加](https://github.com/Effect-TS/effect/pull/2108)
+- [headOr をデュアルにする](https://github.com/Effect-TS/effect/pull/2110)
+- [keyof にユニオンのサポートを追加](https://github.com/Effect-TS/effect/pull/2111)
+- [スキーマクラスを定義する際にアイデンティティ関数を使用](https://github.com/Effect-TS/effect/pull/2121)
+- [ParseResult: 失われた decode / encode エクスポートを追加](https://github.com/Effect-TS/effect/pull/2124)
+- [デコードとエンコードの関数がコンテキストを使用しないことを保証するために declare シグネチャをリファクタリング](https://github.com/Effect-TS/effect/pull/2123)
+- [スキーマクラスをエンコードするときに構造体を渡せるようにする](https://github.com/Effect-TS/effect/pull/2128)
+- [partial API に正確なオプショナル引数を追加](https://github.com/Effect-TS/effect/pull/2141)
+- [エンコードオプションに関するノートを追加](https://github.com/Effect-TS/effect/pull/2166)
+
+### Effect Experimental
+
+- [Persistence KeyValueStore アダプタを修正](https://github.com/Effect-TS/effect/pull/2115)
+- [実験的データローダーの中断可能性の順序を修正](https://github.com/Effect-TS/effect/pull/2163)
+
+### Effect Platform
+
+- [Router.fromIterable のタイプ抽出を改善](https://github.com/Effect-TS/effect/pull/2091)
+- [@effect/platform-browser に XMLHttpRequest クライアントを追加](https://github.com/Effect-TS/effect/pull/2117)
+- [Http クライアントに Scope を追加](https://github.com/Effect-TS/effect/pull/2119) (マイナー)
+- [ワーカーエラーに Schema.TaggedError を使用](https://github.com/Effect-TS/effect/pull/2133)
+- [HTTP ヘッダーをリダクトする方法を追加](https://github.com/Effect-TS/effect/pull/2122)
+- [node http IncomingMessage に unsafe なボディアクセサを追加](https://github.com/Effect-TS/effect/pull/2150)
+- [Client.schemaFunction でスコープの無効な削除を修正](https://github.com/Effect-TS/effect/pull/2152)
+
+### Effect CLI
+
+- [README.md を更新](https://github.com/Effect-TS/effect/pull/2125)
+
+### Effect RPC
+
+- [rpc のチェンジセットを修正](https://github.com/Effect-TS/effect/pull/2081)
+- [rpc Router.provideService および Router.provideServiceEffect を追加](https://github.com/Effect-TS/effect/pull/2092)
+- [rpc にストリーミングされないハンドラとリゾルバを追加](https://github.com/Effect-TS/effect/pull/2100)
+- [Rpc.Request を Persistence と互換性のあるものにする](https://github.com/Effect-TS/effect/pull/2106)
+
+### Effect OpenTelemetry
+
+- [otel のシャットダウンを試みた際のエラーを無視](https://github.com/Effect-TS/effect/pull/2131)
+
+## コミュニティ
+
+先週 32 人の新しい Effecters を迎えました！ コミュニティへの参加ありがとうございます。皆さんの積極的な参加を楽しみにしています！
+
+### Effect Days の更新
+
+[Effect Days](/events/effect-days)まであと 1 週間を切りました。ウィーンで皆さんにお会いできるのを本当に楽しみにしています！
+
+まだ聞いたことがない方もいらっしゃるかもしれませんが、2 月 22 日から 24 日までの 3 日間、Effect の未来を語るイベントを開催します。
+
+最後の瞬間での参加者もいらっしゃるのでは？ [こちら](/events/effect-days#ticket)で、カンファレンスの残りわずかなスポットや素晴らしい[スピーカー陣](/events/effect-days#speakers)をご確認ください。
+
+参加者の皆さんには、ウィーンでの滞在をできるだけ快適に楽しんでいただけるように[ガイド](https://effect.website/events/effect-days/vienna-travel-guide)を公開しました。
+
+私たちの[Twitter](https://twitter.com/EffectTS_)でスピーカーのプレビューを見てみましょう：
+
+**ジェス・マーチン**：
+
+<Tweet id="1757011672147824734" />
+
+**デビッド・ブラッス**：
+
+<Tweet id="1757742770637160854" />
+
+**ジョン・デ・ゴーズ**：
+
+<Tweet id="1758452635366007185" />
+
+## 最後のメモ
+
+今週は以上です。私たちのコミュニティの重要な一員でいてくださり、ありがとうございます。皆さんのフィードバックやリクエストを大切にし、この新しいフォーマットを調整していきます。ぜひご意見をお知らせください。コミュニティのニーズに合わせて最善を尽くします。
+
+_The Effect Community Team_

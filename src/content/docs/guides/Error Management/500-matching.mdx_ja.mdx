@@ -1,0 +1,124 @@
+---
+title: マッチング
+excerpt: matchやmatchEffectのような関数を使用して、Effectデータ型における成功と失敗のケースをどのように処理するかを学びます。副作用を実行し、値を無視し、失敗の全体的な原因にアクセスする技術を習得します。Effectプログラムの制御フローを効果的に管理し、エラーを処理します。
+bottomNavigation: pagination
+---
+
+`Effect`データ型では、[Option](../../other/data-types/option#matching)や[Exit](../../other/data-types/exit#matching)などの他のデータ型と同様に、異なるケースを同時に処理できる`match`関数があります。Effectに関連する処理を行う際には、成功と失敗のシナリオの両方を扱うためのいくつかの関数も提供されています。
+
+## match
+
+`Effect.match`関数は、各ケースに対してハンドラーを提供することで、**成功と失敗のケースの両方を非効果的に処理**することを可能にします：
+
+```ts twoslash
+import { Effect } from "effect"
+
+const success: Effect.Effect<number, Error> = Effect.succeed(42)
+const failure: Effect.Effect<number, Error> = Effect.fail(new Error("Uh oh!"))
+
+const program1 = Effect.match(success, {
+  onFailure: (error) => `failure: ${error.message}`,
+  onSuccess: (value) => `success: ${value}`
+})
+
+Effect.runPromise(program1).then(console.log) // 出力: "success: 42"
+
+const program2 = Effect.match(failure, {
+  onFailure: (error) => `failure: ${error.message}`,
+  onSuccess: (value) => `success: ${value}`
+})
+
+Effect.runPromise(program2).then(console.log) // 出力: "failure: Uh oh!"
+```
+
+成功と失敗の値に興味がない場合は、それらを無視することもできます：
+
+```ts twoslash
+import { Effect } from "effect"
+import { constVoid } from "effect/Function"
+
+const task = Effect.fail("Uh oh!").pipe(Effect.as(5))
+
+const program = Effect.match(task, {
+  onFailure: constVoid,
+  onSuccess: constVoid
+})
+```
+
+この場合、`Function`モジュールからの`constVoid`関数を使用して、何もしないハンドラーを提供しています。これにより、成功と失敗の値は実質的に無視され、プログラムの制御フローや副作用にのみ焦点が当てられます。代わりに、`Effect.ignore`関数を使用して同じ結果を得ることもできます：
+
+```ts twoslash
+import { Effect } from "effect"
+
+const task = Effect.fail("Uh oh!").pipe(Effect.as(5))
+
+const program = Effect.ignore(task)
+```
+
+## matchEffect
+
+`Effect.match`に加えて、`Effect.matchEffect`関数もあります。これを使用すると、**追加の副作用**を実行しながら成功と失敗のケースを処理できます。以下はその例です：
+
+```ts twoslash
+import { Effect } from "effect"
+
+const success: Effect.Effect<number, Error> = Effect.succeed(42)
+const failure: Effect.Effect<number, Error> = Effect.fail(new Error("Uh oh!"))
+
+const program1 = Effect.matchEffect(success, {
+  onFailure: (error) =>
+    Effect.succeed(`failure: ${error.message}`).pipe(Effect.tap(Effect.log)),
+  onSuccess: (value) =>
+    Effect.succeed(`success: ${value}`).pipe(Effect.tap(Effect.log))
+})
+
+console.log(Effect.runSync(program1))
+/*
+出力:
+... message="success: 42"
+success: 42
+*/
+
+const program2 = Effect.matchEffect(failure, {
+  onFailure: (error) =>
+    Effect.succeed(`failure: ${error.message}`).pipe(Effect.tap(Effect.log)),
+  onSuccess: (value) =>
+    Effect.succeed(`success: ${value}`).pipe(Effect.tap(Effect.log))
+})
+
+console.log(Effect.runSync(program2))
+/*
+出力:
+... message="failure: Uh oh!"
+failure: Uh oh!
+*/
+```
+
+この例では、`Effect.match`の代わりに`Effect.matchEffect`を使用しています。`Effect.matchEffect`関数を使用することで、成功と失敗のケースを処理する際に追加の副作用を実行することができます。それぞれのハンドラー内でメッセージをログに記録したり、他の副作用を行ったりすることができます。
+
+## matchCause / matchCauseEffect
+
+Effectはまた、失敗した際の基礎となるファイバーの**全体的な原因**にアクセスするために便利な`Effect.matchCause`と`Effect.matchCauseEffect`関数も提供しています。これにより、異なる失敗原因を個別に処理し、適切なアクションを取ることができます。以下はその例です：
+
+```ts twoslash
+import { Effect, Console } from "effect"
+
+declare const exceptionalEffect: Effect.Effect<void, Error>
+
+const program = Effect.matchCauseEffect(exceptionalEffect, {
+  onFailure: (cause) => {
+    switch (cause._tag) {
+      case "Fail":
+        return Console.log(`Fail: ${cause.error.message}`)
+      case "Die":
+        return Console.log(`Die: ${cause.defect}`)
+      case "Interrupt":
+        return Console.log(`${cause.fiberId} interrupted!`)
+    }
+    return Console.log("その他の原因で失敗しました")
+  },
+  onSuccess: (value) => Console.log(`成功しました: ${value} の値`)
+})
+```
+
+この例では、失敗するか他の種類の例外が発生する可能性のある`exceptionalEffect`を持っています。`matchCauseEffect`関数を使用することで、異なる失敗原因を個別にマッチして処理することができます。

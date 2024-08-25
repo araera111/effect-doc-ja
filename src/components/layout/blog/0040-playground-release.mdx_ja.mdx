@@ -1,0 +1,162 @@
+---
+title: Effect Playground (リリース)
+excerpt: Effect Website Playground の機能と特徴を紹介するリリース投稿
+date: 2024-07-29
+authors:
+  - name: Maxwell Brown
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/1517464679337058307/cIB1-Gkx_400x400.jpg
+    twitter: https://twitter.com/imax153
+---
+
+新しいプロジェクトの発表を嬉しく思います： [**Effect Playground**](https://effect.website/play)、
+Effectのウェブサイトに直接埋め込まれたインタラクティブなコーディング環境です！
+
+実験と探求を念頭に置いてゼロから設計されたEffect Playgroundは、以下の操作を
+シームレスに行う方法を提供します：
+
+- **探求**: EffectのAPIを使ったインタラクティブな体験を提供
+- **開発**: ブラウザを離れることなくEffectプログラムを記述・実行
+- **コラボレーション**: 簡単にEffectのコードスニペットを共有（例：バグ再現用）
+
+下記の発表動画をチェックしてください！
+
+<YouTube url="https://www.youtube.com/embed/zrMY9r9CRoc?si=NSCEz1nS44_FOr6Y" />
+
+## 主要機能
+
+- [強力なコードエディタ](#強力なコードエディタ): 最新のTypeScript LSPとNodeJSによるコード実行をサポートしたVSCodeスタイルのエディタ
+- [共有可能なコードスニペット](#共有可能なコードスニペット): ユニークなURLでPlaygroundを共有可能
+- [内蔵トレースビューア](#内蔵トレースビューア): アプリケーショントレースをリアルタイムで可視化
+
+### 強力なコードエディタ
+
+Effect Playgroundには、最新のTypeScriptを実行する完全機能のMonacoエディタが搭載されています。
+EffectはTypeScriptの型システムを最大限に活用しているため、言語に組み込まれている
+最新のバグ修正や機能にすぐにアクセスできます。
+
+エディタの機能の一部を紹介します：
+
+**TypeScriptインテリセンス**
+
+<img
+  src="/images/blog/0035-playground-release/intellisense.gif"
+  alt="Effect Playgroundのインテリセンスを示すアニメーションGIF"
+/>
+
+**自動インポート提案**
+
+<img
+  src="/images/blog/0035-playground-release/auto-imports.gif"
+  alt="Effect Playgroundの自動インポート機能を示すアニメーションGIF"
+/>
+
+**保存時の自動フォーマット**
+
+<img
+  src="/images/blog/0035-playground-release/format-on-save.gif"
+  alt="Effect Playgroundの保存時自動フォーマット機能を示すアニメーションGIF"
+/>
+
+**動的設定**
+
+`dprint.json`または`tsconfig.json`の設定ファイルを編集すると、エディタの
+フォーマットとTypeScriptの設定がそれぞれリアルタイムで更新されます。
+
+<img
+  src="/images/blog/0035-playground-release/dynamic-configuration.gif"
+  alt="Effect Playgroundの動的設定機能を示すアニメーションGIF"
+/>
+
+**統合ターミナル**
+
+Playgroundには、変更が検出された場合にプログラムを自動で再実行する
+統合ターミナル環境もあります。また、`pnpm`を通じて追加の依存関係をインストールしたり、
+任意のスクリプトを実行したり、ファイルシステムを調査したりすることも可能です。
+
+<img
+  src="/images/blog/0035-playground-release/terminal.gif"
+  alt="Effect Playgroundの自動インポート機能を示すアニメーションGIF"
+/>
+
+### 共有可能なコードスニペット
+
+Effect Playgroundは、簡単に共有可能なリンクを作成する機能を提供します。
+これは、友人とスニペットを素早く共有したり、Effectのコアメンテイナーに
+バグ再現用のコードを提供したりする際に非常に便利です。すべてローカルに
+クローンしたりインストールしたりする必要はありません。
+
+リンクを生成して共有するだけです！
+
+<img
+  src="/images/blog/0035-playground-release/share.gif"
+  alt="Effect Playgroundの共有ボタンを示すアニメーションGIF"
+/>
+
+### 内蔵トレースビューア
+
+Effectの際立った機能の一つは、Effectプログラムからの
+[テレメトリデータ](https://effect.website/docs/guides/observability/telemetry)の収集、
+処理、エクスポートを簡単に始められる点です。
+
+`Effect.withSpan`の簡単な呼び出しで、Effectはアプリケーションの
+性能や動作に関する重要な洞察を提供し始めます。
+
+このため、Effect PlaygroundをEffect DevToolsと統合することにしました。
+これにより、開発者がEffectでアプリケーションを計器化するのがいかに簡単かを理解し、
+このテレメトリデータがどれほど役立つかを直接体験してもらうことを目指しています。
+
+内蔵のトレースビューアを使って、Playgroundからのアプリケーショントレースを
+リアルタイムで可視化できます。
+
+<img
+  src="/images/blog/0035-playground-release/trace-viewer.png"
+  alt="Effect Playgroundの内蔵トレースビューアの画像"
+/>
+
+スパンをクリックすると、そのスパンの属性やイベントを調査できます。
+
+<img
+  src="/images/blog/0035-playground-release/span-details.png"
+  alt="Effect Playgroundの内蔵トレースビューアでスパンの詳細が表示された画像"
+/>
+
+エラーを含むスパンはハイライト表示され、Effectプログラム内でのエラーの
+トレースを簡素化します。
+
+<img
+  src="/images/blog/0035-playground-release/span-errors.png"
+  alt="エラーを含むスパンを表示するEffect Playgroundの内蔵トレースビューアの画像"
+/>
+
+## ロードマップ
+
+Effect Playgroundにはすでに多くの強力な機能が含まれていますが、私たちは
+さらに良い体験を提供するためにアイデアを練り続けています！
+
+考えているアイデアのいくつかは以下の通りです：
+
+- Playground用のアプリケーションプリセット（例：CLIアプリ、HTTPサーバなど）
+- Playgroundを外部アプリケーション（例：VSCode、Stackblitzなど）にエクスポート
+- アプリケーションメトリクスを可視化するためのサポート
+
+... さらに多く！
+
+ぜひ、[Discord](https://discord.gg/effect-ts)でご意見をお聞かせください！
+
+## 謝辞
+
+最後に、[Stackblitz](https://stackblitz.com)の皆さんに特別な感謝を
+伝えたいと思います。彼らは[Webcontainers API](https://webcontainers.io)を
+開発しており、この素晴らしい技術とその背後のサポートがなければ、Effect Playgroundの
+構築はほぼ不可能でした。
+
+## 現在稼働中！
+
+Effect Playgroundは[現在稼働中](https://effect.website/play)です！
+ぜひこの機会に、Effectが提供するすべての素晴らしい機能を
+探索してみてください！
+
+ハッピープログラミング！
+
+_The Effect Team_

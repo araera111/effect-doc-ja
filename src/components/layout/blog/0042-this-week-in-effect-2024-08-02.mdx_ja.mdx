@@ -1,0 +1,120 @@
+---
+title: Effectの最新情報 - 2024-08-02
+excerpt: Effect 3.6とEffect Playgroundのリリース。Maxwell BrownとTim Smartによる「Contentlayerの再構築」第3話。Michael Arnaldi、Maxwell Brown、Mattia Manzatiによる「Effect Cluster」第1話。
+date: 2024-08-02
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: CEO
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-07-26
+  - this-week-in-effect-2024-08-09
+---
+
+こんにちは、Effectの皆さん！
+
+「Effectの最新情報（**TWIE**）」へようこそ。これは、Effectコミュニティおよびエコシステムの最新の進展をお伝えするための毎週の更新です。
+
+Effectは強力なTypeScriptライブラリで、開発者が複雑な同期および非同期プログラムを簡単に作成できるようにサポートします。Effectが他のライブラリと異なる大きな特徴は、構造化された並行性を利用して、非同期キャンセルや安全なリソース管理といった機能を提供する点です。これにより、堅牢でスケーラブルで効率的なプログラムを構築することが容易になります。
+
+以下のクイックスタートガイドとドキュメントからEffectを始めましょう：
+
+- [Effectクイックスタートガイド](/docs/quickstart)
+- [Effectドキュメント](/docs/introduction)
+
+最近の主要なアップデート：
+
+- EffectはAPI安定版であり、[Effect 3.0のリリース](https://effect.website/blog/effect-3.0)が行われました。
+- [Effect 3.6](https://effect.website/blog/effect-3.6)がリリースされました。
+- 私たちの[Discordコミュニティ](https://discord.gg/effect-ts)は3310人以上のメンバーに達しました！
+- Effect Days 2024の全ての講演が[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能です。
+
+## テクノロジー
+
++ 今週、私たちは[Effect Playground](https://effect.website/play)を紹介しました。これはEffectのウェブサイト上でAPIを探索するためのインタラクティブなコーディング体験で、Monacoエディタ、ファイルツリー、ターミナル、Effect Developer Toolsとの統合などの機能があります。
+<Tweet id="1817965072821665897" />
+
+あなたが作成したものを見るのが楽しみですので、ぜひプログラムを私たちと共有してください！詳しくは[Effect Playgroundリリース投稿](https://effect.website/blog/playground-release)をご覧ください。楽しいコーディングを！
+<YouTube url="https://www.youtube.com/embed/zrMY9r9CRoc?si=UzeFoqTLv0Bx4441" />
+
++ [Effect 3.6](https://effect.website/blog/effect-3.6)がリリースされました。
+<Tweet id="1818237695987957965" />
+
+先週発生したすべての技術的変更は以下の通りです（3.6リリースに含まれる変更は含まれていません）。
+
+### Effect Core
++ [サービスと識別子型ヘルパーをTagに追加](https://github.com/Effect-TS/effect/pull/3362) (機能)
++ [do構文についての文書のタイプミスを修正](https://github.com/Effect-TS/effect/pull/3372) (ドキュメント更新)
++ [Hash.numberのバグをカバーするテストを追加](https://github.com/Effect-TS/effect/pull/3373) (機能)
++ [MicroモジュールにMicroSchedulerを追加](https://github.com/Effect-TS/effect/pull/3377) (機能)
++ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/3248) (機能、バグ修正)
+
+### Effect Experimental
++ [DevToolsクライアントがシャットダウンされることを保証](https://github.com/Effect-TS/effect/pull/3394) (バグ修正)
+
+### Effect Platform
++ [HttpApp.DefaultにHttpServerRequestを追加](https://github.com/Effect-TS/effect/pull/3384) (機能)
++ [HttpAppに型エイリアスを使用](https://github.com/Effect-TS/effect/pull/3386) (改善)
++ [HTTPクライアントのドキュメントを拡充](https://github.com/Effect-TS/effect/pull/3396) (ドキュメント更新)
+
+### Effect SQL
++ [PgClientにapplicationNameオプションを追加](https://github.com/Effect-TS/effect/pull/3364) (機能)
++ [PgClientにソケットオプションを追加](https://github.com/Effect-TS/effect/pull/3365) (機能)
++ [sql文の変換器を効果的にすることを許可](https://github.com/Effect-TS/effect/pull/3387) (改善)
++ [PgClientにlisten / notifyを追加](https://github.com/Effect-TS/effect/pull/3398) (機能)
+
+### Effect Schema
++ [isPropertySignatureガードをエクスポート](https://github.com/Effect-TS/effect/pull/3363) (強化)
++ [Schema：ユーザーランドテストを追加](https://github.com/Effect-TS/effect/pull/3370) (機能)
++ [TreeFormatterの出力をカスタマイズするために注釈の使用をより目立たせる](https://github.com/Effect-TS/effect/pull/3374) (ドキュメント更新)
++ [Concurrency Annotationドキュメントを追加](https://github.com/Effect-TS/effect/pull/3381) (ドキュメント更新)
++ [Chore：DateTime sinceタグを修正](https://github.com/Effect-TS/effect/pull/3388) (ドキュメント更新)
++ [DecodingFallbackAnnotationを実装してデコーディングエラーを管理](https://github.com/Effect-TS/effect/pull/3346) (機能)
++ [TemplateLiteralParserによる解析の強化](https://github.com/Effect-TS/effect/pull/3347) (強化)
++ [Schema.Classの使用に注釈を追加するための手順を追加](https://github.com/Effect-TS/effect/pull/3395) (ドキュメント更新)
++ [ユーザーランドdtslintテストを追加](https://github.com/Effect-TS/effect/pull/3400) (機能)
+
+### Effect Vitest
++ [vitest v2にアップデート](https://github.com/Effect-TS/effect/pull/3367) (改善)
++ [vitest runIfを追加](https://github.com/Effect-TS/effect/pull/3376) (機能)
+
+### 一般的なチョア
++ [すべてのPRに対してスナップショットアクションを許可](https://github.com/Effect-TS/effect/pull/3369)
++ [テストのためにmax-old-space-sizeを手動で増加](https://github.com/Effect-TS/effect/pull/3371)
+
+## コミュニティのハイライト
+
+先週、私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に+30人の新しいEffectのメンバーを迎えました。皆さんが参加してくれてとても嬉しいです！
+
++ [Effect Playground](https://effect.website/play)の立ち上げに続き、皆さんの意見をお待ちしています。フィードバックは[X](https://x.com/EffectTS_)または[Discord](https://discord.gg/effect-ts)でお知らせください。
+<Tweet id="1818065230532067432" />
+
++ [David Siegel](https://x.com/dvdsgl)、[Glide](https://www.glideapps.com/)のCEOは、新しいGlideバルクAPIでEffectを使用する際のフィードバックを共有してくれました。
+<Tweet id="1817397810880479315" />
+
+## Effectのコンテンツ更新
+
+Effectチームから2つの新しい配信がありました：
+
++ [Michael Arnaldi](https://x.com/MichaelArnaldi)、[Maxwell Brown](https://x.com/imax153)、[Mattia Manzati](https://x.com/MattiaManzati)がEffect Clusterに関する新しいシリーズを[MikeのTwitch](https://www.twitch.tv/mikearnaldi/video/2206072150)で開始しました。
+<Tweet id="1817923000382980562" />
+
++ [Maxwell Brown](https://x.com/imax153)と[Tim Smart](https://x.com/tim_smart)による「Contentlayerの再構築」シリーズの第3話が水曜日に放送されました。
+<Tweet id="1818772336537161908" />
+両方の配信は近日中に[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能になります。それまでの間に、Contentlayerの再構築シリーズ第2話をご覧ください：
+<YouTube url="https://www.youtube.com/embed/XqvvQ43b208?si=NrvY_rXA_DPZShUO" />
+
+## まとめ
+
+今週は以上です。私たちのコミュニティの重要な一員でいてくれてありがとう。皆さんのフィードバックは、このフォーマットを調整する上で非常に価値があります。ぜひあなたの意見を共有してください。コミュニティのニーズに合わせて最善を尽くします。
+
+_Effectコミュニティチーム_

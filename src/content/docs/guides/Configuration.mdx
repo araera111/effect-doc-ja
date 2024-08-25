@@ -1,0 +1,607 @@
+---
+title: Configuration
+excerpt: Effectは、開発者が複雑な同期および非同期プログラムを簡単に作成できるように設計された強力なTypeScriptライブラリです。
+bottomNavigation: pagination
+sidebar:
+  order: 6
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+設定は、すべてのクラウドネイティブアプリケーションにとって不可欠な要素です。Effect は、設定プロバイダーのための便利なインターフェースを提供することで、設定管理のプロセスを簡素化します。
+
+Effect の設定フロントエンドは、エコシステムライブラリやアプリケーションが自らの設定要件を宣言的に指定することを可能にします。これにより、複雑なタスクは`ConfigProvider`にオフロードされ、これはサードパーティのライブラリから提供できます。
+
+Effect には、環境変数から設定データを取得するシンプルなデフォルト`ConfigProvider`がバンドルされています。このデフォルトプロバイダーは、開発中に使用するか、より高度な設定プロバイダーに移行する前の出発点として利用できます。
+
+私たちのアプリケーションを設定可能にするために、以下の 3 つの基本要素を理解する必要があります：
+
+- **Config Description**: `Config<A>`のインスタンスを使って設定データを記述します。設定データが`string`、`number`、`boolean`などのシンプルな場合は、`Config`モジュールで提供されるビルトイン関数を使用できます。より複雑なデータ型、たとえば[HostPort](#custom-configurations)のような場合は、プリミティブ設定を組み合わせてカスタム設定記述を作成できます。
+
+- **Config Frontend**: `Config<A>`のインスタンスを利用して、インスタンスで記述された設定データをロードします（`Config`自体はエフェクトです）。このプロセスでは、現在の`ConfigProvider`を利用して設定を取得します。
+
+- **Config Backend**: `ConfigProvider`は、設定のロードプロセスを管理するための基盤エンジンとして機能します。Effect には、デフォルトサービスの一部としてデフォルトの設定プロバイダーが付属しています。このデフォルトプロバイダーは、環境変数から設定データを読み取ります。カスタム設定プロバイダーを使用したい場合は、`Layer.setConfigProvider`レイヤーを利用して Effect ランタイムを適切に構成できます。
+
+## 始めに
+
+Effect は、`string`、`number`、`boolean`、`integer`など、最も一般的な型のための一連のプリミティブを提供します。
+
+環境変数から設定を読み取るシンプルな例を見てみましょう：
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem label="Using Effect.gen">
+
+```ts filename="primitives.ts" twoslash
+import { Effect, Config } from "effect";
+
+const program = Effect.gen(function* () {
+  const host = yield* Config.string("HOST");
+  const port = yield* Config.number("PORT");
+  console.log(`アプリケーションが開始されました: ${host}:${port}`);
+});
+
+Effect.runSync(program);
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts filename="primitives.ts" twoslash
+import { Effect, Config, Console } from "effect";
+
+const program = Effect.all([Config.string("HOST"), Config.number("PORT")]).pipe(
+  Effect.andThen(([host, port]) =>
+    Console.log(`アプリケーションが開始されました: ${host}:${port}`)
+  )
+);
+
+Effect.runSync(program);
+```
+
+</TabItem>
+</Tabs>
+
+このプログラムを実行すると、次のような出力が得られます：
+
+```bash filename="Terminal"
+npx ts-node primitives.ts
+(設定がありません: "プロセスコンテキストにHOSTが存在することが期待されています")
+```
+
+これは、設定を提供していないためです。次の環境変数を指定して実行してみましょう：
+
+```bash filename="Terminal"
+HOST=localhost PORT=8080 npx ts-node primitives.ts
+アプリケーションが開始されました: localhost:8080
+```
+
+## プリミティブ
+
+Effect は、以下の基本型を標準で提供します：
+
+- `string`: 文字列値のための設定を構成します。
+- `number`: 浮動小数点値のための設定を構成します。
+- `boolean`: ブール値のための設定を構成します。
+- `integer`: 整数値のための設定を構成します。
+- `date`: 日付値のための設定を構成します。
+- `literal`: リテラル値（\*）のための設定を構成します。
+- `logLevel`: [LogLevel](observability/logging#log-levels)のための設定を構成します。
+- `duration`: 継続時間のための設定を構成します。
+- `redacted`: 秘密値のための設定を構成します。
+
+（\*）`string | number | boolean | null | bigint`
+
+## デフォルト値
+
+環境変数が設定されていない場合、設定が欠如することがあります。こうした状況を処理するために、Effect は`Config.withDefault`関数を提供しています。この関数を使えば、環境変数が存在しない場合に使用するフォールバックまたはデフォルト値を指定できます。
+
+以下に、フォールバック値を処理するために`Config.withDefault`を使用する方法を示します：
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts filename="withDefault.ts" twoslash
+import { Effect, Config } from "effect";
+
+const program = Effect.gen(function* () {
+  const host = yield* Config.string("HOST");
+  const port = yield* Config.number("PORT").pipe(Config.withDefault(8080));
+  console.log(`アプリケーションが開始されました: ${host}:${port}`);
+});
+
+Effect.runSync(program);
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts filename="withDefault.ts" twoslash
+import { Effect, Config, Console } from "effect";
+
+const program = Effect.all([
+  Config.string("HOST"),
+  Config.number("PORT").pipe(Config.withDefault(8080)),
+]).pipe(
+  Effect.andThen(([host, port]) =>
+    Console.log(`アプリケーションが開始されました: ${host}:${port}`)
+  )
+);
+
+Effect.runSync(program);
+```
+
+</TabItem>
+</Tabs>
+
+以下のコマンドでプログラムを実行すると、次のような出力が得られます：
+
+```bash filename="Terminal"
+HOST=localhost npx ts-node withDefault.ts
+```
+
+出力は次の通りです：
+
+```bash
+アプリケーションが開始されました: localhost:8080
+```
+
+`PORT`環境変数が設定されていなくても、フォールバック値の`8080`が使用され、プログラムがスムーズに実行を続けます。
+
+## コンストラクター
+
+Effect には、いくつかのビルトインコンストラクターが用意されています。これらは、`Config`を入力として受け取り、別の`Config`を生成する関数です。
+
+- `array`: 値の配列のための設定を構成します。
+- `chunk`: 値のシーケンスのための設定を構成します。
+- `option`: この設定のオプショナルバージョンを返します。データが設定から欠落している場合は`None`を返し、そうでない場合は`Some`を返します。
+- `repeat`: この設定の構造を持つ値のシーケンスを記述する設定を返します。
+- `hashSet`: 値のシーケンスのための設定を構成します。
+- `hashMap`: 値のシーケンスのための設定を構成します。
+
+基本的なものに加えて、役立つかもしれない 3 つの特別なコンストラクターがあります：
+
+- `succeed`: 指定された値を含む設定を構成します。
+- `fail`: 指定されたメッセージで失敗する設定を構成します。
+- `all`: タプル / 構造体 / 設定の引数から設定を構成します。
+
+**例**
+
+```ts filename="array.ts" twoslash
+import { Effect, Config } from "effect";
+
+const program = Effect.gen(function* () {
+  const config = yield* Config.array(Config.string(), "MY_ARRAY");
+  console.log(config);
+});
+
+Effect.runSync(program);
+```
+
+```bash filename="Terminal"
+MY_ARRAY=a,b,c npx ts-node array.ts
+
+[ 'a', 'b', 'c' ]
+```
+
+## オペレーター
+
+Effect は、設定を操作し、処理するためのビルトインオペレーターのセットを提供します。
+
+### 変換オペレーター
+
+これらのオペレーターは、設定を新しいものに変換することを可能にします：
+
+- `validate`: 同じ構造を持つ設定を返しますが、ロード中にバリデーションを実行します。
+- `map`: 元の設定と同じ構造を持つ新しい設定を作成し、指定した関数を使って値を変換します。
+- `mapAttempt`: `map`に似ていますが、関数がエラーを投げた場合、それを捕まえてバリデーションエラーに変換します。
+- `mapOrFail`: `map`のように、失敗する可能性のある関数を許可します。関数が失敗すると、バリデーションエラーになります。
+
+**例**
+
+```ts filename="validate.ts" twoslash
+import { Effect, Config } from "effect";
+
+const program = Effect.gen(function* () {
+  const config = yield* Config.string("NAME").pipe(
+    Config.validate({
+      message: "少なくとも4文字の文字列が期待されています",
+      validation: (s) => s.length >= 4,
+    })
+  );
+  console.log(config);
+});
+
+Effect.runSync(program);
+```
+
+```bash filename="Terminal"
+NAME=foo npx ts-node validate.ts
+
+[(無効なデータ: "少なくとも4文字の文字列が期待されています")]
+```
+
+### フォールバックオペレーター
+
+これらのオペレーターは、エラーやデータの欠如が発生した場合にフォールバックを設定するのに役立ちます：
+
+- `orElse`: まずこの設定を試みる設定を構成します。問題が発生した場合は、別の指定された設定にフォールバックします。
+- `orElseIf`: これも最初にメインの設定を使おうとしますが、特定の条件に合ったエラーが発生した場合は、フォールバック設定に切り替えます。
+
+**例**
+
+以下の例では、2 つの設定`A`と`B`が必要なプログラムがあります。各プロバイダーには 1 つの設定しかありません。`orElse`オペレーターを使ってフォールバックを設定する方法を示します。
+
+```ts filename="orElse.ts" twoslash
+import { Config, ConfigProvider, Effect, Layer } from "effect";
+
+// 設定AとBが必要なプログラム
+const program = Effect.gen(function* () {
+  const A = yield* Config.string("A");
+  const B = yield* Config.string("B");
+  console.log(`A: ${A}`, `B: ${B}`);
+});
+
+const provider1 = ConfigProvider.fromMap(
+  new Map([
+    ["A", "A"],
+    // Bは欠落
+  ])
+);
+
+const provider2 = ConfigProvider.fromMap(
+  new Map([
+    // Aは欠落
+    ["B", "B"],
+  ])
+);
+
+const layer = Layer.setConfigProvider(
+  provider1.pipe(ConfigProvider.orElse(() => provider2))
+);
+
+Effect.runSync(Effect.provide(program, layer));
+```
+
+```bash filename="Terminal"
+npx ts-node orElse.ts
+
+A: A B: B
+```
+
+:::info
+この例で使用されている`ConfigProvider.fromMap`メソッドは、`Map`から設定プロバイダーを作成します。この動作の詳細は、[テストサービス](#testing-services)のセクションで説明されています。
+
+:::
+
+## カスタム設定
+
+プリミティブ型に加えて、カスタム型の設定も定義できます。これを実現するためには、プリミティブ設定を使用し、`Config`オペレーター（`zip`、`orElse`、`map`など）やコンストラクター（`array`、`hashSet`など）を使って組み合わせます。
+
+`HostPort`データ型を考えてみましょう。これは、`host`と`port`の 2 つのフィールドで構成されます。
+
+```ts
+class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+}
+```
+
+このデータ型の設定を定義するために、`string`と`number`のためのプリミティブ設定を組み合わせることができます：
+
+```ts filename="HostPort.ts" twoslash
+import { Config } from "effect";
+
+export class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+
+  get url() {
+    return `${this.host}:${this.port}`;
+  }
+}
+
+const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
+
+export const config = Config.map(
+  both,
+  ([host, port]) => new HostPort(host, port)
+);
+```
+
+上記の例では、`Config.all(configs)`オペレーターを使用して、2 つのプリミティブ設定`Config<string>`と`Config<number>`を`Config<[string, number]>`に組み合わせています。
+
+このカスタマイズされた設定をアプリケーションで使用した場合：
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+>
+
+```ts filename="App.ts" twoslash
+// @filename: HostPort.ts
+import { Config } from "effect";
+
+export class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+
+  get url() {
+    return `${this.host}:${this.port}`;
+  }
+}
+
+const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
+
+export const config = Config.map(
+  both,
+  ([host, port]) => new HostPort(host, port)
+);
+
+// @filename: App.ts
+// ---cut---
+import { Effect } from "effect";
+import * as HostPort from "./HostPort";
+
+export const program = Effect.gen(function* () {
+  const hostPort = yield* HostPort.config;
+  console.log(`アプリケーションが開始されました: ${hostPort.url}`);
+});
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts filename="App.ts" twoslash
+// @filename: HostPort.ts
+import { Config } from "effect";
+
+export class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+
+  get url() {
+    return `${this.host}:${this.port}`;
+  }
+}
+
+const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
+
+export const config = Config.map(
+  both,
+  ([host, port]) => new HostPort(host, port)
+);
+
+// @filename: App.ts
+// ---cut---
+import { Effect, Console } from "effect";
+import * as HostPort from "./HostPort";
+
+export const program = HostPort.config.pipe(
+  Effect.andThen((hostPort) =>
+    Console.log(`アプリケーションが開始されました: ${hostPort.url}`)
+  )
+);
+```
+
+</TabItem>
+</Tabs>
+
+`Effect.runSync(program)`を使用してプログラムを実行すると、環境変数（`HOST`と`PORT`）から対応する値を読み取ろうとします：
+
+```bash filename="Terminal"
+HOST=localhost PORT=8080 npx ts-node HostPort.ts
+
+アプリケーションが開始されました: localhost:8080
+```
+
+## トップレベルおよびネストされた設定
+
+これまで、プリミティブ型またはカスタム型の設定をトップレベルで定義する方法を学習してきました。しかし、ネストされた設定も定義できます。
+
+`ServiceConfig`データ型が`hostPort`と`timeout`の 2 つのフィールドで構成されると仮定しましょう。
+
+```ts filename="ServiceConfig.ts" twoslash
+// @filename: HostPort.ts
+import { Config } from "effect";
+
+export class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+
+  get url() {
+    return `${this.host}:${this.port}`;
+  }
+}
+
+const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
+
+export const config = Config.map(
+  both,
+  ([host, port]) => new HostPort(host, port)
+);
+
+// @filename: ServiceConfig.ts
+// ---cut---
+import * as HostPort from "./HostPort";
+import { Config } from "effect";
+
+class ServiceConfig {
+  constructor(readonly hostPort: HostPort.HostPort, readonly timeout: number) {}
+}
+
+const config = Config.map(
+  Config.all([HostPort.config, Config.number("TIMEOUT")]),
+  ([hostPort, timeout]) => new ServiceConfig(hostPort, timeout)
+);
+```
+
+このカスタマイズされた設定をアプリケーションで使用すると、環境変数から対応する値を読み取ろうとします：`HOST`、`PORT`、および`TIMEOUT`。
+
+ただし、多くのケースでは、すべての設定をトップレベルの名前空間から読み取ることは望ましくありません。代わりに、共通の名前空間の下にネストさせたい場合があります。たとえば、`HOST`と`PORT`の両方を`HOSTPORT`名前空間から読み取り、`TIMEOUT`をルート名前空間から読み取るようにしたいとします。
+
+この実現のために、`Config.nested`コンビネーターを使用できます。これにより、特定の名前空間の下に設定をネストできます。設定を更新する方法は次のとおりです：
+
+```ts twoslash
+// @filename: HostPort.ts
+import { Config } from "effect";
+
+export class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+
+  get url() {
+    return `${this.host}:${this.port}`;
+  }
+}
+
+const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
+
+export const config = Config.map(
+  both,
+  ([host, port]) => new HostPort(host, port)
+);
+
+// @filename: ServiceConfig.ts
+import * as HostPort from "./HostPort";
+import { Config } from "effect";
+
+class ServiceConfig {
+  constructor(readonly hostPort: HostPort.HostPort, readonly timeout: number) {}
+}
+
+// ---cut---
+const config = Config.map(
+  Config.all([
+    Config.nested(HostPort.config, "HOSTPORT"),
+    Config.number("TIMEOUT"),
+  ]),
+  ([hostPort, timeout]) => new ServiceConfig(hostPort, timeout)
+);
+```
+
+これで、アプリケーションを実行すると、環境変数から次の値を読み取ろうとします：`HOSTPORT_HOST`、`HOSTPORT_PORT`、および`TIMEOUT`。
+
+## テストサービス
+
+サービスをテストする際には、特定の設定を提供する必要があるシナリオがあります。そのため、設定データを読み取るバックエンドをモックできる必要があります。
+
+これを実現するために、`ConfigProvider.fromMap`コンストラクターを使用できます。このコンストラクターは、設定データを表す`Map<string, string>`を受け取り、そのマップから設定を読み取るプロバイダーを返します。
+
+モック設定プロバイダーを取得したら、`Layer.setConfigProvider`関数を使用できます。この関数を使用することで、デフォルトの設定プロバイダーをオーバーライドして、独自のカスタム設定プロバイダーを提供できます。これは、テスト仕様のために Effect ランタイムを構成できる`Layer`を返します。
+
+以下に、テストのために設定プロバイダーをモックする方法の例を示します：
+
+```ts filename="mockConfigProvider.ts" twoslash
+// @filename: HostPort.ts
+import { Config } from "effect";
+
+export class HostPort {
+  constructor(readonly host: string, readonly port: number) {}
+
+  get url() {
+    return `${this.host}:${this.port}`;
+  }
+}
+
+const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
+
+export const config = Config.map(
+  both,
+  ([host, port]) => new HostPort(host, port)
+);
+
+// @filename: App.ts
+import { Effect, Console } from "effect";
+import * as HostPort from "./HostPort";
+
+export const program = HostPort.config.pipe(
+  Effect.andThen((hostPort) =>
+    Console.log(`アプリケーションが開始されました: ${hostPort.url}`)
+  )
+);
+
+// @filename: mockConfigProvider.ts
+// ---cut---
+import { ConfigProvider, Layer, Effect } from "effect";
+import * as App from "./App";
+
+// ConfigProvider.fromMapを使ってモック設定プロバイダーを作成
+const mockConfigProvider = ConfigProvider.fromMap(
+  new Map([
+    ["HOST", "localhost"],
+    ["PORT", "8080"],
+  ])
+);
+
+// デフォルトの設定プロバイダーをオーバーライドするためにLayer.setConfigProviderを使用してレイヤーを作成
+const layer = Layer.setConfigProvider(mockConfigProvider);
+
+// 提供されたレイヤーを使用してプログラムを実行
+Effect.runSync(Effect.provide(App.program, layer));
+// 出力: アプリケーションが開始されました: localhost:8080
+```
+
+このアプローチを使用することで、設定データを簡単にモックして、制御された方法で異なる設定を使用してサービスをテストできます。
+
+## Redacted
+
+`Config.redacted`が`Config.string`と異なる点は、敏感な情報の取り扱いにあります。
+設定値を解析し、それを`Redacted<string>`という秘密を保持するための[データ型](../other/data-types/redacted)でラッピングします。
+
+赤 acted を使用するときに`Console.log`を使用すると、実際の値は隠され、セキュリティが向上します。
+値にアクセスする唯一の方法は、`Redacted.value`を使用することです。
+
+```ts filename="Redacted.ts" twoslash
+import { Effect, Config, Console, Redacted } from "effect";
+
+const program = Config.redacted("API_KEY").pipe(
+  Effect.tap((redacted) => Console.log(`コンソール出力: ${redacted}`)),
+  Effect.tap((redacted) => Console.log(`実際の値: ${Redacted.value(redacted)}`))
+);
+
+Effect.runSync(program);
+```
+
+このプログラムを実行すると、次の出力が得られます：
+
+```bash filename="Terminal"
+API_KEY=my-api-key tsx Redacted.ts
+コンソール出力: <redacted>
+実際の値: my-api-key
+```
+
+この例からわかるように、赤 acted を使用して`Console.log`にログ出力すると、実際の値は`<redacted>`に置き換えられ、敏感な情報が露出しないようになっています。
+一方、`Redacted.value`関数は、元の秘密の値を取得するコントロールされた方法を提供します。
+
+## Secret
+
+:::caution
+バージョン 3.3.0 以降非推奨:
+今後は敏感な情報の取り扱いには[Config.redacted](#redacted)を使用してください。
+
+:::
+
+`Config.secret`は、敏感な情報を保護するために`Config.redacted`と似た機能を持ちます。
+設定値を`Secret`型でラッピングし、ログ出力時に詳細を隠しますが、`Secret.value`メソッドを介してアクセスを許可します。
+
+```ts filename="Secret.ts" twoslash
+import { Effect, Config, Console, Secret } from "effect";
+
+const program = Config.secret("API_KEY").pipe(
+  Effect.tap((secret) => Console.log(`コンソール出力: ${secret}`)),
+  Effect.tap((secret) => Console.log(`秘匿値: ${Secret.value(secret)}`))
+);
+
+Effect.runSync(program);
+```
+
+このプログラムを実行すると、次の出力が得られます：
+
+```bash filename="Terminal"
+API_KEY=my-api-key tsx Secret.ts
+コンソール出力: Secret(<redacted>)
+秘匿値: my-api-key
+```

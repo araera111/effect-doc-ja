@@ -1,0 +1,662 @@
+---
+title: ストリームの作成
+excerpt: Effectにおける`Stream`を作成するためのさまざまな方法を探ります。`make`、`empty`、`unit`、`range`、`iterate`、`scoped`などの一般的なコンストラクタについて学び、`succeed`や`fail`関数を使用して成功と失敗からストリームを生成する方法を発見します。さらに、チャンク、エフェクト、非同期コールバック、反復可能なオブジェクト、繰り返し、展開、ページング、キュー、パブ/サブ、スケジュールからストリームを構築する方法を見ていきます。各メソッドのニュアンスについての実践的な例を通じて学び、Effectのストリーミング機能を最大限に活用できるようになります。
+bottomNavigation: pagination
+---
+
+このセクションでは、Effect の`Stream`を作成するさまざまな方法を探ります。これらの方法により、ニーズに合わせたストリームを生成できます。
+
+## 一般的なコンストラクタ
+
+### make
+
+`Stream.make`コンストラクタを使用して、純粋なストリームを作成できます。このコンストラクタは、変数のリストを引数として受け取ります。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const stream = Stream.make(1, 2, 3);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2, 3 ] }
+```
+
+### empty
+
+時には、何の値も生成しないストリームが必要となる場合があります。そのような場合には、`Stream.empty`を使用します。このコンストラクタは、空のままのストリームを作成します。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const stream = Stream.empty;
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [] }
+```
+
+### void
+
+単一の`void`値を含むストリームが必要な場合、`Stream.void`を使用できます。このコンストラクタは、単一のイベントやシグナルを表すストリームを作成するのに便利です。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const stream = Stream.void;
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ undefined ] }
+```
+
+### range
+
+指定した範囲`[min, max]`内の整数ストリームを作成するには、`Stream.range`を使用します（両端点、つまり`min`および`max`を含む）。これは、連続した数字のストリームを生成するのに特に便利です。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+// 1から5までの数値のストリームを作成
+const stream = Stream.range(1, 5);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2, 3, 4, 5 ] }
+```
+
+### iterate
+
+`Stream.iterate`を使用すると、初期値に関数を適用して反復的にストリームを生成できます。初期値はストリームによって生成される最初の要素となり、その後の値は`f(init)`, `f(f(init))`のように生成されます。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+// 増加する数字のストリームを作成
+const stream = Stream.iterate(1, (n) => n + 1); // 1, 2, 3, ...
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+// { _id: 'Chunk', values: [ 1, 2, 3, 4, 5 ] }
+```
+
+### scoped
+
+`Stream.scoped`は、スコープ内のリソースから単一の値を持つストリームを作成するために使用されます。この機能は、明示的な取得、使用、および解放を必要とするリソースを扱う際に便利です。
+
+```ts twoslash
+import { Stream, Effect, Console } from "effect";
+
+// スコープ内のリソースから単一の値を持つストリームを作成
+const stream = Stream.scoped(
+  Effect.acquireUseRelease(
+    Console.log("acquire"),
+    () => Console.log("use"),
+    () => Console.log("release")
+  )
+);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+/*
+出力:
+acquire
+use
+release
+{ _id: 'Chunk', values: [ undefined ] }
+*/
+```
+
+## 成功と失敗から
+
+`Effect`データ型と同様に、`fail`および`succeed`関数を使用して`Stream`を生成できます：
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+// エラーを発生させることができるストリームを作成
+const streamWithError: Stream.Stream<never, string> = Stream.fail("Uh oh!");
+
+Effect.runPromise(Stream.runCollect(streamWithError));
+// throws Error: Uh oh!
+
+// 数値を発生させるストリームを作成
+const streamWithNumber: Stream.Stream<number> = Stream.succeed(5);
+
+Effect.runPromise(Stream.runCollect(streamWithNumber)).then(console.log);
+// { _id: 'Chunk', values: [ 5 ] }
+```
+
+## チャンクから
+
+`Chunk`からストリームを構築するには、以下のようにします：
+
+```ts twoslash
+import { Stream, Chunk, Effect } from "effect";
+
+// 単一のチャンクから値を持つストリームを作成
+const stream = Stream.fromChunk(Chunk.make(1, 2, 3));
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2, 3 ] }
+```
+
+さらに、複数の`Chunk`からストリームを作成することもできます：
+
+```ts twoslash
+import { Stream, Chunk, Effect } from "effect";
+
+// 複数のチャンクから値を持つストリームを作成
+const stream = Stream.fromChunks(Chunk.make(1, 2, 3), Chunk.make(4, 5, 6));
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2, 3, 4, 5, 6 ] }
+```
+
+## Effect から
+
+`Stream.fromEffect`コンストラクタを使用して Effect ワークフローからストリームを生成できます。例えば、以下のストリームは単一のランダムな数値を生成します：
+
+```ts twoslash
+import { Stream, Random, Effect } from "effect";
+
+const stream = Stream.fromEffect(Random.nextInt);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// 出力例: { _id: 'Chunk', values: [ 1042302242 ] }
+```
+
+この方法を使用すると、Effect の出力をストリームにシームレスに変換でき、ストリーム内の非同期操作を簡単に扱えるようになります。
+
+## 非同期コールバックから
+
+コールバックに依存した非同期関数があると仮定しましょう。それらのコールバックによって発生する結果をストリームとしてキャプチャしたい場合、`Stream.async`関数を使用できます。この関数は、コールバックを複数回呼び出し、その結果をストリームとして発行するように設計されています。
+
+以下の例での使用方法を見てみましょう：
+
+```ts twoslash
+import { Stream, Effect, Chunk, Option, StreamEmit } from "effect";
+
+const events = [1, 2, 3, 4];
+
+const stream = Stream.async(
+  (emit: StreamEmit.Emit<never, never, number, void>) => {
+    events.forEach((n) => {
+      setTimeout(() => {
+        if (n === 3) {
+          emit(Effect.fail(Option.none())); // ストリームを終了
+        } else {
+          emit(Effect.succeed(Chunk.of(n))); // 現在のアイテムをストリームに追加
+        }
+      }, 100 * n);
+    });
+  }
+);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2 ] }
+```
+
+`StreamEmit.Emit<R, E, A, void>`型は、複数回呼び出すことができる非同期コールバックを表します。このコールバックは、`Effect<Chunk<A>, Option<E>, R>`型の値を取ります。この型が述べる各結果の意味は次のとおりです：
+
+- コールバックに渡された値が成功した場合に`Chunk<A>`を生成すると、それらの要素がストリームの一部として発行されることを示します。
+
+- コールバックに渡された値が`Some<E>`で失敗すると、指定されたエラーでストリームが終了することを示します。
+
+- コールバックに渡された値が`None`で失敗すると、ストリームの終了を示すシグナルとして機能し、ストリームが終了します。
+
+簡単に言えば、この型を使用すると、非同期コールバックがストリームとどのように相互作用し、要素を発行するタイミング、エラーで終了するタイミング、ストリームの終了をシグナルするタイミングを指定できます。
+
+## 反復可能なオブジェクトから
+
+### fromIterable
+
+`Stream.fromIterable`コンストラクタを使用すると、値の`Iterable`から純粋なストリームを作成できます。これは、値のコレクションをストリームに変換する簡単な方法です。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const numbers = [1, 2, 3];
+
+const stream = Stream.fromIterable(numbers);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2, 3 ] }
+```
+
+### fromIterableEffect
+
+`Iterable`型の値を生成するエフェクトがある場合、`Stream.fromIterableEffect`コンストラクタを使用して、そのエフェクトからストリームを生成できます。
+
+例えば、データベース操作がユーザーのリストを取得すると仮定しましょう。この操作はエフェクトを伴うので、`Stream.fromIterableEffect`を使用して結果を`Stream`に変換できます：
+
+```ts twoslash
+import { Stream, Effect, Context } from "effect";
+
+class Database extends Context.Tag("Database")<
+  Database,
+  { readonly getUsers: Effect.Effect<Array<string>> }
+>() {}
+
+const getUsers = Database.pipe(Effect.andThen((_) => _.getUsers));
+
+const stream = Stream.fromIterableEffect(getUsers);
+
+Effect.runPromise(
+  Stream.runCollect(
+    stream.pipe(
+      Stream.provideService(Database, {
+        getUsers: Effect.succeed(["user1", "user2"]),
+      })
+    )
+  )
+).then(console.log);
+// { _id: 'Chunk', values: [ 'user1', 'user2' ] }
+```
+
+これにより、エフェクトをシームレスに扱い、その結果をストリームに変換してさらなる処理を行うことができます。
+
+### fromAsyncIterable
+
+非同期イテラブルもストリームに変換できるデータソースの一つです。`Stream.fromAsyncIterable`コンストラクタを使用することで、非同期データソースを扱い、エラーも適切に処理できます。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const myAsyncIterable = async function* () {
+  yield 1;
+  yield 2;
+};
+
+const stream = Stream.fromAsyncIterable(
+  myAsyncIterable(),
+  (e) => new Error(String(e)) // エラーハンドリング
+);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 1, 2 ] }
+```
+
+このコードでは、非同期イテラブルを定義し、それから`stream`という名前のストリームを作成しています。また、変換過程で発生する可能性のあるエラーを処理するためのエラーハンドラ関数も提供しています。
+
+## 繰り返しから
+
+### 単一の値の繰り返し
+
+`Stream.repeatValue`コンストラクタを使用して、特定の値を無限に繰り返すストリームを作成できます：
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const stream = Stream.repeatValue(0);
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+// { _id: 'Chunk', values: [ 0, 0, 0, 0, 0 ] }
+```
+
+### ストリームの内容の繰り返し
+
+`Stream.repeat`を使用すると、特定のストリームの内容をスケジュールに従って繰り返すストリームを作成できます。これは、定期的なイベントや値を生成するのに便利です。
+
+```ts twoslash
+import { Stream, Effect, Schedule } from "effect";
+
+// 無限に値を繰り返すストリームを作成
+const stream = Stream.repeat(Stream.succeed(1), Schedule.forever);
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+// { _id: 'Chunk', values: [ 1, 1, 1, 1, 1 ] }
+```
+
+### エフェクトの結果の繰り返し
+
+エフェクトによる API コールがあり、その結果を使用してストリームを作成したい場合、エフェクトからストリームを作成し、それを無限に繰り返すことで実現できます。
+
+以下は、ランダムな数値のストリームを生成する例です：
+
+```ts twoslash
+import { Stream, Effect, Random } from "effect";
+
+const stream = Stream.repeatEffect(Random.nextInt);
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+/*
+出力例:
+{
+  _id: 'Chunk',
+  values: [ 1666935266, 604851965, 2194299958, 3393707011, 4090317618 ]
+}
+*/
+```
+
+### 終了条件付きでのエフェクトの繰り返し
+
+指定された条件に基づいてストリームを終了する方法で、エフェクトを評価し続けることができます。
+
+この例では、`Iterator`からストリームを作成しています：
+
+```ts twoslash
+import { Stream, Effect, Option } from "effect";
+
+const drainIterator = <A>(it: Iterator<A>): Stream.Stream<A> =>
+  Stream.repeatEffectOption(
+    Effect.sync(() => it.next()).pipe(
+      Effect.andThen((res) => {
+        if (res.done) {
+          return Effect.fail(Option.none());
+        }
+        return Effect.succeed(res.value);
+      })
+    )
+  );
+```
+
+### タイムティックの生成
+
+`Stream.tick`コンストラクタを使用して、指定された間隔で`void`値を発行するストリームを作成できます。これは、定期的なイベントを作成するのに便利です。
+
+```ts twoslash
+import { Stream, Effect } from "effect";
+
+const stream = Stream.tick("100 millis");
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+/*
+出力:
+{
+  _id: 'Chunk',
+  values: [ undefined, undefined, undefined, undefined, undefined ]
+}
+*/
+```
+
+## 展開/ページングから
+
+関数型プログラミングにおける`unfold`の概念は、`fold`の対のように考えることができます。
+
+`fold`では、データ構造を処理して戻り値を生成します。例えば、`Array<number>`を取り、その要素の合計を計算することができます。
+
+一方、`unfold`は、初期値から始まり、指定された状態関数を使用して 1 つずつ要素を追加しながら再帰的データ構造を生成する操作を示します。例えば、`1`から始まる自然数の系列を作成し、`increment`関数を状態関数として使用できます。
+
+### unfold
+
+#### unfold
+
+Stream モジュールには、次のように定義された`unfold`関数があります：
+
+```ts
+declare const unfold: <S, A>(
+  initialState: S,
+  step: (s: S) => Option.Option<readonly [A, S]>
+) => Stream<A>;
+```
+
+使い方は以下の通りです：
+
+- **initialState**。これは初期状態の値です。
+- **step**。状態関数`step`は、現在の状態`s`を入力として取ります。この関数の結果が`None`の場合、ストリームは終了します。もし`Some<[A, S]>`であれば、次のストリームの要素は`A`であり、次のステッププロセスのために状態`S`が更新されます。
+
+例えば、`Stream.unfold`を使って自然数のストリームを作成してみましょう：
+
+```ts twoslash
+import { Stream, Effect, Option } from "effect";
+
+const stream = Stream.unfold(1, (n) => Option.some([n, n + 1]));
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+// { _id: 'Chunk', values: [ 1, 2, 3, 4, 5 ] }
+```
+
+#### unfoldEffect
+
+場合によっては、展開操作中にエフェクトフルな状態変換が必要になることがあります。この場合、`Stream.unfoldEffect`が役立ちます。これを使用すると、ストリームを生成する際にエフェクトを扱えます。
+
+次に、`Stream.unfoldEffect`を使用して無限のランダム`1`と`-1`値のストリームを作成する例を示します：
+
+```ts twoslash
+import { Stream, Effect, Option, Random } from "effect";
+
+const stream = Stream.unfoldEffect(1, (n) =>
+  Random.nextBoolean.pipe(
+    Effect.map((b) => (b ? Option.some([n, -n]) : Option.some([n, n])))
+  )
+);
+
+Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
+  console.log
+);
+// 出力例: { _id: 'Chunk', values: [ 1, 1, 1, 1, -1 ] }
+```
+
+#### その他のバリアント
+
+`Chunk`データ型に対応する`Stream.unfoldChunk`や`Stream.unfoldChunkEffect`などの類似操作があります。
+
+### ページング
+
+#### paginate
+
+`Stream.paginate`は`Stream.unfold`に似ていますが、値を 1 ステップ先に発行することができます。
+
+例えば、次のストリームは`0, 1, 2, 3`という要素を発行します：
+
+```ts twoslash
+import { Stream, Effect, Option } from "effect";
+
+const stream = Stream.paginate(0, (n) => [
+  n,
+  n < 3 ? Option.some(n + 1) : Option.none(),
+]);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+// { _id: 'Chunk', values: [ 0, 1, 2, 3 ] }
+```
+
+使い方は以下の通りです：
+
+- 初期値として`0`から始まります。
+- 提供された関数は現在の値`n`を取り、タプルを返します。タプルの最初の要素は発行する値（`n`）であり、2 番目の要素は続けるか（`Option.some(n + 1)`）停止するか（`Option.none()`）を決定します。
+
+#### その他のバリアント
+
+`Chunk`データ型に対応する`Stream.paginateChunk`や`Stream.paginateChunkEffect`の類似操作もあります。
+
+### 展開とページングの違い
+
+`unfold`と`paginate`のコンビネータの違いは何か、また、どちらを使用すべきかについて考えるかもしれません。次の例を見てみましょう。
+
+例えば、ページネーションされた API があり、かなりの量のデータがページネーション方式で提供されるとします。この API にリクエストを送ると、現在のページの結果と最終ページであるか、次のページにデータがあるかどうかを示すフラグを含む`ResultPage`オブジェクトが返されます。以下は、私たちの API の簡略化した表現です：
+
+```ts twoslash include domain
+import { Chunk, Effect } from "effect";
+
+export type RawData = string;
+
+export class PageResult {
+  constructor(
+    readonly results: Chunk.Chunk<RawData>,
+    readonly isLast: boolean
+  ) {}
+}
+
+const pageSize = 2;
+
+export const listPaginated = (
+  pageNumber: number
+): Effect.Effect<PageResult, Error> => {
+  return Effect.succeed(
+    new PageResult(
+      Chunk.map(
+        Chunk.range(1, pageSize),
+        (index) => `Result ${pageNumber}-${index}`
+      ),
+      pageNumber === 2 // 3ページ返す
+    )
+  );
+};
+```
+
+```ts filename="domain.ts" twoslash
+// @include: domain
+```
+
+ゴールは、このページネーション API を`RowData`イベントのストリームに変換することです。初期の試みとして、`Stream.unfold`操作を使用しようとするかもしれません：
+
+```ts filename="firstAttempt.ts" twoslash
+// @filename: domain.ts
+// @include: domain
+
+// @filename: firstAttempt.ts
+// ---cut---
+import { Effect, Stream, Option } from "effect";
+import { RawData, listPaginated } from "./domain";
+
+const firstAttempt: Stream.Stream<RawData, Error> = Stream.unfoldChunkEffect(
+  0,
+  (pageNumber) =>
+    listPaginated(pageNumber).pipe(
+      Effect.map((page) => {
+        if (page.isLast) {
+          return Option.none();
+        }
+        return Option.some([page.results, pageNumber + 1] as const);
+      })
+    )
+);
+
+Effect.runPromise(Stream.runCollect(firstAttempt)).then(console.log);
+/*
+出力:
+{
+  _id: "Chunk",
+  values: [ "Result 0-1", "Result 0-2", "Result 1-1", "Result 1-2" ]
+}
+*/
+```
+
+ただし、このアプローチには欠点があります。最後のページの結果が含まれません。それを補うために、結果を取得するために追加の API コールを実行します。
+
+```ts filename="secondAttempt.ts" twoslash
+// @filename: domain.ts
+// @include: domain
+
+// @filename: firstAttempt.ts
+// ---cut---
+import { Effect, Stream, Option } from "effect";
+import { RawData, listPaginated } from "./domain";
+
+const secondAttempt: Stream.Stream<RawData, Error> = Stream.unfoldChunkEffect(
+  Option.some(0),
+  (pageNumber) =>
+    Option.match(pageNumber, {
+      // 最後のページに到達している
+      onNone: () => Effect.succeed(Option.none()),
+      // まだ最後のページに到達していない
+      onSome: (pageNumber) =>
+        listPaginated(pageNumber).pipe(
+          Effect.map((page) =>
+            Option.some([
+              page.results,
+              page.isLast ? Option.none() : Option.some(pageNumber + 1),
+            ])
+          )
+        ),
+    })
+);
+
+Effect.runPromise(Stream.runCollect(secondAttempt)).then(console.log);
+/*
+出力:
+{
+  _id: 'Chunk',
+  values: [
+    'Result 0-1',
+    'Result 0-2',
+    'Result 1-1',
+    'Result 1-2',
+    'Result 2-1',
+    'Result 2-2'
+  ]
+}
+*/
+```
+
+このアプローチは機能しますが、`Stream.unfold`はページネーション API からデータを取得する場合に最も友好的な選択肢とは言えません。最後のページの結果を含めるために追加の手間が必要です。
+
+ここで`Stream.paginate`が役立ちます。この API は、ページネーションされた API を Effect ストリームに変換するよりエルゴノミックな方法を提供します。`Stream.paginate`を使用して解決策を書き換えてみましょう：
+
+```ts filename="finalAttempt.ts" twoslash
+// @filename: domain.ts
+// @include: domain
+
+// @filename: finalAttempt.ts
+// ---cut---
+import { Effect, Stream, Option } from "effect";
+import { RawData, listPaginated } from "./domain";
+
+const finalAttempt: Stream.Stream<RawData, Error> = Stream.paginateChunkEffect(
+  0,
+  (pageNumber) =>
+    listPaginated(pageNumber).pipe(
+      Effect.andThen((page) => {
+        return [
+          page.results,
+          page.isLast ? Option.none<number>() : Option.some(pageNumber + 1),
+        ];
+      })
+    )
+);
+
+Effect.runPromise(Stream.runCollect(finalAttempt)).then(console.log);
+/*
+出力:
+{
+  _id: 'Chunk',
+  values: [
+    'Result 0-1',
+    'Result 0-2',
+    'Result 1-1',
+    'Result 1-2',
+    'Result 2-1',
+    'Result 2-2'
+  ]
+}
+*/
+```
+
+## キューとパブサブから
+
+Effect には、必要な 2 つの重要な非同期メッセージングデータ型である[Queue](../../concurrency/queue)と[PubSub](../../concurrency/pubsub)があります。これらのデータ型は、それぞれ`Stream.fromQueue`と`Stream.fromPubSub`を使用することで簡単に`Stream`に変換できます。
+
+## スケジュールから
+
+スケジュールからストリームを作成できます。このストリームは、スケジュールから出力された各値に対して要素を発行し、スケジュールが続く限り発行を続けます。
+
+```ts twoslash
+import { Effect, Stream, Schedule } from "effect";
+
+// 1秒ごとに合計10回発行される値
+const schedule = Schedule.spaced("1 second").pipe(
+  Schedule.compose(Schedule.recurs(10))
+);
+
+const stream = Stream.fromSchedule(schedule);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+/*
+出力:
+{
+  _id: 'Chunk',
+  values: [
+    0, 1, 2, 3, 4,
+    5, 6, 7, 8, 9
+  ]
+}
+*/
+```

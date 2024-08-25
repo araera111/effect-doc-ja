@@ -1,0 +1,136 @@
+---
+title: 今週のEffect - 2024-05-10
+excerpt: Effectに関する技術的アップデート。Tim Suchanekによる「AIエージェントの構築」、Antoine Coulonによる「Skottの構築：Effect駆動開発の旅」。
+date: 2024-05-10
+authors:
+  - name: ダヴィデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のEffect-2024-05-03
+  - 今週のEffect-2024-05-17
+---
+
+こんにちは、Effecters！ 
+
+今週の**T**his **W**eek **I**n **E**ffect（**TWIE**）にようこそ！これは、私たちのコミュニティやEffectエコシステムの情報を追跡する手助けをするための毎週のアップデートです。
+
+初めての方へ、Effectは、開発者が複雑な同期的および非同期的なプログラムを作成するのを支援する強力なTypeScriptライブラリです。Effectの主要な特徴の一つは、構造化された並行性を活用し、非同期キャンセルや安全なリソース管理といった機能を提供することで、堅牢でスケーラブルかつ効率的なプログラムを構築しやすくする点です。
+
+Effectの旅を始めるために、以下のクイックスタートガイドとドキュメントをご覧ください。お楽しみください！
+
+[Effectクイックスタートガイド](/docs/quickstart)
+
+[Effectドキュメント](/docs/introduction)
+
+## TWIEの概要
+
+TWIEが初めての方へ、TWIEとは何か、そしてその目的について少しお話しします。
+
+コミュニティが急速に成長していることが嬉しいです。ますます多くの人々がEffectを採用しています。しかし、Effectエコシステムで何が起こっているのかを把握するのが簡単ではないことも理解しています：
+
+- Effectは、Effect 3.0のリリースによりAPIが安定しました。
+- 当社のDiscordサーバーは数日前に**2730+メンバー**に達し、エンゲージメントは過去最高です。
+- Effect Daysからのトークを毎週公開し始めました。見逃さないように、[YouTubeチャンネルに登録してください](https://www.youtube.com/@effect-ts)。
+- Effectに関連するすべてのプロジェクトが**重要なアップデート**を受けており、GitHubでの活動が活発です！
+
+私たちは、Effectの旅を十分に楽しむために必要な情報を簡単に見つけられるようにしたいと考えています。そして、コミュニティと積極的に関わってもらいたいのです。
+
+**そのためにTWIEを作成しました** - 先週のEffectに関する重要なイベントを、コミュニティ（Discordの議論、Xの投稿、YouTubeコンテンツなど）および技術的な観点からお知らせする毎週のアップデートです。
+
+では、ビジネスに戻りましょう！
+
+
+## 技術情報
+
+[Effect/Schema 0.67](https://effect.website/blog/schema-release-0.67)がリリースされました。最新の機能や改善点については、[ジュリオ・カンティ](https://twitter.com/GiulioCanti)による完全なリリース投稿をお読みください。
+
+以下は、先週の変更点です。
+
+### Effect Core
++ [Data.TaggedEnumのための$isと$matchをジェネリクスでサポート](https://github.com/Effect-TS/effect/pull/2702)（機能、次のマイナー）
++ [Fix(platform): httpクライアントボディストリームランタイム](https://github.com/Effect-TS/effect/pull/2694)（バグ修正、次のマイナー）
++ [トレーススパンのためのスタックトレースをキャプチャ](https://github.com/Effect-TS/effect/pull/2673)（機能、次のマイナー）
+
+
+### Effect Platform
++ [httpレスポンスミドルウェアが中断可能であることを保証](https://github.com/Effect-TS/effect/pull/2689)（バグ修正）
++ [http ServerResponseクッキーAPIの修正](https://github.com/Effect-TS/effect/pull/2698)（バグ修正）
++ [@effect/platform/SocketのisowsをWebSocketConstructorサービスに置き換え](https://github.com/Effect-TS/effect/pull/2703)（リファクタリング）
++ [Fix(platform-node): EADDRINUSEエラー報告](https://github.com/Effect-TS/effect/pull/270)（バグ修正）
++ [ブラウザワーカーがシャットダウンする際に.close()を実行](https://github.com/Effect-TS/effect/pull/2722)（バグ修正）
++ [Fix(platform): httpクライアントボディストリームランタイム](https://github.com/Effect-TS/effect/pull/2694)（バグ修正、次のマイナー）
++ [トレーススパンのためのスタックトレースをキャプチャ](https://github.com/Effect-TS/effect/pull/2673)（機能、次のマイナー）
+
+
+### Effect Experimental
++ [@effect/platform/SocketのisowsをWebSocketConstructorサービスに置き換え](https://github.com/Effect-TS/effect/pull/2703)（リファクタリング）
++ [トレーススパンのためのスタックトレースをキャプチャ](https://github.com/Effect-TS/effect/pull/2673)（機能、次のマイナー）
+
+
+### Effect RPC
++ [Rpc.Rpc.Protoの"schema"型の修正](https://github.com/Effect-TS/effect/pull/2714)（バグ修正）
++ [トレーススパンのためのスタックトレースをキャプチャ](https://github.com/Effect-TS/effect/pull/2673)（機能、次のマイナー）
+
+
+### Effect SQL
++ [@effect/sqlを方言に依存しないようにする](https://github.com/Effect-TS/effect/pull/2693)（機能）
++ [sql readmeを更新](https://github.com/Effect-TS/effect/pull/2697)（ドキュメント更新）
++ [トレーススパンのためのスタックトレースをキャプチャ](https://github.com/Effect-TS/effect/pull/2673)（機能、次のマイナー）
+
+
+### Effect Schema
++ [クラスAPI: 保留されたプロパティを持つクラスを作成する際の初期化前アクセスを回避](https://github.com/Effect-TS/effect/pull/2710)（バグ修正）
++ [Schema 0.67](https://github.com/Effect-TS/effect/pull/2634)（機能、改善、バグ修正）
+
+
+## コミュニティ
+
+先週、私たちはDiscordサーバーに+100名の新しいEffectersを迎えました！Effectコミュニティに参加していただき、ありがとうございます。皆さんを迎えられて嬉しく思います！
+
+### コンテンツ更新
+Effect Daysカンファレンスからの2つのトークを追加リリースしました。
+
+私たちの週は、[ティム・スチャネック](https://twitter.com/TimSuchanek)の「AIエージェントの構築」という啓発的なセッションで始まりました。彼はEffectを利用してAIエージェントの構築について探求しました。ティムは、実践設定におけるAIの重要性を強調し、エージェントとその異なるタイプの概念を紹介しました。
+
+<YouTube url="https://www.youtube.com/embed/6SrHTdoSBc4?si=EEOJHovxh8CGHSZV" />
+
+金曜日には、[アントワーヌ・クーロン](https://twitter.com/c9antoine)のプレゼンテーション「Skottの構築：Effect駆動開発の旅」を公開しました。アントワーヌは、西洋の講演で、Effect駆動開発を用いて静的分析ツール[skott](https://github.com/antoine-coulon/skott)の設計についての経験を共有しました。Skottは、テスト駆動開発と型駆動開発の原則を組み合わせて、コンピュータシステム内のグラフの可能性を活用することを目指しています。
+
+<YouTube url="https://www.youtube.com/embed/eQPvfYMheng?si=xmFWybxb7DYrUAdI" />
+
+[マッティア・マンザーティ](https://twitter.com/MattiaManzati)、Effect Cluster Contributorは、[Twitch](https://www.twitch.tv/videos/2135438468)で自身の@effect/clusterシリーズを進めています。今週は、effect/clusterをPlatformからeffect/RPCに移動する新しいタスクを始めました。マッティアのすべての動画は[YouTubeチャンネル](https://www.youtube.com/@effect-ts)で見ることができます。こちらが第2話です：
+
+<YouTube url="https://www.youtube.com/embed/Bvjmpky0gGM?si=IWaFthGVhpMrPMhr" />
+
+[ディロン・マルロイ](https://twitter.com/dillon_mulroy)、[Vercel](https://vercel.com)のソフトウェアエンジニアは、Effectを使ってApple MusicのTwitch統合をどのように構築するかに関するシリーズを終了し、私たちにフィードバックを共有してくれました：
+
+<Tweet id="1786569881372037399" />
+
+私たちのDX [ヨハネス・シックリング](https://twitter.com/schickling)は、最新の[syntax.fm](https://syntax.fm/)エピソードにゲスト出演しました。このポッドキャストはフルスタックWeb開発についてのもので、今回のエピソードでは、Effectを「TypeScriptに欠けているライブラリ」とし、ローカルファーストの開発の台頭について掘り下げました。
+
+<YouTube url="https://www.youtube.com/embed/TrVYBfIsOa0?si=pTOjp2bFk5zo4q-9" />
+
+[ミラッド・ヴァファエイファード](https://twitter.com/miladvafaeifard)、ソフトウェアエンジニアで教育者であり、[サイン言語技術](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の創設者が、Effectでの「パイプ」のサインをどのように示すかを共有しました：
+
+<Tweet id="1786781450852827394" />
+
+
+[ミハエル・アルナルディ](https://twitter.com/MichaelArnaldi)、Effectの著者が、5月7日に[LambdaConf 2024](https://www.lambdaconf.us)で講演を行いました。ビデオが公開される際は、私たちの[Xアカウント](https://twitter.com/EffectTS_)をフォローして最新情報をお待ちください。
+
+<Tweet id="1787959568485806199" />
+
+## 終わりに
+
+今週の内容は以上です。私たちのコミュニティの重要な一部でいてくれてありがとうございます。皆さんのフィードバックは、私たちがこの新しいフォーマットを調整する上で非常に貴重です。ぜひご意見をお聞かせください。私たちはコミュニティのニーズに合うように最善を尽くします。
+
+_Effectコミュニティチーム_

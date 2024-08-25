@@ -1,0 +1,420 @@
+---
+title: エラーチャンネル操作
+excerpt: Effectにおけるエラーチャンネルのさまざまな操作、エラーマッピング、両方のチャンネルのマッピング、成功値のフィルタリング、エラーの検査、エラーの公開、エラーと成功のチャンネルのマージ、およびエラーと成功のチャンネルのフリッピングを探求します。Effectプログラミングでエラーを効果的に扱う方法を学びましょう。
+bottomNavigation: pagination
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Effect では、エフェクトのエラーチャンネルに対してさまざまな操作を実行できます。これらの操作により、エラーをさまざまな方法で変換、検査、処理することができます。それでは、これらの操作のいくつかを見てみましょう。
+
+## マッピング操作
+
+### mapError
+
+`Effect.mapError`関数は、エフェクトが生成した**エラーを変換または修正する必要がある場合**に使用されます。成功値には影響を与えません。これは、エラーに追加情報を加えたい場合や、その型を変更したい場合に役立ちます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const simulatedTask = Effect.fail("それは大変だ！").pipe(Effect.as(1));
+
+const mapped = Effect.mapError(simulatedTask, (message) => new Error(message));
+```
+
+プログラムのエラーチャンネルの型が`string`から`Error`に変更されたことが観察できます。
+
+:::info
+`Effect.mapError`関数を使用することにより、エフェクトの全体的な成功や失敗は**変わらない**ことに注意してください。マッピングされたエフェクトが成功している場合、マッピング関数は無視されます。言い換えれば、`Effect.mapError`操作はエフェクトのエラーチャンネルにのみ変換を適用し、成功チャンネルはそのままにします。
+
+:::
+
+### mapBoth
+
+`Effect.mapBoth`関数を使用すると、エフェクトの**両方のチャンネル**、すなわちエラーチャンネルと成功チャンネルの変換を**適用**できます。引数には、エラーチャンネル用と成功チャンネル用の 2 つのマップ関数を受け取ります。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const simulatedTask = Effect.fail("それは大変だ！").pipe(Effect.as(1));
+
+const modified = Effect.mapBoth(simulatedTask, {
+  onFailure: (message) => new Error(message),
+  onSuccess: (n) => n > 0,
+});
+```
+
+`mapBoth`を使用した後、プログラムの型が`Effect<number, string>`から`Effect<boolean, Error>`に変更されたことが観察できます。
+
+:::info
+`mapBoth`関数を使用することにより、エフェクトの全体的な成功や失敗は**変わらない**ことに注意してください。エラーチャンネルと成功チャンネルの値が変換されるだけで、エフェクトの元の成功または失敗の状態は保持されます。
+
+:::
+
+## 成功チャンネルのフィルタリング
+
+Effect ライブラリは、与えられた述語に基づいて**成功チャンネル上の値をフィルタリングする**ためのいくつかの演算子を提供します。これらの演算子は、述語が失敗した場合の処理に対して異なる戦略を提供します。それでは見てみましょう。
+
+| **関数**                                              | **説明**                                                                                                                                                                                                             |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Effect.filterOrFail`                                 | この演算子は、述語に基づいて成功チャンネルの値をフィルタします。述語が任意の値に対して失敗した場合、元のエフェクトはエラーで失敗します。                                                                             |
+| `Effect.filterOrDie`および`Effect.filterOrDieMessage` | これらの演算子も、述語に基づいて成功チャンネルの値をフィルタします。述語が任意の値に対して失敗した場合、元のエフェクトは突然終了します。`filterOrDieMessage`バリアントでは、カスタムエラーメッセージを提供できます。 |
+| `Effect.filterOrElse`                                 | この演算子は、述語に基づいて成功チャンネルの値をフィルタします。述語が任意の値に対して失敗した場合、代わりに別のエフェクトが実行されます。                                                                           |
+
+以下は、これらのフィルタリング演算子がどのように機能するかを示す例です。
+
+```ts twoslash
+import { Effect, Random, Cause } from "effect";
+
+const task1 = Effect.filterOrFail(
+  Random.nextRange(-1, 1),
+  (n) => n >= 0,
+  () => "ランダムな数が負です"
+);
+
+const task2 = Effect.filterOrDie(
+  Random.nextRange(-1, 1),
+  (n) => n >= 0,
+  () => new Cause.IllegalArgumentException("ランダムな数が負です")
+);
+
+const task3 = Effect.filterOrDieMessage(
+  Random.nextRange(-1, 1),
+  (n) => n >= 0,
+  "ランダムな数が負です"
+);
+
+const task4 = Effect.filterOrElse(
+  Random.nextRange(-1, 1),
+  (n) => n >= 0,
+  () => task3
+);
+```
+
+使用される特定のフィルタリング演算子によって、エフェクトは失敗するか、突然終了するか、述語が失敗した場合に代わりのエフェクトを実行します。目的のエラー処理戦略とプログラムのロジックに基づいて適切な演算子を選択してください。
+
+以前に議論したフィルタリング機能に加えて、`filterOr*` API に[ユーザー定義の型ガード](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)を提供することで、成功チャンネルの型をさらに洗練し、絞り込むことができます。これにより、型安全性が向上するだけでなく、コードの明確さも向上します。この概念を次の例で探ってみましょう。
+
+```ts twoslash
+import { Effect, pipe } from "effect";
+
+// ユーザーインターフェイスを定義
+interface User {
+  readonly name: string;
+}
+
+// 非同期認証関数を仮定
+declare const auth: () => Promise<User | null>;
+
+const program = pipe(
+  Effect.promise(() => auth()),
+  Effect.filterOrFail(
+    // 型を絞り込むためのガードを定義
+    (user): user is User => user !== null,
+    () => new Error("認証されていません")
+  ),
+  Effect.andThen((user) => user.name) // ここでの'user'は型が`User`です、`User | null`ではありません
+);
+```
+
+上記の例では、`filterOrFail` API 内でガードを使用して、`user`が`User`型であることを保証しています。これは、`User | null`ではなく、洗練された型情報がコードの信頼性を向上させ、理解を容易にします。
+
+簡便さと一貫性のために、[Predicate.isNotNull](https://effect-ts.github.io/effect/effect/Predicate.ts.html#isnotnull)のような事前に作成されたガードを利用することも可能です。
+
+## エラーの検査
+
+成功値の[Tapping](../essentials/pipeline#tap)と同様に、Effect はエラー値を**検査する**ためのいくつかの演算子を提供します。これらの演算子は、結果に影響を与えずに失敗や基礎的な問題を観察することを可能にします：
+
+| 関数            | 説明                                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `tapError`      | エフェクトの失敗を検査するために効果的な操作を実行しますが、結果には影響を与えません。                                        |
+| `tapErrorTag`   | 特定のタグを持つ失敗を検査し、集中したエラー処理を可能にします。                                                              |
+| `tapErrorCause` | エフェクトの失敗の根本的な原因を検査します。                                                                                  |
+| `tapDefect`     | エフェクト内の回復不可能な失敗や欠陥（すなわち、1 つ以上の[Die](../../other/data-types/cause#die)原因）を具体的に検査します。 |
+| `tapBoth`       | エフェクトの成功と失敗の両方の結果を検査し、結果に基づいて異なるアクションを実行します。                                      |
+
+:::info
+これらのエラー検査ツールを利用することで、エフェクトの結果や型を**変えることはありません**。
+
+:::
+
+### tapError
+
+エフェクトの失敗を検査するために効果的な操作を実行しますが、結果には影響を与えません。
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+// 失敗するように設計されたエフェクトを作成し、ネットワークエラーが発生したことをシミュレート
+const task: Effect.Effect<number, string> = Effect.fail("ネットワークエラー");
+
+// タスクが失敗した場合にエラーメッセージをログに記録します。この関数はエラーがある場合にのみ実行され、
+// 元のエフェクトの結果を変更することなくエラーを処理または検査する方法を提供します。
+const tapping = Effect.tapError(task, (error) =>
+  Console.log(`予期されたエラー: ${error}`)
+);
+
+Effect.runFork(tapping);
+/*
+出力:
+予期されたエラー: ネットワークエラー
+*/
+```
+
+### tapErrorTag
+
+特定のタグを持つ失敗を具体的に検査し、集中したエラー処理を可能にします。
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+class NetworkError {
+  readonly _tag = "ネットワークエラー";
+  constructor(readonly statusCode: number) {}
+}
+
+class ValidationError {
+  readonly _tag = "検証エラー";
+  constructor(readonly field: string) {}
+}
+
+// 失敗するように設計されたエフェクトを作成し、ネットワークエラーが発生したことをシミュレート
+const task: Effect.Effect<number, NetworkError | ValidationError> = Effect.fail(
+  new NetworkError(504)
+);
+
+// "ネットワークエラー"というタグが付けられたエラーにのみエラーハンドリング関数を適用し、
+// エラーの対応するステータスコードをログに記録します。
+const tapping = Effect.tapErrorTag(task, "ネットワークエラー", (error) =>
+  Console.log(`予期されたエラー: ${error.statusCode}`)
+);
+
+Effect.runFork(tapping);
+/*
+出力:
+予期されたエラー: 504
+*/
+```
+
+### tapErrorCause
+
+エフェクトの失敗の根本的な原因を検査します。
+
+```ts
+import { Effect, Console } from "effect";
+
+// 失敗するように設計されたエフェクトを作成し、ネットワークエラーが発生したことをシミュレート
+const task1: Effect.Effect<number, string> = Effect.fail("ネットワークエラー");
+
+// このコードは、予期されたエラーや欠陥の原因を記録します
+const tapping1 = Effect.tapErrorCause(task1, (cause) =>
+  Console.log(`エラーの原因: ${cause}`)
+);
+
+Effect.runFork(tapping1);
+/*
+出力:
+エラーの原因: Error: ネットワークエラー
+*/
+
+// 特定のメッセージで欠陥を引き起こし、システムで重大な失敗をシミュレートします。
+const task2: Effect.Effect<number, string> =
+  Effect.dieMessage("何かがうまくいかなかった");
+
+// このコードは、予期されたエラーや欠陥の原因を記録します
+const tapping2 = Effect.tapErrorCause(task2, (cause) =>
+  Console.log(`エラーの原因: ${cause}`)
+);
+
+Effect.runFork(tapping2);
+/*
+出力:
+エラーの原因: RuntimeException: 何かがうまくいかなかった
+  ... スタックトレース ...
+*/
+```
+
+### tapDefect
+
+回復不可能な失敗や欠陥（すなわち、1 つ以上の[Die](../../other/data-types/cause#die)原因）を具体的に検査します。
+
+```ts
+import { Effect, Console } from "effect";
+
+// 失敗するように設計されたエフェクトを作成し、ネットワークエラーが発生したことをシミュレート
+const task1: Effect.Effect<number, string> = Effect.fail("ネットワークエラー");
+
+// これは欠陥ではないため、何もログに記録されません
+const tapping1 = Effect.tapDefect(task1, (cause) =>
+  Console.log(`欠陥: ${cause}`)
+);
+
+Effect.runFork(tapping1);
+/*
+出力なし
+*/
+
+// 特定のメッセージで欠陥を引き起こし、システムで重大な失敗をシミュレートします。
+const task2: Effect.Effect<number, string> =
+  Effect.dieMessage("何かがうまくいかなかった");
+
+// このコードは、欠陥のみをログに記録し、エラーは記録しません
+const tapping2 = Effect.tapDefect(task2, (cause) =>
+  Console.log(`欠陥: ${cause}`)
+);
+
+Effect.runFork(tapping2);
+/*
+出力:
+欠陥: RuntimeException: 何かがうまくいかなかった
+  ... スタックトレース ...
+*/
+```
+
+### tapBoth
+
+エフェクトの成功と失敗の両方の結果を検査し、結果に基づいて異なるアクションを実行します。
+
+```ts twoslash
+import { Effect, Random, Console } from "effect";
+
+// 失敗する可能性のあるエフェクトをシミュレート
+const task = Effect.filterOrFail(
+  Random.nextRange(-1, 1),
+  (n) => n >= 0,
+  () => "ランダムな数が負です"
+);
+
+// 'task'の成功と失敗の両方の結果をログに記録するエフェクトを定義
+const tapping = Effect.tapBoth(task, {
+  onFailure: (error) => Console.log(`失敗: ${error}`),
+  onSuccess: (randomNumber) => Console.log(`ランダムな数: ${randomNumber}`),
+});
+
+Effect.runFork(tapping);
+/*
+出力例:
+失敗: ランダムな数が負です
+*/
+```
+
+## 成功チャンネルでのエラーの公開
+
+`Effect.either`関数を使用して`Effect<A, E, R>`を変換し、失敗（`E`）と成功（`A`）の両方のチャンネルを[Either&lt;A, E&gt;](../../other/data-types/either)データ型に持たせることができます。
+
+```ts
+Effect<A, E, R> -> Effect<Either<A, E>, never, R>
+```
+
+結果として得られるエフェクトは、例外に依存しないエフェクトになります。つまり、左側のケースとして失敗のケースが公開されているため、失敗することはありません。したがって、返される Effect のエラーのパラメータは`never`となり、エフェクトが失敗をモデル化しないことが保証されます。
+
+この関数は、`Effect.gen`を使用して失敗する可能性のあるエフェクトから回復する際に特に便利です。
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem 
+  label="Effect.genを使用"
+>
+
+```ts twoslash
+import { Effect, Either, Console } from "effect";
+
+const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
+
+const program = Effect.gen(function* () {
+  const failureOrSuccess = yield* Effect.either(simulatedTask);
+  if (Either.isLeft(failureOrSuccess)) {
+    const error = failureOrSuccess.left;
+    yield* Console.log(`失敗: ${error}`);
+    return 0;
+  } else {
+    const value = failureOrSuccess.right;
+    yield* Console.log(`成功: ${value}`);
+    return value;
+  }
+});
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+>
+
+```ts twoslash
+import { Effect, Either, Console } from "effect";
+
+const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
+
+const program = Effect.either(simulatedTask).pipe(
+  Effect.andThen((failureOrSuccess) =>
+    Either.match(failureOrSuccess, {
+      onLeft: (error) => Console.log(`失敗: ${error}`).pipe(Effect.as(0)),
+      onRight: (value) => Console.log(`成功: ${value}`).pipe(Effect.as(value)),
+    })
+  )
+);
+```
+
+</TabItem>
+</Tabs>
+
+## 成功チャンネルでの原因の公開
+
+`Effect.cause`関数を使用して、エフェクトの**原因**を公開できます。これは、エラーのメッセージや欠陥を含む失敗のより詳細な表現です。
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+>
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
+
+const program = Effect.gen(function* () {
+  const cause = yield* Effect.cause(simulatedTask);
+  yield* Console.log(cause);
+});
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+>
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
+
+const program = Effect.cause(simulatedTask).pipe(
+  Effect.andThen((cause) => Console.log(cause))
+);
+```
+
+</TabItem>
+</Tabs>
+
+## エラーチャンネルの成功チャンネルへのマージ
+
+`Effect.merge`関数を使用して、エラーチャンネルを成功チャンネルに**マージする**ことができ、常にマージされた値で成功するエフェクトを作成します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
+
+const merged = Effect.merge(simulatedTask);
+```
+
+## エラーと成功チャンネルのフリッピング
+
+`Effect.flip`関数を使用して、エフェクトのエラーチャンネルと成功チャンネルを**フリップ**し、その役割を効果的に入れ替えることができます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
+
+const flipped = Effect.flip(simulatedTask);
+```

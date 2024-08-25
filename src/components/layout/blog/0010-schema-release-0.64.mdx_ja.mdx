@@ -1,0 +1,870 @@
+---
+title: Schema 0.64 (リリース)
+excerpt: 新しい追加機能と破壊的変更を強調したリリース投稿
+date: 2024-03-16
+authors:
+  - name: Giulio Canti
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/507058995845017600/c0OWECjS_400x400.png
+    twitter: https://twitter.com/GiulioCanti
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+---
+
+## 型エクストラクタ
+
+`To`および`From`型エクストラクタは、それぞれ`Type`および`Encoded`に名前が変更されました。
+
+変更前:
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+const schema = S.string
+
+type SchemaType = S.Schema.To<typeof schema>
+type SchemaEncoded = S.Schema.From<typeof schema>
+```
+
+変更後:
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+const schema = S.string
+
+type SchemaType = S.Schema.Type<typeof schema>
+type SchemaEncoded = S.Schema.Encoded<typeof schema>
+```
+
+この変更の理由は、"From"と"To"という用語があまりにも一般的であり、文脈に依存していたためです。たとえば、エンコードの際には"From"と"To"の意味が逆になることがありました。
+
+その結果、API `AST.to`、`AST.from`、`Schema.to`、および`Schema.from`はそれぞれ`AST.typeAST`、`AST.encodedAST`、`Schema.typeSchema`、および`Schema.encodedSchema`に名前が変更されました。
+
+## 新しいアノテーションメソッド
+
+現在、`pipe`メソッドに加えて、すべてのスキーマにはアノテーションを追加するために使用できる`annotations`メソッドがあります。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+const Name = S.string.annotations({ identifier: "Name" })
+```
+
+後方互換性のためとパイプラインを活用するために、パイプ可能な`S.annotations` APIを引き続き使用できます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+const Name = S.string.pipe(S.annotations({ identifier: "Name" }))
+```
+
+## APIインターフェース
+
+### APIインターフェースとは？
+
+"APIインターフェース"は、`@effect/schema`からエクスポートされたスキーマまたは特定のAPIのために特別に定義された`interface`です。シンプルなスキーマの例を見てみましょう。
+
+**例**（`Age`スキーマ）
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// APIインターフェース
+interface Age extends S.Schema<number> {}
+
+const Age: Age = S.number.pipe(S.between(0, 100))
+
+// type AgeType = number
+type AgeType = S.Schema.Type<typeof Age>
+// type AgeEncoded = number
+type AgeEncoded = S.Schema.Encoded<typeof Age>
+```
+
+利点は、`Age`スキーマにカーソルを合わせると、`Schema<number, number, never>`の代わりに`Age`が表示されることです。これは`Age`スキーマだけを考えれば小さな改善ですが、すぐにわかるように、スキーマの可視化におけるこれらの改善は合算されて、スキーマの可読性に大きな改善をもたらします。
+
+`@effect/schema`からエクスポートされる多くのビルトインスキーマには、APIインターフェースが装備されています。例えば`number`や`never`です。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const number: S.$number
+S.number
+
+// const never: S.$never
+S.never
+```
+
+**注意**。APIインターフェース名に`$`サフィックスを追加する必要があることに注意してください。これはTypeScriptの`number`型のために予約されている名前をそのまま使用できないためです。
+
+次に、特定のタイプ`A`の入力スキーマを受け取ってペア`readonly [A, A]`のスキーマを返すコンビネータの例を見てみましょう。
+
+**例**（`pair`コンビネータ）
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// APIインターフェース
+export interface pair<S extends S.Schema.Any>
+  extends S.Schema<
+    readonly [S.Schema.Type<S>, S.Schema.Type<S>],
+    readonly [S.Schema.Encoded<S>, S.Schema.Encoded<S>],
+    S.Schema.Context<S>
+  > {}
+
+// API
+export const pair = <S extends S.Schema.Any>(schema: S): pair<S> =>
+  S.tuple(S.asSchema(schema), S.asSchema(schema))
+```
+
+**注意**：`S.Schema.Any`ヘルパーは`never`以外のすべてのスキーマを表します。`asSchema`ヘルパーに関する詳細は、次のセクション「不透明な名前の理解」を参照してください。
+
+`pair`コンビネータを使用しようとすると、この場合の可読性も改善されていることがわかります。
+
+```ts
+// const Coords: pair<S.$number>
+const Coords = pair(S.number)
+```
+
+カーソルを合わせると、単に`pair<S.$number>`が表示され、以前のように次のようにはなりません。
+
+```ts
+// const Coords: S.Schema<readonly [number, number], readonly [number, number], never>
+const Coords = S.tuple(S.number, S.number)
+```
+
+新しい名前は短く読みやすいだけでなく、スキーマの起源である`pair`コンビネータへの呼び出しも明示的に示しています。
+
+### 不透明な名前の理解
+
+このように生成された不透明な名前は非常に便利ですが、スキーマを宣言する際にデバッグ目的で基礎となる型を確認したい場合があります。いつでも`asSchema`関数を使用して、あなたの不透明な定義に適合する`Schema<A, I, R>`を返すことができます。
+
+```ts
+// const Coords: pair<S.$number>
+const Coords = pair(S.number)
+
+// const NonOpaqueCoords: S.Schema<readonly [number, number], readonly [number, number], never>
+const NonOpaqueCoords = S.asSchema(Coords)
+```
+
+**注意**。`asSchema`への呼び出しは、何も変わらない単なる偉大化されたアイデンティティ関数であるため、オーバーヘッドはわずかです。
+
+`@effect/schema`からエクスポートされる多くのビルトインコンビネータには、APIインターフェースが装備されています。例えば`struct`です。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+/*
+const Person: S.struct<{
+    name: S.$string;
+    age: S.$number;
+}>
+*/
+const Person = S.struct({
+  name: S.string,
+  age: S.number
+})
+```
+
+カーソルを合わせると、単純に次のように表示されます。
+
+```ts
+const Person: S.struct<{
+  name: S.$string
+  age: S.$number
+}>
+```
+
+以前のように次のようにはなりません。
+
+```ts
+const Person: S.Schema<
+  {
+    readonly name: string
+    readonly age: number
+  },
+  {
+    readonly name: string
+    readonly age: number
+  },
+  never
+>
+```
+
+### 引数の公開
+
+APIインターフェースの利点は、より良い可読性にとどまりません。実際、APIインターフェースの導入の駆動力は、ユーザーが生成するスキーマについての重要な情報を公開する必要性から生じます。リテラルや構造体に関連するいくつかの例を見てみましょう。
+
+**例**（公開されたリテラル）
+
+リテラルを定義する際に、生成されたスキーマが表示する`literals`フィールドを使用してそれを取得できるようになりました。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const myliterals: S.literal<["A", "B"]>
+const myliterals = S.literal("A", "B")
+
+// literals: readonly ["A", "B"]
+myliterals.literals
+
+console.log(myliterals.literals) // 出力: [ 'A', 'B' ]
+```
+
+**例**（公開されたフィールド）
+
+リテラルに関して見たのと同様に、スキーマを定義するときに`fields`を取得できます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+/*
+const Person: S.struct<{
+    name: S.$string;
+    age: S.$number;
+}>
+*/
+const Person = S.struct({
+  name: S.string,
+  age: S.number
+})
+
+/*
+fields: {
+    readonly name: S.$string;
+    readonly age: S.$number;
+}
+*/
+Person.fields
+
+console.log(Person.fields)
+/*
+{
+  name: Schema {
+    ast: StringKeyword { _tag: 'StringKeyword', annotations: [Object] },
+    ...
+  },
+  age: Schema {
+    ast: NumberKeyword { _tag: 'NumberKeyword', annotations: [Object] },
+    ...
+  }
+}
+*/
+```
+
+`fields`を取得できることは、スキーマを新しいフィールドで拡張したいときに特に有利です。これにより、スプレッド演算子を使用してシンプルに行うことができます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+const Person = S.struct({
+  name: S.string,
+  age: S.number
+})
+
+/*
+const PersonWithId: S.struct<{
+    id: S.$number;
+    name: S.$string;
+    age: S.$number;
+}>
+*/
+const PersonWithId = S.struct({
+  ...Person.fields,
+  id: S.number
+})
+```
+
+APIインターフェースが装備されたAPIのリストは広範で、ここでは新たに開拓された開発の可能性を示すために主なものをいくつか提供します。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// ------------------------
+// 配列の値
+// ------------------------
+
+// value: S.$string
+S.array(S.string).value
+
+// ------------------------
+// レコードのキーと値
+// ------------------------
+
+// key: S.$string
+S.record(S.string, S.number).key
+// value: S.$number
+S.record(S.string, S.number).value
+
+// ------------------------
+// ユニオンメンバー
+// ------------------------
+
+// members: readonly [S.$string, S.$number]
+S.union(S.string, S.number).members
+
+// ------------------------
+// タプルの要素
+// ------------------------
+
+// elements: readonly [S.$string, S.$number]
+S.tuple(S.string, S.number).elements
+```
+
+### アノテーションの互換性
+
+スキーマとビルトインコンビネータを装備したすべてのAPIインターフェースは、`annotations`メソッドに互換性があり、タイプは失われず、アノテーションの前の元のまま残ります。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const Name: S.$string
+const Name = S.string.annotations({ identifier: "Name" })
+```
+
+ご覧の通り、`Name`の型は依然として`$string`であり、`Schema<string, string, never>`にはなりません。
+
+これがユーザーランドで定義されたAPIインターフェースではデフォルトで発生することはありません。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// APIインターフェース
+interface Age extends S.Schema<number> {}
+
+const Age: Age = S.number.pipe(S.between(0, 100))
+
+// const AnotherAge: S.Schema<number, number, never>
+const AnotherAge = Age.annotations({ identifier: "AnotherAge" })
+```
+
+しかし、修正は非常に簡単です。`@effect/schema`からエクスポートされた`Annotable`インターフェースを使用して`Age` APIインターフェースの定義を変更するだけです。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// APIインターフェース
+interface Age extends S.Annotable<Age, number> {}
+
+const Age: Age = S.number.pipe(S.between(0, 100))
+
+// const AnotherAge: Age
+const AnotherAge = Age.annotations({ identifier: "AnotherAge" })
+```
+
+## クラスAPI
+
+`Class`を定義するには、識別子が必要です（デュアルパッケージハザードを避けるため）。
+
+```ts
+// 新しく必要な識別子  v
+//                          v
+class A extends S.Class<A>("A")({ a: S.string }) {}
+```
+
+`struct`のケースと同様に、クラスも`fields`を公開します。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+class A extends S.Class<A>("A")({ a: S.string }) {}
+
+/*
+fields: {
+    readonly a: S.$string;
+}
+*/
+A.fields
+```
+
+## 拡張された構造体コンストラクタ
+
+`struct`コンストラクタは、オプションでインデックスシグネチャを表すキー/値ペアのリストを受け取ることができます。
+
+```ts
+const struct = (props, ...indexSignatures)
+```
+
+**例**
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+/*
+const opaque: S.typeLiteral<{
+    a: S.$number;
+}, readonly [{
+    readonly key: S.$string;
+    readonly value: S.$number;
+}]>
+*/
+const opaque = S.struct(
+  {
+    a: S.number
+  },
+  { key: S.string, value: S.number }
+)
+
+/*
+const nonOpaque: S.Schema<{
+    readonly [x: string]: number;
+    readonly a: number;
+}, {
+    readonly [x: string]: number;
+    readonly a: number;
+}, never>
+*/
+const nonOpaque = S.asSchema(opaque)
+```
+
+`record`コンストラクタは`key`と`value`の両方を公開するスキーマを返すため、単なるオブジェクト`{ key, value }`を渡す代わりに`record`コンストラクタを使用できます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+/*
+const opaque: S.typeLiteral<{
+    a: S.$number;
+}, readonly [S.record<S.$string, S.$number>]>
+*/
+const opaque = S.struct(
+  {
+    a: S.number
+  },
+  S.record(S.string, S.number)
+)
+
+/*
+const nonOpaque: S.Schema<{
+    readonly [x: string]: number;
+    readonly a: number;
+}, {
+    readonly [x: string]: number;
+    readonly a: number;
+}, never>
+*/
+const nonOpaque = S.asSchema(opaque)
+```
+
+## 拡張されたタプルコンストラクタ
+
+`tuple`コンストラクタは、TypeScriptがサポートする任意のバリアントを構築できるように改善されました。
+
+### 必須要素
+
+以前と同様に、必須要素を持つタプルを定義するには、単に要素のリストを指定します。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const opaque: S.tuple<[S.$string, S.$number]>
+const opaque = S.tuple(S.string, S.number)
+
+// const nonOpaque: S.Schema<readonly [string, number], readonly [string, number], never>
+const nonOpaque = S.asSchema(opaque)
+```
+
+### オプション要素
+
+オプション要素を定義するには、要素のスキーマを`optionalElement`修飾子でラップします。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const opaque: S.tuple<[S.$string, S.OptionalElement<S.$number>]>
+const opaque = S.tuple(S.string, S.optionalElement(S.number))
+
+// const nonOpaque: S.Schema<readonly [string, number?], readonly [string, number?], never>
+const nonOpaque = S.asSchema(opaque)
+```
+
+### 残りの要素
+
+残りの要素を定義するには、要素リスト（必須またはオプション）の後に残りの要素の要素を続けます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const opaque: S.tupleType<readonly [S.$string, S.OptionalElement<S.$number>], [S.$boolean]>
+const opaque = S.tuple([S.string, S.optionalElement(S.number)], S.boolean)
+
+// const nonOpaque: S.Schema<readonly [string, number?, ...boolean[]], readonly [string, number?, ...boolean[]], never>
+const nonOpaque = S.asSchema(opaque)
+```
+
+オプションで、残りの要素の後に続く他の要素も追加できます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+// const opaque: S.tupleType<readonly [S.$string, S.OptionalElement<S.$number>], [S.$boolean, S.$string]>
+const opaque = S.tuple(
+  [S.string, S.optionalElement(S.number)],
+  S.boolean,
+  S.string
+)
+
+// const nonOpaque: S.Schema<readonly [string, number | undefined, ...boolean[], string], readonly [string, number | undefined, ...boolean[], string], never>
+const nonOpaque = S.asSchema(opaque)
+```
+
+## プロパティシグネチャ
+
+プロパティシグネチャの定義は、任意の型変換を許可するように完全に再設計されました。`PropertySignature`は一般に"From"フィールドからの変換を表します。
+
+```ts
+{
+  fromKey: fromType
+}
+```
+
+"To"フィールドへ変換することになります。
+
+```ts
+{
+  toKey: toType
+}
+```
+
+アノテーションを追加するために使用できるプロパティシグネチャのシンプルな定義から始めましょう。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+/*
+const Person: S.struct<{
+    name: S.$string;
+    age: S.PropertySignature<":", number, never, ":", string, never>;
+}>
+*/
+const Person = S.struct({
+  name: S.string,
+  age: S.propertySignature(S.NumberFromString, {
+    annotations: { identifier: "Age" }
+  })
+})
+```
+
+`PropertySignature`型に含まれるすべての情報の詳細を見てみましょう。
+
+```ts
+age: PropertySignature<ToToken, ToType, FromKey, FromToken, FromType, Context>
+```
+
+- `age`: "To"フィールドのキーです
+- `ToToken`: `"?:"`または`":"`のいずれか。`"?:"`は"To"フィールドがオプションであることを示し、`":"`は"To"フィールドが必須であることを示します。
+- `ToType`: "To"フィールドの型です
+- `FromKey`（オプション、デフォルト = `never`）: どのフィールドから変換が開始されるかを示します。デフォルトでは、"To"フィールドのキーと同じです（この場合は`"age"`）。
+- `FormToken`: `"?:"`または`":"`のいずれか。`"?:"`は"From"フィールドがオプションで、`":"`は"From"フィールドが必須であることを示します。
+- `FromType`: "From"フィールドの型です。
+
+このように置換して変換を進めます。
+
+```ts
+PropertySignature<":", number, never, ":", string, never>
+```
+
+次の変換があることを示しています：
+
+- `age`は"To"フィールドのキーです
+- `ToToken = ":"`は`age`フィールドが必須であることを示します
+- `ToType = number`は`age`フィールドの型が`number`であることを示します
+- `FromKey = never`は、デコードが同じ`age`フィールドから行われることを示します
+- `FormToken = ":"`は、デコードが必須の`age`フィールドから行われることを示します
+- `FromType = string`は、デコードが`string`型の`age`フィールドから行われることを示します
+
+デコードの例を見てみましょう。
+
+```ts
+console.log(S.decodeUnknownSync(Person)({ name: "name", age: "18" }))
+// 出力: { name: 'name', age: 18 }
+```
+
+今度はデコードが行われるフィールドが`"AGE"`と名付けられていても、モデル内では`"age"`と名付けたい場合を考えましょう。この結果を達成するには、`"AGE"`から`"age"`へのフィールドキーをマッピングする必要があり、これを実現するために`fromKey`コンビネータを使用できます。
+
+```ts
+import * as S from "@effect/schema/Schema"
+
+/*
+const Person: S.struct<{
+    name: S.$string;
+    age: S.PropertySignature<":", number, "AGE", ":", string, never>;
+}>
+*/
+const Person = S.struct({
+  name: S.string,
+  age: S.propertySignature(S.NumberFromString).pipe(S.fromKey("AGE"))
+})
+```
+
+この変更は、生成された`PropertySignature`の型で以下のように表現されます。
+
+```ts
+// fromKey ----------------------v
+PropertySignature<":", number, "AGE", ":", string, never>
+```
+
+デコードの例を見てみましょう。
+
+```ts
+console.log(S.decodeUnknownSync(Person)({ name: "name", AGE: "18" }))
+// 出力: { name: 'name', age: 18 }
+```
+
+## Effectfulメッセージ
+
+メッセージは現在、`string`型だけでなく、依存関係を持つ`Effect`を返すことができるようになりました（例えば、国際化サービスのものです）。非常に単純化された例で似たような状況を見てみましょう。
+
+```ts
+import * as S from "@effect/schema/Schema"
+import * as TreeFormatter from "@effect/schema/TreeFormatter"
+import * as Context from "effect/Context"
+import * as Effect from "effect/Effect"
+import * as Either from "effect/Either"
+import * as Option from "effect/Option"
+
+// 国際化サービス
+class Messages extends Context.Tag("Messages")<
+  Messages,
+  {
+    NonEmpty: string
+  }
+>() {}
+
+const Name = S.NonEmpty.pipe(
+  S.message(() =>
+    Effect.gen(function* () {
+      const service = yield* Effect.serviceOption(Messages)
+      return Option.match(service, {
+        onNone: () => "無効な文字列",
+        onSome: (messages) => messages.NonEmpty
+      })
+    })
+  )
+)
+
+S.decodeUnknownSync(Name)("") // => throws "無効な文字列"
+
+const result = S.decodeUnknownEither(Name)("").pipe(
+  Either.mapLeft((error) =>
+    TreeFormatter.formatErrorEffect(error).pipe(
+      Effect.provideService(Messages, { NonEmpty: "非空である必要があります" }),
+      Effect.runSync
+    )
+  )
+)
+
+console.log(result) // => { _id: 'Either', _tag: 'Left', left: '非空である必要があります' }
+```
+
+## 破壊的変更
+
+- `Format`モジュールが削除されました。
+
+### AST
+
+- `Tuple`が`TupleType`にリファクタリングされ、その`_tag`がそれに伴い名前が変更されました。`rest`プロパティの型が`Option.Option<ReadonlyArray.NonEmptyReadonlyArray<AST>>`から`ReadonlyArray<AST>`に変更されました。
+- `Transform`が`Transformation`にリファクタリングされ、その`_tag`プロパティがそれに伴い名前が変更されました。`transformation`プロパティの型が現在`TransformationKind = FinalTransformation | ComposeTransformation | TypeLiteralTransformation`になっています。
+- `createRecord`が削除されました。
+- `AST.to`が`AST.typeAST`に名前が変更されました。
+- `AST.from`が`AST.encodedAST`に名前が変更されました。
+- `ExamplesAnnotation`および`DefaultAnnotation`がタイプパラメーターを受け入れるようになりました。
+- `format`が削除されました：
+  以前
+
+  ```ts
+  AST.format(ast, verbose?)
+  ```
+
+  現在
+
+  ```ts
+  ast.toString(verbose?)
+  ```
+
+- `setAnnotation`が削除されました（代わりに`annotations`を使用してください）。
+- `mergeAnnotations`が`annotations`に名前が変更されました。
+
+### ParseResult
+
+- `ParseResult`モジュールは、クラスを使用するようになり、カスタムコンストラクタが削除されました：
+  以前
+
+  ```ts
+  import * as ParseResult from "@effect/schema/ParseResult"
+
+  ParseResult.type(ast, actual)
+  ```
+
+  現在
+
+  ```ts
+  import * as ParseResult from "@effect/schema/ParseResult"
+
+  new ParseResult.Type(ast, actual)
+  ```
+
+- `Transform`が`Transformation`にリファクタリングされ、その`kind`プロパティが現在`"Encoded"`、`"Transformation"`、または`"Type"`の値を受け入れるようになりました。
+- `defaultParseOption`が`Parser.ts`から`AST.ts`に移動されました。
+
+### スキーマ
+
+- `uniqueSymbol`が`uniqueSymbolFromSelf`に名前が変更されました。
+- `Schema.Schema.To`が`Schema.Schema.Type`に名前が変更され、`Schema.to`が`Schema.typeSchema`に変更されました。
+- `Schema.Schema.From`が`Schema.Schema.Encoded`に名前が変更され、`Schema.from`が`Schema.encodedSchema`に命名変更されました。
+- `TaggedRequest`のタイプパラメーターが入れ替えられました。
+- `PropertySignature`の署名が`PropertySignature<From, FromOptional, To, ToOptional>`から`PropertySignature<ToToken extends Token, To, Key extends PropertyKey, FromToken extends Token, From, R>`に変更されました。
+- クラスAPI
+  - クラスAPIは、`fields`を公開し、識別子を要求します。
+    ```diff
+    -class A extends S.Class<A>()({ a: S.string }) {}
+    +class A extends S.Class<A>("A")({ a: S.string }) {}
+    ```
+- `element`および`rest`が`array`および`tuple`に変更されました：
+
+  以前
+
+  ```ts
+  import * as S from "@effect/schema/Schema"
+
+  const schema1 = S.tuple().pipe(S.rest(S.number), S.element(S.boolean))
+
+  const schema2 = S.tuple(S.string).pipe(
+    S.rest(S.number),
+    S.element(S.boolean)
+  )
+  ```
+
+  現在
+
+  ```ts
+  import * as S from "@effect/schema/Schema"
+
+  const schema1 = S.array(S.number, S.boolean)
+
+  const schema2 = S.tuple(S.string, S.number, S.boolean)
+  ```
+
+- `optionalElement`がリファクタリングされました：
+
+  以前
+
+  ```ts
+  import * as S from "@effect/schema/Schema"
+
+  const schema = S.tuple(S.string).pipe(S.optionalElement(S.number))
+  ```
+
+  現在
+
+  ```ts
+  import * as S from "@effect/schema/Schema"
+
+  const schema = S.tuple(S.string, S.optionalElement(S.number))
+  ```
+
+- 残りの要素の構築に必要な要素も利用できます：
+
+  以前
+
+  ```ts
+  import * as S from "@effect/schema/Schema"
+
+  const schema = S.tuple([S.string]).pipe(S.rest(S.number));
+  ```
+
+  現在
+
+  ```ts
+  import * as S from "@effect/schema/Schema"
+
+  const schema = S.tuple([S.string], S.number);
+  ```
+
+- `TreeFormatter`が`BrandSchema`で使用されるようになりました。
+- スキーマアノテーションインターフェースがリファクタリングされました：
+  - `PropertySignatureAnnotations`（ベースライン）が追加されました。
+  - `DocAnnotations`が削除されました。
+  - `DeclareAnnotations`が`Annotations`に名前が変更されました。
+- `propertySignatureAnnotations`が削除され、`annotations`メソッドを持つ`propertySignature`コンストラクタに置き換えられました。
+  以前
+
+  ```ts
+  S.string.pipe(
+    S.propertySignatureAnnotations({ description: "description" })
+  )
+
+  S.optional(S.string, {
+    exact: true,
+    annotations: { description: "description" }
+  })
+  ```
+
+  現在
+
+  ```ts
+  S.propertySignatureDeclaration(S.string).annotations({
+    description: "description"
+  })
+
+  S.optional(S.string, { exact: true }).annotations({
+    description: "description"
+  })
+  ```
+
+### シリアライズ可能
+
+- `SerializableWithResult`および`WithResult`のタイプパラメーターが入れ替えられました。
+
+## パッチ
+
+### スキーマ
+
+- `struct` APIを強化してレコードをサポートします。
+```ts
+const schema1 = S.struct(
+  { a: S.number },
+  { key: S.string, value: S.number }
+)
+// または
+const schema2 = S.struct({ a: S.number }, S.record(S.string, S.number))
+```
+- `extend` APIを強化してネストされた（非重複）フィールドを許可します。
+```ts
+const A = S.struct({ a: S.struct({ b: S.string }) })
+const B = S.struct({ a: S.struct({ c: S.number }) })
+const schema = S.extend(A, B)
+/*
+同義：
+const schema = S.struct({
+  a: S.struct({
+    b: S.string,
+    c: S.number
+  })
+})
+*/
+```
+- `Annotable`インターフェースを追加しました。
+- `asSchema`を追加しました。
+- `Schema.Any`、`Schema.All`、`Schema.AnyNoContext`ヘルパーを追加しました。
+- `annotations` APIをリファクタリングして`Schema`インターフェースのメソッドになるようにしました。
+- クラスに対して`AST.keyof`、`AST.getPropertySignatures`、`Parser.getSearchTree`をサポートします。
+- `BrandAnnotation`型を修正し、`getBrandAnnotation`を追加しました。
+- クラスコンストラクタに`annotations?`パラメーターを追加しました。
+
+```ts
+import * as AST from "@effect/schema/AST"
+import * as S from "@effect/schema/Schema"
+
+class A extends S.Class<A>()(
+  {
+    a: S.string
+  },
+  { description: "some description..." } // <= annotations
+) {}
+
+console.log(AST.getDescriptionAnnotation((A.ast as AST.Transform).to))
+// => { _id: 'Option', _tag: 'Some', value: 'some description...' }
+```

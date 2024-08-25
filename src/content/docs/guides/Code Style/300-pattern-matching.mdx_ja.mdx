@@ -1,0 +1,187 @@
+---
+title: パターンマッチング
+excerpt: コード内でのパターンマッチングの力を探求し、複雑な条件を簡潔な表現にする方法を学びます。完全性チェックについて学び、`effect/Match`モジュールを使用してJavaScriptでパターンマッチングを実装する方法を発見してください。マッチャー、パターン、述語、変換を定義し、コードの分岐と可読性を向上させる方法を探りましょう。
+bottomNavigation: pagination
+---
+
+パターンマッチングは、開発者が複雑な条件を単一の簡潔な表現で扱うことを可能にする手法です。コードを簡素化し、よりコンパクトで理解しやすくします。さらに、完全性チェックというプロセスがあり、考慮されていない可能性のあるケースがないことを確認するのに役立ちます。
+
+関数型プログラミング言語から発展したパターンマッチングは、コードの分岐に強力な技術です。特に複雑な条件を扱う際に、if/else 文や switch 文などの命令的な代替手段と比べて、より強力で冗長性の少ない解決策を提供します。
+
+JavaScript にはまだネイティブな機能としては存在しませんが、現在進行中の[t39 提案](https://github.com/tc39/proposal-pattern-matching)があり、JavaScript にパターンマッチングを導入するための初期段階にあります。この提案はステージ 1 にあり、実装されるには数年かかる可能性があります。しかし、それでも開発者は自らのコードベースにパターンマッチングを実装することができます。`effect/Match`モジュールは、信頼性が高く型安全なパターンマッチングの実装を提供し、すぐに使用できる状態です。
+
+## マッチャーの定義
+
+### type
+
+`Matcher`を作成するには、指定された型の`type`コンストラクタ関数を使用します。これにより、その特定の型に対するパターンマッチングの基礎が整います。`Matcher`が確立されると、開発者は`when`、`not`、`tag`などのさまざまなコンビネータを使用して、`Matcher`が確認するパターンを定義できます。
+
+以下は実際の例です：
+
+```ts twoslash
+import { Match } from "effect";
+
+const match = Match.type<{ a: number } | { b: string }>().pipe(
+  Match.when({ a: Match.number }, (_) => _.a),
+  Match.when({ b: Match.string }, (_) => _.b),
+  Match.exhaustive
+);
+
+console.log(match({ a: 0 })); // 出力: 0
+console.log(match({ b: "hello" })); // 出力: "hello"
+```
+
+以下に何が起こっているのかを分解してみましょう：
+
+- `Match.type<{ a: number } | { b: string }>()`: これは、型`{ a: number }`または`{ b: string }`のどちらかであるオブジェクトのための`Matcher`を作成します。
+- `Match.when({ a: Match.number }, (_) => _.a)`: これは、プロパティ`a`に数値を含むオブジェクトと一致する条件を設定します。一致した場合、プロパティ`a`の値を返します。
+- `Match.when({ b: Match.string }, (_) => _.b)`: この条件は、プロパティ`b`に文字列を含むオブジェクトと一致します。一致した場合、プロパティ`b`の値を返します。
+- `Match.exhaustive`: この関数は、すべての可能なケースが考慮され、一致されていることを確認し、他に考慮されていないケースが存在しないことを約束します。
+
+最後に、`match`関数を使用して二つの異なるオブジェクト`{ a: 0 }`と`{ b: "hello" }`をテストします。`Matcher`内で定義された条件に従って、オブジェクトが正しく照合され、定義された条件に基づいて期待される出力が提供されます。
+
+### value
+
+特定の型に基づいた`Matcher`を定義するのに加えて、開発者は`value`コンストラクタ関数を利用して、値から直接`Matcher`を作成することもできます。この方法は、提供された値に対してパターンを照合することを可能にします。
+
+このプロセスを理解するために、以下の例を見てみましょう：
+
+```ts twoslash
+import { Match } from "effect";
+
+const result = Match.value({ name: "John", age: 30 }).pipe(
+  Match.when({ name: "John" }, (user) => `${user.name}は${user.age}歳です`),
+  Match.orElse(() => "ああ、Johnではない")
+);
+
+console.log(result); // 出力: "Johnは30歳です"
+```
+
+以下に何が起こっているのかを分解してみましょう：
+
+- `Match.value({ name: "John", age: 30 })`: これは、提供された値`{ name: "John", age: 30 }`を使用して`Matcher`を初期化します。
+- `Match.when({ name: "John" }, (user) => ...`: これは、プロパティ`name`が"John"に設定されたオブジェクトと一致する条件を設定します。条件が満たされた場合、ユーザーの名前と年齢を示す文字列を構築します。
+- `Match.orElse(() => "ああ、Johnではない")`: "John"との一致がない場合、これによりデフォルトの出力が提供されます。
+
+## パターン
+
+### Predicates
+
+述語は、特定の条件に対して値をテストすることを可能にします。評価されたデータに対するルールや条件を作成するのに役立ちます。
+
+```ts twoslash
+import { Match } from "effect";
+
+const match = Match.type<{ age: number }>().pipe(
+  Match.when({ age: (age) => age >= 5 }, (user) => `年齢: ${user.age}`),
+  Match.orElse((user) => `${user.age}は若すぎます`)
+);
+
+console.log(match({ age: 5 })); // 出力: "年齢: 5"
+console.log(match({ age: 4 })); // 出力: "4は若すぎます"
+```
+
+### not
+
+`not`は、特定の値を除外し、他の条件と一致させることができます。
+
+```ts twoslash
+import { Match } from "effect";
+
+const match = Match.type<string | number>().pipe(
+  Match.not("hi", (_) => "a"),
+  Match.orElse(() => "b")
+);
+
+console.log(match("hello")); // 出力: "a"
+console.log(match("hi")); // 出力: "b"
+```
+
+### tag
+
+`tag`関数は、[識別されたユニオン](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#discriminated-unions)内のタグに対してパターンマッチングを可能にします。
+
+```ts twoslash
+import { Match, Either } from "effect";
+
+const match = Match.type<Either.Either<number, string>>().pipe(
+  Match.tag("Right", (_) => _.right),
+  Match.tag("Left", (_) => _.left),
+  Match.exhaustive
+);
+
+console.log(match(Either.right(123))); // 出力: 123
+console.log(match(Either.left("ああ、ダメだ！"))); // 出力: "ああ、ダメだ！"
+```
+
+:::caution
+これは、Effect エコシステム内で`"_tag"`でタグフィールドを命名する慣習にのみ機能します。
+
+:::
+
+## マッチャーの変換
+
+### exhaustive
+
+`exhaustive`変換は、マッチングプロセスのエンドポイントとして機能し、すべての潜在的な一致が考慮されていることを確認します。これは、マッチを返すか（`Match.value`の場合）、評価関数を返します（`Match.type`の場合）。
+
+```ts twoslash
+import { Match, Either } from "effect";
+
+const result = Match.value(Either.right(0)).pipe(
+  Match.when({ _tag: "Right" }, (_) => _.right),
+  // @ts-expect-error
+  Match.exhaustive // 型エラー！Type 'Left<never, number>'は型'never'に割り当てられません
+);
+```
+
+### orElse
+
+`orElse`変換は、マッチングプロセスの結論を示し、特定のパターンが一致しない場合にフォールバック値を提供します。これは、マッチを返すか（`Match.value`の場合）、評価関数を返します（`Match.type`の場合）。
+
+```ts twoslash
+import { Match } from "effect";
+
+const match = Match.type<string | number>().pipe(
+  Match.when("hi", (_) => "こんにちは"),
+  Match.orElse(() => "全く理解できません")
+);
+
+console.log(match("hi")); // 出力: "こんにちは"
+console.log(match("hello")); // 出力: "全く理解できません"
+```
+
+### option
+
+`option`変換は、結果を[Option](../data-types/option)でカプセル化して返します。マッチが成功した場合、それは結果を`Some`として表し、マッチがない場合は値の存在しないことを`None`として示します。
+
+```ts twoslash
+import { Match, Either } from "effect";
+
+const result = Match.value(Either.right(0)).pipe(
+  Match.when({ _tag: "Right" }, (_) => _.right),
+  Match.option
+);
+
+console.log(result); // 出力: { _id: 'Option', _tag: 'Some', value: 0 }
+```
+
+### either
+
+`either`変換は、値と一致する可能性があり、`Either`を`Either<MatchResult, NoMatchResult>`の形式で返します。
+
+```ts twoslash
+import { Match } from "effect";
+
+const match = Match.type<string>().pipe(
+  Match.when("hi", (_) => _.length),
+  Match.either
+);
+
+console.log(match("hi")); // 出力: { _id: 'Either', _tag: 'Right', right: 2 }
+console.log(match("shigidigi")); // 出力: { _id: 'Either', _tag: 'Left', left: 'shigidigi' }
+```
+
+```
+
+```

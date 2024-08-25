@@ -1,0 +1,170 @@
+---
+title: Effect 3.5 (リリース)
+excerpt: 新機能と変更点を強調したリリース記事
+date: 2024-07-10
+authors:
+  - name: Tim Smart
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/3642301555/77cc6dab66dc94fdd77e503fd6d1c1cf_400x400.jpeg
+    twitter: https://twitter.com/tim_smart
+---
+
+Effect 3.5.0 がリリースされました！このリリースには多くの新機能と改善が含まれています。以下は新しい内容の概要です。
+
+## Error.cause のサポート向上
+
+`Data.Error`または`Data.TaggedError`に`cause`プロパティを追加すると、`Error`インスタンスの`cause`プロパティに適切に転送されるようになりました。
+
+```typescript
+import { Data } from "effect";
+
+class MyError extends Data.Error<{ cause: Error }> {}
+```
+
+`Cause`に含まれるエラーを`Effect.log`すると、`cause`プロパティがログ出力に表示されるようになります。
+
+## @effect/sql-d1
+
+`@effect/sql-d1`パッケージがリリースされました。このパッケージは Cloudflare の D1 データベースに対する`@effect/sql`のサポートを提供します。
+
+## RcRef & RcMap の追加
+
+`RcRef`と`RcMap`はリソースを管理するために使える新しい参照カウント型です。
+
+ラップされたリソースは最初のアクセス時に取得され、使用されなくなった時に解放されます。
+
+`RcRef`は単一のリソースを管理するために、`RcMap`はキーによって参照される複数のリソースを管理するために使用できます。
+
+```typescript
+import { Effect, RcMap } from "effect";
+
+Effect.gen(function* () {
+  const map = yield* RcMap.make({
+    lookup: (key: string) =>
+      Effect.acquireRelease(Effect.succeed(`acquired ${key}`), () =>
+        Effect.log(`releasing ${key}`)
+      ),
+  });
+
+  // マップから"foo"を2回取得しますが、実際には1回だけ取得されます。
+  // スコープが閉じるときに解放されます。
+  yield* RcMap.get(map, "foo").pipe(
+    Effect.andThen(RcMap.get(map, "foo")),
+    Effect.scoped
+  );
+});
+```
+
+## Logger.pretty の追加
+
+`Logger.pretty`は、`console` API の機能を活用して、より視覚的に魅力的な出力を提供する新しいロガーです。
+
+試してみるには、プログラムに提供してください：
+
+```typescript
+import { Effect, Logger } from "effect";
+
+Effect.log("Hello, World!").pipe(Effect.provide(Logger.pretty));
+```
+
+Effect 4.0 では、`Logger.pretty`がデフォルトのロガーになります。
+
+## PubSub のリプレイオプション
+
+`replay`オプションは、与えられた PubSub の前にリプレイバッファを追加します。このバッファは、最後の`n`メッセージを新しいサブスクライバーにリプレイします。
+
+```typescript
+Effect.gen(function* () {
+  const messages = [1, 2, 3, 4, 5];
+  const pubsub = yield* PubSub.bounded<number>({ capacity: 16, replay: 3 });
+  yield* PubSub.publishAll(pubsub, messages);
+  const sub = yield* PubSub.subscribe(pubsub);
+  assert.deepStrictEqual(
+    Chunk.toReadonlyArray(yield* Queue.takeAll(sub)),
+    [3, 4, 5]
+  );
+});
+```
+
+## Stream.raceAll の追加
+
+`Stream.raceAll`は与えられたストリームを競わせ、最初にアイテムを発行したストリームを勝者として宣言します。結果のストリームは勝者のストリームからアイテムを発信します。
+
+```typescript
+import { Stream, Schedule, Console, Effect } from "effect";
+
+const stream = Stream.raceAll(
+  Stream.fromSchedule(Schedule.spaced("1 millis")),
+  Stream.fromSchedule(Schedule.spaced("2 millis")),
+  Stream.fromSchedule(Schedule.spaced("4 millis"))
+).pipe(Stream.take(6), Stream.tap(Console.log));
+
+Effect.runPromise(Stream.runDrain(stream));
+// 入力は最初のストリームからのみ出力され、他のストリームは中断されます。
+// 0
+// 1
+// 2
+// 3
+// 4
+// 5
+```
+
+## Random.make の追加
+
+`Random.make`は、シード値からランダムサービスの新しいインスタンスを作成します。
+
+シード値のハッシュを計算し、それをランダム数生成器のシードとして使用します。
+
+## Stream.async バッファオプション
+
+`Stream.async*`の出力バッファオプションをカスタマイズできるようになりました：
+
+```typescript
+import { Stream } from "effect";
+
+Stream.async(
+  (emit) => {
+    // ...
+  },
+  { bufferSize: 16, strategy: "dropping" }
+);
+```
+
+## Stream PubSub オプション
+
+以下の Stream API で、基盤となる PubSub の戦略やキャパシティをカスタマイズできるようになりました：
+
+- `Stream.toPubSub`
+- `Stream.broadcast*`
+
+```ts
+import { Schedule, Stream } from "effect";
+
+// toPubSub
+Stream.fromSchedule(Schedule.spaced(1000)).pipe(
+  Stream.toPubSub({
+    capacity: 16, // または "unbounded"
+    strategy: "dropping", // または "sliding" / "suspend"
+  })
+);
+
+// broadcast API用にも
+Stream.fromSchedule(Schedule.spaced(1000)).pipe(
+  Stream.broadcastDynamic({
+    capacity: 16,
+    strategy: "dropping",
+  })
+);
+```
+
+## Stream タイプの修正
+
+- `Stream` & `Channel`の run\*メソッドは、`R`型から`Scope`を除外しました。
+- `Stream.DynamicTuple`の使用は`Types.TupleOf`に置き換えられました。
+- `Stream.mergeRight` & `Stream.mergeLeft`の`self` / `that`の命名を`left` / `right`に変更しました。
+
+## その他の変更
+
+その他にもいくつかの小さな変更がありました。すべての変更は CHANGELOG を確認してください：[CHANGELOG](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)。
+
+最新の更新をフォローし、細かい詳細について議論するために、[Discord コミュニティ](https://discord.gg/effect-ts)に参加することをお忘れなく！

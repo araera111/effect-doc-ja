@@ -1,0 +1,120 @@
+---
+title: 今週のEffect - 2024-03-08
+excerpt: 今週のEffectは、Effectコミュニティやエコシステムで起きた出来事の要約を提供する週刊ブログです。これにより、ニュース、機能、および変更点を追跡できるようになります！
+date: 2024-03-08
+authors:
+  - name: ダビデ・スコニャミグリオ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のeffect-2024-03-01
+  - 今週のeffect-2024-03-15
+---
+
+import { YouTube, Tweet } from "astro-embed";
+
+こんにちは、Effecters の皆さん！
+
+**今週の Effect**（**TWIE**）に戻ってきました。この週刊更新は、コミュニティや Effect エコシステムで起こっているすべてのことを把握する手助けをすることを目的としています。
+
+初めての方へ、Effect は、開発者が複雑で同期的、非同期的なプログラムを作成するために設計された強力な TypeScript ライブラリです。Effect を際立たせる主要な特徴の一つは、構造化された同時処理を活用して、非同期キャンセルや安全なリソース管理といった機能を提供することです。これにより、堅牢でスケーラブル、効率的なプログラムの構築が容易になります。
+
+まずは、以下のクイックスタートガイドとドキュメントが、あなたの Effect の旅の第一歩となるでしょう。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方のために、TWIE についての簡単な説明をします。
+
+コミュニティが急速に成長していることを嬉しく思います。ますます多くの人々が Effect を採用しています。一方で、Effect エコシステム内で何が起こっているのかを把握するのは簡単ではないことも理解しています。
+
+- 私たちの Discord サーバーは数日前に**2000 人以上のメンバー**に達し、エンゲージメントは過去最高となっています。
+- 2024 年 2 月 23 日にウィーンで初めての**[Effect Days Conference](/events/effect-days)**を開催しました。コミュニティと顔を合わせて接続できた素晴らしい体験でした。ウィーンに参加できなかった方のために、たくさんのエキサイティングなアップデートやコンテンツが用意されていますので、お楽しみに！
+- Effect に関連するすべてのプロジェクトが**重要なアップデート**を受けており、GitHub でも活発な活動が行われています！
+
+私たちは、あなたが Effect の旅を楽しみ、コミュニティと積極的に関わるために必要なすべての情報を見つけやすくしたいと考えています。
+
+**そのために TWIE を作りました** – これは、先週の Effect に関する重要なイベントをコミュニティ（Discord の議論、X の投稿、YouTube のコンテンツなど）および技術的な観点からお知らせするための週刊アップデートです。
+
+では、ビジネスに戻りましょう！
+
+## テクノロジー
+
+以下に、先週行われたすべての変更のリストを示します。
+
+### Effect Core
+
+- [キャッシュ、ScopedCache の型パラメーターのスワップ](https://github.com/Effect-TS/effect/pull/2239) (リファクタリング、次のマイナー)
+- [サービスへのアクセスを簡素化する Effect.Tag を追加](https://github.com/Effect-TS/effect/pull/2225) (機能)
+- [Error と Success の型パラメーターをスワップし、Effect.request をデュアル化](https://github.com/Effect-TS/effect/pull/2238) (リファクタリング)
+- [FiberMap/FiberSet.join API を追加](https://github.com/Effect-TS/effect/pull/2244) (機能)
+- [Either および Option 型の抽出子を追加](https://github.com/Effect-TS/effect/pull/2255) (機能)
+- [Effect.Tag がプリミティブと動作することを確認](https://github.com/Effect-TS/effect/pull/2257) (バグ修正)
+- [Either.getEquivalence のパラメーター順序を修正](https://github.com/Effect-TS/effect/pull/2243) (バグ修正、次のマイナー)
+
+### Effect Experimental
+
+- [DevTools プロトコルへの SpanEvent のサポートを追加](https://github.com/Effect-TS/effect/pull/2246) (機能)
+- [DevTools シャットダウン時に最終的なメトリクススナップショットを送信](https://github.com/Effect-TS/effect/pull/2254) (バグ修正)
+- [実験的な Machine モジュールを追加](https://github.com/Effect-TS/effect/pull/2256)
+
+### Effect CLI
+
+- [ウィザードモードプロンプトの重複ワードを削除](https://github.com/Effect-TS/effect/pull/2240) (タイプミスの修正)
+- [未知の引数エラーを印刷](https://github.com/Effect-TS/effect/pull/2252) (マイナー改善)
+
+### Effect Schema
+
+- [Schema.sortedSet を追加](https://github.com/Effect-TS/effect/pull/2241) (機能)
+
+### 一般的な雑務
+
+- [説明を更新](https://github.com/Effect-TS/effect/pull/2245) (ドキュメント更新)
+- [Node 20 の警告が出ないようにすべての CI ジョブを更新](https://github.com/Effect-TS/effect/pull/2249) (CI)
+
+## コミュニティ
+
+先週、私たちの[Discord サーバー](https://discord.gg/effect-ts)に 60 人以上の新しい Effecters が参加しました！新しいメンバーの皆さん、Effect コミュニティに参加いただきありがとうございます！私たちはあなたを歓迎できて非常に嬉しいです！
+
+新しいコンテンツに入る前に、フランス語を話すユーザーの皆さんへの特別なお知らせです：初の[Effect パリミートアップ](https://www.meetup.com/fr-FR/effect-paris/)が 4 月に開催されます！このイベントの推進者である[Evryg](https://www.evryg.com)のチーム、[アントワーヌ・クーロン](https://twitter.com/c9antoine)、[ジャン＝バティスト・ムッソ](https://twitter.com/jbmusso)に感謝します。
+
+<Tweet id="1764621821184262629" />
+
+### カンファレンス後のアップデート
+
+ウィーンにいた皆さんを喜ばせるサプライズで始めましょう。これは、カンファレンスデイのモンタージュで、プロタゴニストやゲストのいくつかの洞察も含まれています。また、カンファレンス後のリラックスした素晴らしい瞬間もいくつか紹介します。今回参加できなかった方々には、次回参加するための良いティーザーになることを願っています。
+
+<YouTube url="https://www.youtube.com/embed/" id="CfbR-1XRlTA" />
+
+[ミラド・ヴァファイファルド](https://twitter.com/signlanguagete1)による手話でのビデオブログ制作に感謝します。あなたと共にいることができ光栄でした。今後のイベントがすべての人にとってよりアクセスしやすいものとなるよう最善を尽くします。
+
+<YouTube
+  url="https://www.youtube.com/embed/?si=SGlo_H-THn79dkR_"
+  id="zevrZL1hrl4"
+/>
+
+Effect Days Conference が話題になっています！X 上では、Effect への関心が前例のないピークに達し、多くのユーザーが Effect に対する感情を共有したいと熱望しています。
+
+<Tweet id="1764248774187024558" />
+<Tweet id="1764954485430890984" />
+<Tweet id="1764362764137439738" />
+
+今後数日間に大量のコンテンツが登場しますので、ぜひ私たちの[X アカウント](https://twitter.com/EffectTS_)や[YouTube チャンネル](https://www.youtube.com/@effect-ts)をフォローして最新情報をお見逃しなく！コミュニティや Effect エコシステム全体にとって非常に重要なイベントの一部であった皆さんに感謝し続けます。
+
+## 終わりに
+
+今週はこれで終わりです。私たちのコミュニティの重要な一部でいてくださってありがとうございます。この新しい形式を洗練させる中で、皆さんのフィードバックは非常に貴重です。ぜひご意見をお寄せください。コミュニティのニーズに合わせて最善を尽くします。
+
+_エフェクトコミュニティチーム_

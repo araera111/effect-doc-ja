@@ -1,0 +1,192 @@
+---
+title: Effectの今週 - 2024-03-01
+excerpt: ウィーンのイベントからの新着情報をお届けします！Effectの今週は、Effectコミュニティとエコシステムで起こったことのまとめを提供する週刊ブログです。最新のニュース、機能、変更を把握するのに役立ててください。
+date: 2024-03-01
+authors:
+  - name: ダビデ・スコニャミリオ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミカエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - effect-no-kongo-2024-02-16
+  - effect-no-kongo-2024-03-08
+---
+
+import { YouTube } from "astro-embed";
+import Tweet from "astro-tweet";
+
+こんにちは、Effect の皆さん！
+
+ウィーンのイベントからの興味深いニュースをお届けする特別版の**T**his **W**eek **I**n **E**ffect（**TWIE**）へようこそ！TWIE は、私たちのコミュニティや Effect エコシステム内で起こったすべてのことを把握するのに役立つ週一回の更新です。
+
+初めて来た方へ、Effect は、開発者が複雑なプログラムを同期的および非同期的に作成するのを支援するために設計された強力な TypeScript ライブラリです。Effect の特徴の一つは、構造化された並行処理を活用して、非同期キャンセルや安全なリソース管理などの機能を提供することです。これにより、堅牢でスケーラブル、かつ効率的なプログラムを簡単に構築できます。
+
+始めるために、以下に私たちのクイックスタートガイドとドキュメントを用意しました。Effect の旅の最初の一歩としてご利用ください。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方へ、TWIE とは何か、そしてその目的について少しお話しします。
+
+コミュニティの成長が著しく、ますます多くの人々が Effect を採用していることを嬉しく思います。同時に、Effect エコシステム内で起こっているすべてを把握するのが簡単ではないことも理解しています：
+
+- 私たちの Discord サーバーは先日、**1970+メンバー**に達し、エンゲージメントは過去最高です。
+- 2024 年 2 月 23 日にウィーンで初めての**[Effect Days カンファレンス](/events/effect-days)**を開催しました。コミュニティと対面でつながる素晴らしい経験でした。ウィーンに参加できなかった方のために、今後のエキサイティングな更新やコンテンツがありますので、お楽しみに！
+- Effect に関するすべてのプロジェクトが**重要な更新**を受けており、GitHub 上での活動も活発です！
+
+私たちは、あなたが Effect の旅を最大限に楽しみ、コミュニティに積極的に参加できるよう、必要なすべての情報を見つけやすくしたいと考えています！
+
+**それが TWIE を作成した理由です** - 前週にあった Effect に関する重要なイベントについて、コミュニティからの情報（Discord の議論、X の投稿、YouTube のコンテンツなど）や技術的な観点からお知らせする週刊更新です。
+
+さて、本題に戻りましょう！
+
+## 技術
+
+最初の重要なニュース: **Effect 2.4 がリリースされました！** [リリース投稿を読む](https://effect.website/blog/release-2.4)！
+以下に、過去 2 週間で発生したすべての変更のリストを示します（なお、2.4 リリースに既に含まれている変更は言及しません）。
+
+### Effect Core
+
+- [ConfigError \_tag の修正](https://github.com/Effect-TS/effect/pull/2206)（次のマイナー）
+- [Predicate.isNull と Predicate.isNotNull のドキュメント修正](https://github.com/Effect-TS/effect/pull/2219)（ドキュメント更新）
+- [Effect ドキュメント zipLeft と zipRight の追加](https://github.com/Effect-TS/effect/pull/2223)（ドキュメント更新）
+- [HaltStrategy.match 関数のシグニチャの変更](https://github.com/Effect-TS/effect/pull/2202)（次のマイナー、リファクタリング）
+- [Struct: pick / omit のデュアル化](https://github.com/Effect-TS/effect/pull/2233)（機能追加）
+- [jsdoc の誤植修正](https://github.com/Effect-TS/effect/pull/2226)（ドキュメント更新）
+- [Predicate モジュールに isSet, isMap を追加](https://github.com/Effect-TS/effect/pull/2224)
+
+### Effect Schema
+
+- [JSONSchema: プロパティシグネチャがオプショナルであり、UndefinedKeyword を含むユニオンを持つ場合、UndefinedKeyword を剪定](https://github.com/Effect-TS/effect/pull/2217)（バグ修正）
+- [Schema: Schema リテラルに pickLiteral を追加](https://github.com/Effect-TS/effect/pull/2209)（機能追加）
+- [Schema.Class が strictNullCheck なしで互換性があることを確認](https://github.com/Effect-TS/effect/pull/2221)（バグ修正）
+- [Schema: ConcurrencyAnnotation を追加](https://github.com/Effect-TS/effect/pull/2227)（機能追加）
+- [TaggedClass: コンストラクタのパラメータがタグを上書きしないことを確認](https://github.com/Effect-TS/effect/pull/2222)（バグ修正）
+- [Schema: BatchingAnnotation を追加](https://github.com/Effect-TS/effect/pull/2234)（機能追加）
+
+### Effect Platform
+
+- [SharedWorker テストの修正](https://github.com/Effect-TS/effect/pull/2176)（テスト）
+- [プラットフォームテンプレートモジュールで配列をサポート](https://github.com/Effect-TS/effect/pull/2177)（機能追加）
+- [ブラウザワーカーで MessagePort をサポート](https://github.com/Effect-TS/effect/pull/2188)（機能追加）
+- [ワーカールナー内の不具合を処理](https://github.com/Effect-TS/effect/pull/2196)（バグ修正）
+- [http の例を更新](https://github.com/Effect-TS/effect/pull/2205)（例）
+- [http アプリをルーターにマウントする際にプレフィックスを含めるオプションを追加](https://github.com/Effect-TS/effect/pull/2231)（機能追加）
+- [html レスポンスを作成するためのテンプレートモジュールを追加](https://github.com/Effect-TS/effect/pull/2174)（機能追加）
+
+### Effect CLI
+
+- [生成されたシェル補完スクリプトでのルートコマンド名の修正](https://github.com/Effect-TS/effect/pull/2173)（バグ修正）
+- [ウィザードモードで実行可能ファイルの代わりにルートコマンド名を表示するよう修正](https://github.com/Effect-TS/effect/pull/2175)（バグ修正）
+
+### Effect RPC
+
+- [/rpc-http に便利なクライアントコンストラクタを追加](https://github.com/Effect-TS/effect/pull/2198)（機能追加）
+
+### 一般的な雑務
+
+- [出所のためにリポジトリフィールドの修正](https://github.com/Effect-TS/effect/pull/2189)
+- [ビルドユーティリティの更新](https://github.com/Effect-TS/effect/pull/2190)
+- [出所を無効化](https://github.com/Effect-TS/effect/pull/2191)
+- [ケースインセンシティブファイルシステム上での madge の誤検知を修正](https://github.com/Effect-TS/effect/pull/2215)
+- [フレークユーティリティの削除](https://github.com/Effect-TS/effect/pull/2204)
+
+## コミュニティ
+
+過去 2 週間で、私たちの[Discord サーバー](https://discord.gg/effect-ts)に 90 人以上の新しい Effect ユーザーを迎えました！新しいメンバーの皆さん、Effect コミュニティに参加していただきありがとうございます。皆さんをお迎えできることを嬉しく思います！
+
+私たちの[Effect Days](/events/effect-days)は素晴らしいものでした！
+
+先週を振り返ると、素晴らしい経験に感謝の気持ちでいっぱいです！このイベントを実現させてくれたすべての参加者、スピーカー、ワークショップのインストラクター、そして貢献してくれたすべての方に大きな感謝を送ります。皆さんの熱意とサポートは本当に inspiring でした！
+
+特に、[セバスチャン・ロレンツ](https://twitter.com/thefubhy)と[ニック・グラフ](https://twitter.com/nikgraf)に感謝の意を表したいと思います。彼らはこの激動の 3 日間のイベントを組織し、実行するために尽力してくれました。私たちのビジョンを現実にしてくれてありがとう！
+
+コミュニティの全員が Effect Days の興奮を体験できるように、カンファレンスの講演の記録を今後数週間で私たちの[YouTube チャンネル](https://www.youtube.com/@effect-ts)で共有し、ワークショップのセッションは今後数ヶ月で公開予定です。
+
+### カンファレンスデー
+
+エキサイティングなニュースから始めましょう。カンファレンスデーからの 2 つの主要発表をお伝えできることを嬉しく思います。多くの方に喜ばれることでしょう：
+
+- [ティム・スマート](https://twitter.com/tim_smart)が新しい[VScode 拡張機能](https://marketplace.visualstudio.com/items?itemName=effectful-tech.effect-vscode)を発表しました。この拡張機能は Effect を使用するすべての開発者に、開発プロセスでテレメトリーおよびメトリクスの能力を提供するものです。
+- [ミカエル・アルナルディ](https://twitter.com/MichaelArnaldi)が、次の数日以内にセットされている**最初のリリース候補**の発表を行いました。Effect の最初の安定版リリースは約 1 ヶ月後の予定です。
+
+### ワークショップデー
+
+次に、22 日木曜日のワークショップデーでは、ワークショップのインストラクターに Effect にアプローチする新しい人々へのアドバイスを聞くことができました。彼らの見解を以下の動画でご覧ください：
+
+**マックスウェル・ブラウン**
+
+<YouTube id="naI9vNF801w" />
+
+**イーサン・ナイザー**
+
+<YouTube id="3Ii5Ny-FVIg" />
+
+これから数日以内に他のインタビューも公開予定ですので、私たちの[X アカウント](https://twitter.com/EffectTS_)や[YouTube チャンネル](https://www.youtube.com/@effect-ts)をフォローして最新情報をご確認ください！
+
+### コミュニティデー
+
+2 月 23 日土曜日には、激しいレーザータグセッションが行われました。戦場でのスリリングな戦闘の結果、いくつかの勝者が生まれ、1 人の名誉ある犠牲者がいました。
+
+<Tweet id="1761323967292248068" />
+
+レーザータグのバトルの後、平和が取り戻され、日曜日は市内観光へ。ウィーンの活気ある中心部を探検し、その豊かな歴史と文化を吸収し、コミュニティとして貴重な時間を過ごしました。
+
+<Tweet id="1763678196774420662" />
+
+### Effect Days のまとめ
+
+この投稿を締めくくるにあたり、イベントのツイートをまとめてお届けします。参加者全員の楽しい思い出を呼び起こし、参加者と主催者が共有したユニークな体験の一端を垣間見てもらえれば幸いです。
+
+<Tweet id="1761035136294932846" />
+
+<Tweet id="1761823724871782828" />
+
+<Tweet id="1760711565613969798" />
+
+<Tweet id="1760617591549067627" />
+
+<Tweet id="1760312111840862400" />
+
+<Tweet id="1759842552713257016" />
+
+<Tweet id="1761018428352078331" />
+
+<Tweet id="1761066740077785395" />
+
+<Tweet id="1761323967292248068" />
+
+<Tweet id="1762798458518311329" />
+
+<Tweet id="1761076706696151487" />
+
+<Tweet id="1761466261119123561" />
+
+<Tweet id="1762182489122943211" />
+
+<Tweet id="1761141085756154305" />
+
+<Tweet id="1761149579645378691" />
+
+<Tweet id="1761118828019188171" />
+
+<Tweet id="1761098968912552437" />
+
+<Tweet id="1760723599948923143" />
+
+## 終わりに
+
+今週の更新は以上です。私たちのコミュニティの重要な一員でいてくれてありがとうございます。この新しいフォーマットを調整する際に、皆さんのフィードバックは非常に重要です。ぜひご意見をお聞かせください。コミュニティのニーズに合わせて最善を尽くします。
+
+_Effect コミュニティチーム_

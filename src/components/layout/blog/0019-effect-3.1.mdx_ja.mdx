@@ -1,0 +1,108 @@
+---
+title: Effect 3.1 (リリース)
+excerpt: 新機能と変更点を強調したリリース投稿
+date: 2024-04-30
+authors:
+  - name: Tim Smart
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/3642301555/77cc6dab66dc94fdd77e503fd6d1c1cf_400x400.jpeg
+    twitter: https://twitter.com/tim_smart
+---
+
+Effect 3.1.0がリリースされました！このリリースには多数の新機能と改善が含まれています。新機能の概要は以下の通りです：
+
+### Stream.fromEventListener
+
+この新しいAPIを使用すると、`EventTarget`から`Stream`を作成できます：
+
+```ts
+import { Stream } from "effect/Stream"
+
+Stream.fromEventListener(window, "click")
+```
+
+また、`@effect/platform-browser/BrowserStream`が追加され、`fromEventListenerWindow`と`fromEventListenerDocument`のAPIも利用可能になりました。
+
+### Effect.timeoutOption
+
+新しいタイムアウトAPIが追加され、ラップされたEffectの結果を`Option`として返します。
+
+ラップされたEffectがタイムアウトすると、`Option.None`が返されます。それ以外の場合は、結果が`Option.Some`でラップされます。
+
+### spansに「kind」フィールドが追加されました
+
+トレーススパンには、スパンを生成したシステムのタイプを示すために使用される`kind`フィールドが追加されました。
+
+たとえば、`@effect/platform/HttpServer`は、`kind`が`server`のスパンを生成します。一方、`@effect/platform/HttpClient`は、`kind`が`client`のスパンを生成します。
+
+### @effect/platform/Http/Multipartのスキーマ変更
+
+- `Http.multipart.filesSchema`が`Http.multipart.FilesSchema`に名前が変更されました
+- `Http.multipart.FileSchema`がエクスポートされるようになりました
+- `Http.multipart.SingleFileSchema`が追加されました
+
+### Effect.annotateLogsScoped
+
+`Effect`に新しいAPIが追加され、スコープのライフサイクル中にログを注釈することができるようになりました。
+
+```ts
+import { Effect } from "effect"
+
+Effect.gen(function* () {
+  yield* Effect.log("注釈なし")
+  yield* Effect.annotateLogsScoped({ foo: "bar" })
+  yield* Effect.log("foo=barで注釈付き")
+}).pipe(Effect.scoped, Effect.andThen(Effect.log("再度注釈なし")))
+```
+
+### Data.TaggedEnumヘルパー
+
+`Data.TaggedEnum`コンストラクタに`$is`と`$match`のヘルパーが追加されました。
+
+```ts
+import { Data } from "effect"
+
+type HttpError = Data.TaggedEnum<{
+  NotFound: {}
+  InternalServerError: { reason: string }
+}>
+const { $is, $match, InternalServerError, NotFound } =
+  Data.taggedEnum<HttpError>()
+
+// マッチャーを作成
+const matcher = $match({
+  NotFound: () => 0,
+  InternalServerError: () => 1
+})
+
+// ガードを使用
+$is("NotFound")(NotFound()) // true
+$is("NotFound")(InternalServerError({ reason: "fail" })) // false
+```
+
+### Types.DeepMutable
+
+型ヘルパーが追加され、型を深くミュータブルなバージョンに変換します。
+
+```ts
+import { Types } from "effect"
+
+type Values<A> = {
+  readonly _tag: string
+  readonly value: ReadonlyArray<A>
+}
+
+// { _tag: string, value: Array<A> }
+type MutableValues<A> = Types.DeepMutable<Values<A>>
+```
+
+### 新しいSortedMap API
+
+- `SortedMap.lastOption`が追加されました
+- `SortedMap.partition`が追加されました
+
+## その他の変更
+
+いくつかの小さな変更も行われました。すべての変更点についてはCHANGELOGを確認してください：[CHANGELOG](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)。
+
+最新のアップデートや細かなディスカッションについては、ぜひ[Discordコミュニティ](https://discord.gg/effect-ts)に参加してください！

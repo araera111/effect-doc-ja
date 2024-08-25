@@ -1,0 +1,291 @@
+---
+title: Effectにおけるジェネレーターの使用
+excerpt: Effectでの効果的なコードを書くためのジェネレーターの構文を探る。`Effect.gen`関数について学ぶ。非同期コードを書くための`async`/`await`との比較を行う。ジェネレーターが制御フローを強化し、エラーを処理し、効果的なプログラムで短絡評価を活用する方法を理解する。ジェネレーター関数での`this`の参照の渡し方を発見する。
+bottomNavigation: pagination
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+前のセクションでは、[効果を作成](./creating-effects)し、[実行](./running-effects)する方法を学びました。それでは、最初の簡単なプログラムを書いてみましょう。
+
+Effect は、[ジェネレーター](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator)を使用して効果的なコードを書くための便利な構文を提供しています。これは、`async`/`await`に似ています。
+
+:::tip
+ジェネレーターの使用は Effect では**オプショナルな機能**です。ジェネレーターが馴染みがない場合や異なるコーディングスタイルを好む場合は、Effect の[パイプライン構築](./pipeline)に関するドキュメントを探ってください。
+
+:::
+
+## Effect.gen の理解
+
+`Effect.gen`ユーティリティは、JavaScript のジェネレーター関数を利用することで、効果的なコードを書くタスクを簡素化します。この方法により、コードは従来の同期コードのように見え、動作し、可読性とエラー管理が向上します。
+
+アプリケーションロジックで一般的に見られる一連のデータ変換を行う実用的なプログラムを探ってみましょう：
+
+```ts twoslash
+import { Effect } from "effect";
+
+// 取引額に小額のサービス手数料を加算する関数
+const addServiceCharge = (amount: number) => amount + 1;
+
+// 取引額に安全に割引を適用する関数
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+// データベースから取引額を取得する非同期タスクのシミュレーション
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+// 設定ファイルから割引率を取得する非同期タスクのシミュレーション
+const fetchDiscountRate = Effect.promise(() => Promise.resolve(5));
+
+// ジェネレーター関数を使用したプログラムの構築
+const program = Effect.gen(function* () {
+  // 取引額を取得する
+  const transactionAmount = yield* fetchTransactionAmount;
+
+  // 割引率を取得する
+  const discountRate = yield* fetchDiscountRate;
+
+  // 割引額を計算する
+  const discountedAmount = yield* applyDiscount(
+    transactionAmount,
+    discountRate
+  );
+
+  // サービス手数料を加算する
+  const finalAmount = addServiceCharge(discountedAmount);
+
+  // 手数料適用後の合計額を返す
+  return `請求額: ${finalAmount}`;
+});
+
+// プログラムを実行して結果をログに記録する
+Effect.runPromise(program).then(console.log); // 出力: "請求額: 96"
+```
+
+`Effect.gen`を使用する際の重要なステップ：
+
+- ロジックを`Effect.gen`でラップする
+- `yield*`を使用してエフェクトを処理する
+- 最終結果を返す
+
+:::caution
+ジェネレーター API は、`tsconfig.json`ファイルで`downlevelIteration`フラグを使用するか、`target`が`"es2015"`以上である場合にのみ利用可能です。
+
+:::
+
+## Effect.gen と async/await の比較
+
+`async`/`await`に慣れている方は、コードを書くフローが似ていることに気付くかもしれません。
+
+以下の 2 つのアプローチを比較してみましょう：
+
+<Tabs items={['Using Effect.gen', 'Using async / await']}>
+<TabItem label="Using Effect.gen">
+
+```ts twoslash
+import { Effect } from "effect";
+// ---切り取り---
+const addServiceCharge = (amount: number) => amount + 1;
+
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+const fetchDiscountRate = Effect.promise(() => Promise.resolve(5));
+
+export const program = Effect.gen(function* () {
+  const transactionAmount = yield* fetchTransactionAmount;
+  const discountRate = yield* fetchDiscountRate;
+  const discountedAmount = yield* applyDiscount(
+    transactionAmount,
+    discountRate
+  );
+  const finalAmount = addServiceCharge(discountedAmount);
+  return `請求額: ${finalAmount}`;
+});
+```
+
+  </TabItem>
+  <TabItem label="Using async / await">
+
+```ts twoslash
+const addServiceCharge = (amount: number) => amount + 1;
+
+const applyDiscount = (total: number, discountRate: number): Promise<number> =>
+  discountRate === 0
+    ? Promise.reject(new Error("割引率はゼロにできません"))
+    : Promise.resolve(total - (total * discountRate) / 100);
+
+const fetchTransactionAmount = Promise.resolve(100);
+
+const fetchDiscountRate = Promise.resolve(5);
+
+export const program = async function () {
+  const transactionAmount = await fetchTransactionAmount;
+  const discountRate = await fetchDiscountRate;
+  const discountedAmount = await applyDiscount(transactionAmount, discountRate);
+  const finalAmount = addServiceCharge(discountedAmount);
+  return `請求額: ${finalAmount}`;
+};
+```
+
+  </TabItem>
+</Tabs>
+
+コードは似ているように見えますが、実際には 2 つのプログラムは同一ではありません。並べて比較する目的は、書き方の類似点を強調することです。
+
+## 制御フローを取り入れる
+
+`Effect.gen`を使う一つの大きな利点は、ジェネレーター関数内で標準的な制御フロー構文（`if`/`else`、`for`、`while`など）を使用できることです。これにより、複雑な制御フローの論理をコードで表現しやすくなります。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const calculateTax = (
+  amount: number,
+  taxRate: number
+): Effect.Effect<number, Error> =>
+  taxRate > 0
+    ? Effect.succeed((amount * taxRate) / 100)
+    : Effect.fail(new Error("無効な税率"));
+
+const program = Effect.gen(function* () {
+  let i = 1;
+
+  while (true) {
+    if (i === 10) {
+      break; // カウンターが10に達したらループを終了
+    } else {
+      if (i % 2 === 0) {
+        // 偶数の税金を計算する
+        console.log(yield* calculateTax(100, i));
+      }
+      i++;
+      continue;
+    }
+  }
+});
+
+Effect.runPromise(program);
+/*
+出力:
+2
+4
+6
+8
+*/
+```
+
+## エラーの発生
+
+`Effect.gen` API を使用すると、失敗したエフェクトを yield することによって、プログラムフローにエラー処理を組み込むことができます。
+このメカニズムは`Effect.fail`を通じて実現されており、以下の例で示されています。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  console.log("タスク1...");
+  console.log("タスク2...");
+  // フローにエラーを導入
+  yield* Effect.fail("何かがうまくいきませんでした!");
+});
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+タスク1...
+タスク2...
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: '何かがうまくいきませんでした!' }
+}
+*/
+```
+
+### 短絡評価の役割
+
+`Effect.gen` API を使用する際は、エラーが発生した際にどのようにそれが管理されるかを理解することが重要です。
+この API は、最初のエラーに遭遇した時点で実行を**短絡させる**ように設計されています。
+
+これは開発者にとってどういう意味を持つのでしょうか？例えば、順に実行される操作のチェーンやエフェクトの集合があるとしましょう。これらのエフェクトのいずれかの実行中にエラーが発生した場合、残りの計算はスキップされ、エラーが最終結果に伝播されます。
+
+簡単に言うと、短絡評価の動作は、プログラムのいずれかのステップで何かが間違った場合、即座に停止し、エラーを返すことで何が間違ったのかを知らせることを保証します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  console.log("タスク1...");
+  console.log("タスク2...");
+  yield* Effect.fail("何かがうまくいきませんでした!");
+  console.log("これは実行されません");
+});
+
+Effect.runPromise(program).then(console.log, console.error);
+/*
+出力:
+タスク1...
+タスク2...
+(FiberFailure) エラー: 何かがうまくいきませんでした!
+*/
+```
+
+:::info
+Effect を使用して効果的なエラー処理を行う方法を深く理解したい場合は、["エラー管理"](../error-management/two-error-types)セクションを探ってください。
+
+:::
+
+## this の渡し方
+
+場合によっては、現在のオブジェクト（`this`）の参照をジェネレーター関数の本体に渡す必要があるかもしれません。
+これは、参照を最初の引数として受け入れるオーバーロードを使用することで実現できます：
+
+```ts twoslash
+import { Effect } from "effect";
+
+class MyService {
+  readonly local = 1;
+  compute = Effect.gen(this, function* () {
+    return yield* Effect.succeed(this.local + 1);
+  });
+}
+
+console.log(Effect.runSync(new MyService().compute)); // 出力: 2
+```
+
+## アダプタ
+
+一部のコードスニペットでは、通常は`_`や`$`のシンボルで示されるアダプタを使用している場合があるかもしれません。
+
+以前の TypeScript のバージョンでは、ジェネレーター内で正しい型推論を確保するために、ジェネレーターの「アダプタ」関数が必要でした。このアダプタは、TypeScript の型システムとジェネレーター関数との相互作用を容易にするために使用されました。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+// 型推論のためにアダプタを使用した古い構文
+const programWithAdapter = Effect.gen(function* (_ /* <-- アダプタ */) {
+  const transactionAmount = yield* _(fetchTransactionAmount);
+});
+
+// アダプタなしの現在の使用法
+const program = Effect.gen(function* () {
+  const transactionAmount = yield* fetchTransactionAmount;
+});
+```
+
+TypeScript（v5.5 以降）の進歩により、型推論のためにアダプタはもはや必要ありません。以前の互換性のためにコードベースには残っていますが、Effect の次のメジャーリリースでは削除される予定です。

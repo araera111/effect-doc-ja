@@ -1,0 +1,86 @@
+---
+title: Effect 3.4 (リリース)
+excerpt: 新機能や変更点を強調したリリース投稿
+date: 2024-06-20
+authors:
+  - name: Tim Smart
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/3642301555/77cc6dab66dc94fdd77e503fd6d1c1cf_400x400.jpeg
+    twitter: https://twitter.com/tim_smart
+---
+
+Effect 3.4.0がリリースされました！このリリースには多くの新機能と改善が含まれています。以下は新しい内容の概要です：
+
+## @effect/platform HTTP 構造の再編成
+
+`@effect/platform` のHTTPモジュールが再編成され、`effect`パッケージと似たフラットな構造になりました。
+
+単一のインポートではなく、必要な特定のモジュールをインポートします：
+
+```typescript
+import { HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
+
+HttpClientRequest.get("/").pipe(
+  HttpClient.fetchOk,
+  HttpClientResponse.json,
+)
+```
+
+## 新しいMicroモジュール
+
+`Micro`モジュールは、バンドルサイズが重要な場合にEffectの軽量な代替を提供します。
+
+最小限でMicroはバンドルサイズに5kbのgzippedを追加し、使用する機能の量に応じてスケールします。
+
+`Micro`はまだ実験的であり、改善に関するフィードバックを求めています。
+
+## Array.ensureの追加
+
+`Array.ensure`は、`A | ReadonlyArray<A>`を`Array<A>`に正規化するために使用できるAPIです。
+
+```typescript
+import { ensure } from "effect/Array"
+
+// メンバーかコレクションか100%確信がない場合を考えます
+declare const someValue: {foo: string} | Array<{foo: string}>
+
+// $ExpectType ({ foo: string })[]
+const normalized = ensure(someValue)
+```
+
+## liftPredicateの変更
+
+- `Option.liftPredicate`は現在デュアルであり、データファーストまたはデータラストのいずれかで使用できます。
+- `Either.liftPredicate`が追加されました。
+- `Effect.liftPredicate`が追加されました。
+
+## 新しい型アクセサの追加
+
+- `Stream`型のアクセサに`Success`、`Error`、および`Context`が追加されました。
+- `ManagedRuntime`型のアクセサに`Success`と`Context`が追加されました。
+
+## Tuple.atの追加
+
+`Tuple.at` APIを使用して、タプルから指定されたインデックスの要素を取得できます。
+
+```typescript
+import { Tuple } from "effect"
+
+assert.deepStrictEqual(Tuple.at([1, 'hello', true], 1), 'hello')
+```
+
+## Chunk.lastNonEmptyの追加
+
+`NonEmptyChunk`がある場合、`lastNonEmpty`を使用して、ランタイムチェックなしで直接最後の要素を取得できます。
+
+```typescript
+import { Chunk } from "effect"
+
+const last = Chunk.lastNonEmpty(Chunk.of(1))
+```
+
+## その他の変更
+
+他にもいくつかの小さな変更が加えられました。すべての変更を確認するにはCHANGELOGをご覧ください：[CHANGELOG](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)。
+
+最新の更新を追跡し、細かい詳細について議論するために、ぜひ私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に参加してください！

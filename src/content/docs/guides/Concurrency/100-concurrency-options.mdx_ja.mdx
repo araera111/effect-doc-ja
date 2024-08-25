@@ -1,0 +1,244 @@
+---
+title: 同時実行オプション
+excerpt: Effectは、エフェクトの実行を管理するための強力なオプションを提供し、操作の同時性を制御します。`concurrency`オプションを探求し、同時に実行できるエフェクトの数を決定する重要な要素を理解しましょう。この簡潔なガイドでは、順次実行、数値による同時実行、無制限の同時実行、および柔軟な親継承同時実行オプションについて詳しく説明します。これらのオプションを活用して、Effectプログラムのパフォーマンスを最適化し、特定のユースケースに合わせた同時実行の振る舞いをカスタマイズする方法を学びましょう。
+bottomNavigation: pagination
+---
+
+Effect は、エフェクトがどのように実行されるかを管理し、全体の操作の結果を制御するためのさまざまなオプションを提供します。これらのオプションは、同時に実行できるエフェクトの数を決定するのに役立ちます。
+
+```ts
+type Options = {
+  readonly concurrency?: Concurrency;
+  /* ... その他のオプション ... */
+};
+```
+
+このセクションでは、同時実行を管理するオプション、すなわち`concurrency`オプションに焦点を当てます。このオプションは、`Concurrency`型を持ちます。
+
+```ts
+type Concurrency = number | "unbounded" | "inherit";
+```
+
+各設定値の意味を理解しましょう。
+
+:::info
+以下の例では`Effect.all`関数を使用していますが、この概念は`Effect.forEach`など、同時実行オプションを受け入れる他の多くの Effect
+API にも適用されます。
+
+:::
+
+## 順次実行（デフォルト）
+
+デフォルトでは、同時実行オプションを指定しない場合、エフェクトは順次実行されます。これは、各エフェクトが前のエフェクトが完了した後にのみ開始されることを意味します。
+
+```ts twoslash
+import { Effect, Duration } from "effect";
+
+const makeTask = (n: number, delay: Duration.DurationInput) =>
+  Effect.promise(
+    () =>
+      new Promise<void>((resolve) => {
+        console.log(`task${n}を開始`);
+        setTimeout(() => {
+          console.log(`task${n}が完了`);
+          resolve();
+        }, Duration.toMillis(delay));
+      })
+  );
+
+const task1 = makeTask(1, "200 millis");
+const task2 = makeTask(2, "100 millis");
+
+const sequential = Effect.all([task1, task2]);
+
+Effect.runPromise(sequential);
+/*
+出力:
+task1を開始
+task1が完了
+task2を開始 <-- task2はtask1が完了した後に開始されます
+task2が完了
+*/
+```
+
+## 数値による同時実行
+
+`concurrency`オプションを使用することで、同時に実行する操作の数を制御できます。たとえば、`concurrency: 2`を指定することで、最大 2 つのエフェクトが同時に実行されます。
+
+```ts twoslash
+import { Effect, Duration } from "effect";
+
+const makeTask = (n: number, delay: Duration.DurationInput) =>
+  Effect.promise(
+    () =>
+      new Promise<void>((resolve) => {
+        console.log(`task${n}を開始`);
+        setTimeout(() => {
+          console.log(`task${n}が完了`);
+          resolve();
+        }, Duration.toMillis(delay));
+      })
+  );
+
+const task1 = makeTask(1, "200 millis");
+const task2 = makeTask(2, "100 millis");
+const task3 = makeTask(3, "210 millis");
+const task4 = makeTask(4, "110 millis");
+const task5 = makeTask(5, "150 millis");
+
+const number = Effect.all([task1, task2, task3, task4, task5], {
+  concurrency: 2,
+});
+
+Effect.runPromise(number);
+/*
+出力:
+task1を開始
+task2を開始 <-- アクティブなタスク: task1, task2
+task2が完了
+task3を開始 <-- アクティブなタスク: task1, task3
+task1が完了
+task4を開始 <-- アクティブなタスク: task3, task4
+task4が完了
+task5を開始 <-- アクティブなタスク: task3, task5
+task3が完了
+task5が完了
+*/
+```
+
+## 無制限の同時実行
+
+`concurrency: "unbounded"`を設定すると、必要に応じてできるだけ多くのエフェクトが同時に実行されます。特定の制限はありません。
+
+```ts twoslash
+import { Effect, Duration } from "effect";
+
+const makeTask = (n: number, delay: Duration.DurationInput) =>
+  Effect.promise(
+    () =>
+      new Promise<void>((resolve) => {
+        console.log(`task${n}を開始`);
+        setTimeout(() => {
+          console.log(`task${n}が完了`);
+          resolve();
+        }, Duration.toMillis(delay));
+      })
+  );
+
+const task1 = makeTask(1, "200 millis");
+const task2 = makeTask(2, "100 millis");
+const task3 = makeTask(3, "210 millis");
+const task4 = makeTask(4, "110 millis");
+const task5 = makeTask(5, "150 millis");
+
+const unbounded = Effect.all([task1, task2, task3, task4, task5], {
+  concurrency: "unbounded",
+});
+
+Effect.runPromise(unbounded);
+/*
+出力:
+task1を開始
+task2を開始
+task3を開始
+task4を開始
+task5を開始
+task2が完了
+task4が完了
+task5が完了
+task1が完了
+task3が完了
+*/
+```
+
+## 親継承同時実行
+
+`concurrency: "inherit"`オプションは、`Effect.withConcurrency(number | "unbounded")`によって制御されるコンテキストに基づいて適応します。
+
+`Effect.withConcurrency`呼び出しがない場合、デフォルトは`"unbounded"`です。それ以外の場合、`Effect.withConcurrency`によって設定された構成を継承します。
+
+```ts twoslash
+import { Effect, Duration } from "effect";
+
+const makeTask = (n: number, delay: Duration.DurationInput) =>
+  Effect.promise(
+    () =>
+      new Promise<void>((resolve) => {
+        console.log(`task${n}を開始`);
+        setTimeout(() => {
+          console.log(`task${n}が完了`);
+          resolve();
+        }, Duration.toMillis(delay));
+      })
+  );
+
+const task1 = makeTask(1, "200 millis");
+const task2 = makeTask(2, "100 millis");
+const task3 = makeTask(3, "210 millis");
+const task4 = makeTask(4, "110 millis");
+const task5 = makeTask(5, "150 millis");
+
+const inherit = Effect.all([task1, task2, task3, task4, task5], {
+  concurrency: "inherit",
+});
+
+Effect.runPromise(inherit);
+/*
+出力:
+task1を開始
+task2を開始
+task3を開始
+task4を開始
+task5を開始
+task2が完了
+task4が完了
+task5が完了
+task1が完了
+task3が完了
+*/
+```
+
+`Effect.withConcurrency`を使用すると、その特定の同時実行設定を採用します。
+
+```ts twoslash
+import { Effect, Duration } from "effect";
+
+const makeTask = (n: number, delay: Duration.DurationInput) =>
+  Effect.promise(
+    () =>
+      new Promise<void>((resolve) => {
+        console.log(`task${n}を開始`);
+        setTimeout(() => {
+          console.log(`task${n}が完了`);
+          resolve();
+        }, Duration.toMillis(delay));
+      })
+  );
+
+const task1 = makeTask(1, "200 millis");
+const task2 = makeTask(2, "100 millis");
+const task3 = makeTask(3, "210 millis");
+const task4 = makeTask(4, "110 millis");
+const task5 = makeTask(5, "150 millis");
+
+const inherit = Effect.all([task1, task2, task3, task4, task5], {
+  concurrency: "inherit",
+});
+
+const withConcurrency = inherit.pipe(Effect.withConcurrency(2));
+
+Effect.runPromise(withConcurrency);
+/*
+出力:
+task1を開始
+task2を開始 <-- アクティブなタスク: task1, task2
+task2が完了
+task3を開始 <-- アクティブなタスク: task1, task3
+task1が完了
+task4を開始 <-- アクティブなタスク: task3, task4
+task4が完了
+task5を開始 <-- アクティブなタスク: task3, task5
+task3が完了
+task5が完了
+*/
+```

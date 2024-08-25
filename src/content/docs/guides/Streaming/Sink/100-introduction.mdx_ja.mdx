@@ -1,0 +1,30 @@
+---
+title: Sinksの紹介
+excerpt: ストリーム処理における`Sink<A, In, L, E, R>`の役割を探求します。`Sink`が要素を消費し、エラーを処理し、値を生成し、残りの要素を管理する方法を学びます。`Stream.run`とのシームレスな連携によって、効率的なストリーム処理を実現します。
+bottomNavigation: pagination
+---
+
+ストリームの世界において、`Sink<A, In, L, E, R>`は重要な役割を果たします。これは、`Stream`によって生成された要素を消費するために設計された特化した関数のようなものです。`Sink`の機能を以下に示します：
+
+- `In`要素を0個、1個、またはそれ以上の任意の数だけ消費できます。
+- 型`E`のエラーが発生する可能性があります。
+- 最終的に型`A`の値を生成します。
+- さらに、残りの要素を表す型`L`の余りを返すことができます。
+
+ストリームを処理するために`Sink`を使用するには、単にそれを`Stream.run`関数に渡します：
+
+```ts twoslash
+import { Stream, Sink, Effect } from "effect"
+
+const stream = Stream.make(1, 2, 3) // 1, 2, 3の数字を持つストリームを定義
+
+const sink = Sink.sum // 数字を合計するSinkを選択
+
+const sum = Stream.run(stream, sink) // ストリームをSinkを介して実行
+
+Effect.runPromise(sum).then(console.log)
+/*
+出力:
+6
+*/
+```

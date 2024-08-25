@@ -1,0 +1,157 @@
+---
+title: 今週のEffect - 2024-02-09
+excerpt: 今週のEffectは、Effectコミュニティとエコシステムで起こったことの要約を提供する週刊ブログ記事です。すべてのニュース、機能、変更を把握するのに役立ちます！
+date: 2024-02-09
+authors:
+  - name: ダビデ・スコニャミリオ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のEffect-2024-02-16
+  - 今週のEffect-2024-02-02
+---
+
+import Tweet from "astro-tweet";
+
+こんにちは、Effecters の皆さん！
+
+今週の**T**his **W**eek **I**n **E**ffect（**TWIE**）へようこそ。これは、私たちのコミュニティや Effect エコシステム内で起きていることを把握するための、週次アップデートです。
+
+初めての方へ、Effect は開発者が複雑で同期的、非同期的なプログラムを作成するのを助けるために設計された強力な TypeScript ライブラリです。Effect を特別なものにしている主な特徴の 1 つは、構造化された同時実行を活用して、非同期キャンセルや安全なリソース管理といった機能を提供することです。これにより、堅牢でスケーラブルかつ効率的なプログラムをより簡単に構築できます。
+
+まずは、こちらにあるクイックスタートガイドとドキュメントを参考にして、Effect の旅を始めてください。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+また週が過ぎ、TWIE との第 2 回目のデートを迎えています。前回の投稿を見逃した方もいるかもしれないので、TWIE とは何か、そしてその目的について簡単に説明したいと思います。
+
+コミュニティが急速に成長しているのを目の当たりにできて嬉しいです。ますます多くの人々が Effect を採用しており、Effect エコシステム内でのすべての出来事を把握するのは簡単ではないかもしれません：
+
+- 私たちの Discord サーバーは**1850 人以上のメンバー**に達し、エンゲージメントは過去最高です。
+- 2024 年 2 月 23 日にウィーンで開催される初の**[Effect Days Conference](/events/effect-days)**に向けて、たくさんの新しいコンテンツが用意されています。
+- Effect に関連するすべてのプロジェクトが**重要なアップデート**を受けており、GitHub での活動も活発です。
+
+そのため、Effect の旅を存分に楽しむために必要な情報を簡単に見つけられるようにしたいと考えました！
+
+**それが TWIE を作った理由です** – 先週の Effect に関する重要なイベントを、コミュニティ（Discord の議論、X の投稿、YouTube のコンテンツなど）と技術的な観点の両方からお知らせする週次アップデートです。
+
+これにより、Effect エコシステムで何が起きているのかを把握し、私たちのコミュニティに積極的に参加していただけることを願っています。
+
+さて、本題に戻りましょう！
+
+## テクノロジー
+
+今週の機能、バグ修正、変更（時には破壊的なもの）を一覧にします。
+
+### 一般的な雑用
+
+- [テストマトリックスに bun を追加](https://github.com/Effect-TS/effect/pull/2030)
+- [スナップショットワークフローを修正](https://github.com/Effect-TS/effect/pull/2051)
+
+### Effect Core
+
+- [ClassTag を追加し、Effect.serviceConstants を改善、すべてのタグに文字列識別子を要求](https://github.com/Effect-TS/effect/pull/2028)
+- [Secret に toJSON を追加（機能）](https://github.com/Effect-TS/effect/pull/2033)
+- [Effect の型パラメータの順序を変更（リファクタリング）](https://github.com/Effect-TS/effect/pull/2034)
+- [Exit の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2035)
+- [STM の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2043)
+- [Layer の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2044)
+- [Streamable.Class と Effectable.Class の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2045)
+- [型パラメータを入れ替え、async にデフォルトを追加して DX を強化](https://github.com/Effect-TS/effect/pull/2046)
+- [Deferred の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2050)
+- [TDeferred の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2052)
+- [Take の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2053)
+- [Fiber の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2054)
+- [RuntimeFiber の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2055)
+- [FiberSet の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2056)
+- [Array.push とスプレッドオペレーターの組み合わせによるスタックオーバーフローの可能性を修正（バグ修正）](https://github.com/Effect-TS/effect/pull/2057)
+- [FiberMap の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2058)
+- [Pool の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2059)
+- [Request の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2060)
+- [Resource の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2061)
+- [TExit の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2062)
+- [Channel の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2063)
+- [Semaphore に releaseAll API を追加](https://github.com/Effect-TS/effect/pull/2067)
+- [Runtime.RunCallbackOptions の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2069)
+- [Option.orElseSome を追加](https://github.com/Effect-TS/effect/pull/2071)
+- [Sink の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2073)
+- [Runtime を操作するための API を追加](https://github.com/Effect-TS/effect/pull/2075)
+- [Exit の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2035)
+- [Pool の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2059)
+- [Layer の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2044)
+- [Array.push とスプレッドオペレーターの組み合わせによるスタックオーバーフローの可能性を修正（バグ修正）](https://github.com/Effect-TS/effect/pull/2057)
+- [型パラメータを入れ替え、async にデフォルトを追加して DX を強化](https://github.com/Effect-TS/effect/pull/2046)
+- [Streamable.Class と Effectable.Class の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2045)
+- [Effect の型パラメータの順序を変更（リファクタリング）](https://github.com/Effect-TS/effect/pull/2034)
+- [Sink の型パラメータの順序を変更](https://github.com/Effect-TS/effect/pull/2073)
+- [Schedule の型定義を修正](https://github.com/Effect-TS/effect/pull/2085)
+- [RateLimiter を Rezilienze からポート](https://github.com/Effect-TS/effect/pull/2083)
+- [Semaphore を使用して RateLimiter の実装を簡素化](https://github.com/Effect-TS/effect/pull/2084)
+
+### Effect Schema
+
+- [スキーマ変換パラメータの名称変更](https://github.com/Effect-TS/effect/pull/2065)
+- [Schema.TaggedError の使用を修正して Unify と組み合わせる](https://github.com/Effect-TS/effect/pull/2072)
+- [Schema: 位置引数から単一のオプション引数に切り替え](https://github.com/Effect-TS/effect/pull/2074)
+- [オプショナル API でオプショナルアノテーションを導入](https://github.com/Effect-TS/effect/pull/2079)
+
+### Effect Platform
+
+- [ClientRequest.make からオーバーロードを削除](https://github.com/Effect-TS/effect/pull/2037)
+- [ClientRequest.make のシグネチャを修正（ジェネリックが未使用でした）](https://github.com/Effect-TS/effect/pull/2039)
+- [転送可能なオブジェクトを収集するために Context を使用](https://github.com/Effect-TS/effect/pull/2041)
+- [プラットフォームワーカーの生成関数を提供する場所を移動](https://github.com/Effect-TS/effect/pull/2078)
+- [プラットフォームの再エクスポートをさらに削除](https://github.com/Effect-TS/effect/pull/2077)
+
+### Effect CLI
+
+- [CLI 内の配列型をより許容的にする](https://github.com/Effect-TS/effect/pull/2047)
+
+### Effect RPC
+
+- [API に対する 2 回目の見直し](https://github.com/Effect-TS/effect/pull/1966)
+
+## コミュニティ
+
+先週、25 人の新しい Effecters を迎えました！コミュニティに参加していただきありがとうございます。皆さんの積極的な参加を心待ちにしています！
+
+### Effect Days の更新
+
+ご存知の方もいらっしゃるかもしれませんが、ウィーンでの[大イベント](/events/effect-days)が近づいています。2 月 22 日から 24 日まで、素晴らしいコミュニティと出会い、Effect の未来についてお話しする機会があります。
+
+ワークショップのチケットは残り 3 枚だけで、まだ迷っている方には最後のチャンスです。ぜひ[こちらから](https://EffectDays/EventDays#ticket)お求めください！
+
+見逃した方のために、こちらが[スピーカーのラインナップ](/events/effect-days#speakers)です。
+
+スピーカーが話す内容の新しいプレビューが私たちの[X](https://twitter.com/EffectTS_)プロフィールに投稿されています：
+
+ティム・スマート
+
+<Tweet id="1753389163901034681" />
+
+ヨハネス・シキクリング：
+
+<Tweet id="1754820355603009696" />
+
+ティム・スハネク：
+
+<Tweet id="1755570582286991678" />
+
+## 最後に
+
+今週は以上です。私たちのコミュニティの重要な一部でいてくださってありがとうございます。皆さんのフィードバックやリクエストは非常に貴重で、新しいフォーマットを調整する際に大いに参考にさせていただきます。お気軽にご意見をお寄せください。コミュニティのニーズに応えるよう最善を尽くします。
+
+_The Effect Community Team_

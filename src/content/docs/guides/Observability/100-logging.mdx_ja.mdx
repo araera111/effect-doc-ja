@@ -1,0 +1,833 @@
+---
+title: ロギング
+excerpt: Effectにおけるロギングの力を探り、デバッグとモニタリングを強化します。動的なログレベルコントロール、カスタムロギング出力、詳細なロギング、環境ベースのロギング、その他の機能について学びます。log、logDebug、logInfo、logWarning、logError、logFatal、及びスパンなど、特定のロギングユーティリティにも dive します。デフォルトのロギングを無効化し、構成からログレベルを読み込む方法を発見します。最後に、ニーズに合わせてロギングを調整するためのカスタムロガーの作成について探ります。
+bottomNavigation: pagination
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+ロギングはソフトウェア開発の重要な側面であり、特にアプリケーションのデバッグと挙動のモニタリングにおいて不可欠です。このセクションでは、Effect のロギングユーティリティに深く掘り下げ、従来の`console.log`のような方法に対する利点を探ります。
+
+## 従来のロギングに対する利点
+
+Effect のロギングユーティリティは、従来のロギング方法`console.log`に対していくつかの利点を提供します。
+
+1. **動的ログレベルコントロール**: Effect のロギングを使用すると、ログレベルを動的に変更することができます。これは、メッセージの重要度に応じて表示するログメッセージを制御できることを意味します。たとえば、アプリケーションを設定して警告やエラーのみをログに記録させることができ、これは生産環境でノイズを軽減するのに非常に役立ちます。
+
+2. **カスタムロギング出力**: Effect のロギングユーティリティでは、ログの処理方法を変更できます。カスタムロガーを使用して、ログメッセージをさまざまな宛先（サービスやファイルなど）に送信することができます。この柔軟性により、アプリケーションの要件に最も適した方法でログが保存され処理されます。
+
+3. **詳細なロギング**: Effect はプログラムの部分ごとにロギングを詳細に制御できます。アプリケーションの異なる部分に対して異なるログレベルを設定でき、各特定のコンポーネントに対して詳細レベルを調整できます。これはデバッグやトラブルシューティングにとって貴重です。重要な情報に焦点を当てることができます。
+
+4. **環境ベースのロギング**: Effect のロギングユーティリティは、デプロイ環境と組み合わせて詳細なロギング戦略を実現できます。たとえば、開発中は詳細なデバッグのためにトレースレベル以上のすべてをログに記録することを選択するかもしれません。対照的に、生産版はエラーや重大な問題のみをログに記録するように設定でき、パフォーマンスへの影響や生産ログにおけるノイズを最小限に抑えます。
+
+5. **追加機能**: Effect のロギングユーティリティには、タイムスパンを測定したり、エフェクトごとにログレベルを変更したり、パフォーマンスモニタリングのためにスパンを統合したりするなどの追加機能があります。
+
+では、Effect が提供する特定のロギングユーティリティを見ていきましょう。
+
+## log
+
+`Effect.log`関数は、デフォルトの`INFO`レベルでログメッセージを出力します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.log("アプリケーションが開始されました");
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="アプリケーションが開始されました"
+*/
+```
+
+デフォルトのロガーを使用して`Effect.log`を使うと、各ログエントリにいくつかの重要な詳細が組み込まれます。
+
+- `timestamp`: ログメッセージが生成された時刻。
+- `level`: メッセージがログに記録されたログレベル。
+- `fiber`: プログラムを実行している[ファイバー](../concurrency/fibers)の識別子。
+- `message`: ログ内容（複数のアイテムを含むことができる）。
+- `span`: （オプション）[span](#spans)のミリ秒単位の期間。
+
+:::info
+特定のニーズに合わせてロギング設定を調整する方法について、
+カスタムロギングフレームワークの統合やログ形式の調整など、
+[カスタムロガー](#custom-loggers)のセクションを参照してください。
+
+:::
+
+複数のメッセージを同時にログに記録できます：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.log("メッセージ1", "メッセージ2", "メッセージ3");
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message=メッセージ1 message=メッセージ2 message=メッセージ3
+*/
+```
+
+コンテキストを追加するために、1 つ以上の[Cause](../../other/data-types/cause)インスタンスをログに含めることもでき、これによって追加の`cause`注釈の下で詳細なエラー情報が提供されます。
+
+```ts twoslash
+import { Effect, Cause } from "effect";
+
+const program = Effect.log(
+  "メッセージ1",
+  "メッセージ2",
+  Cause.die("ああ！"),
+  Cause.die("おっと！")
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message=メッセージ1 message=メッセージ2 cause="Error: ああ！
+Error: おっと！"
+*/
+```
+
+## ログレベル
+
+### logDebug
+
+デフォルトでは、`DEBUG`メッセージは**出力されません**。
+
+ただし、`Logger.withMinimumLogLevel`を使用してデフォルトロガーを構成し、最小ログレベルを`LogLevel.Debug`に設定することで有効にできます。
+
+以下は、特定のタスク（`task1`）のために`DEBUG`メッセージを有効にする方法を示す例です。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect, Logger, LogLevel } from "effect";
+
+const task1 = Effect.gen(function* () {
+  yield* Effect.sleep("2 seconds");
+  yield* Effect.logDebug("task1 完了");
+}).pipe(Logger.withMinimumLogLevel(LogLevel.Debug));
+
+const task2 = Effect.gen(function* () {
+  yield* Effect.sleep("1 second");
+  yield* Effect.logDebug("task2 完了");
+});
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("開始");
+  yield* task1;
+  yield* task2;
+  yield* Effect.log("完了");
+});
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO message=開始
+timestamp=... level=DEBUG message="task1 完了" <-- 2秒後
+timestamp=... level=INFO message=完了 <-- 1秒後
+*/
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts twoslash
+import { Effect, Logger, LogLevel } from "effect";
+
+const task1 = Effect.sleep("2 seconds").pipe(
+  Effect.andThen(Effect.logDebug("task1 完了")),
+  Logger.withMinimumLogLevel(LogLevel.Debug)
+);
+
+const task2 = Effect.sleep("1 second").pipe(
+  Effect.andThen(Effect.logDebug("task2 完了"))
+);
+
+const program = Effect.log("開始").pipe(
+  Effect.andThen(task1),
+  Effect.andThen(task2),
+  Effect.andThen(Effect.log("完了"))
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO message=開始
+timestamp=... level=DEBUG message="task1 完了" <-- 2秒後
+timestamp=... level=INFO message=完了 <-- 1秒後
+*/
+```
+
+</TabItem>
+</Tabs>
+
+上記の例では、`Logger.withMinimumLogLevel`関数を使用して`task1`に対して特に`DEBUG`メッセージを有効にしています。
+
+`Logger.withMinimumLogLevel(effect, level)`を使用することで、プログラム内の特定のエフェクトに対して異なるログレベルを選択的に有効にする柔軟性があります。これにより、ログの詳細度を制御し、デバッグやトラブルシューティングに最も関連する情報に焦点を当てることができます。
+
+### logInfo
+
+デフォルトでは、`INFO`メッセージが出力されます。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.logInfo("開始");
+  yield* Effect.sleep("2 seconds");
+  yield* Effect.sleep("1 second");
+  yield* Effect.logInfo("完了");
+});
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO message=開始
+timestamp=... level=INFO message=完了 <-- 3秒後
+*/
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.logInfo("開始").pipe(
+  Effect.andThen(Effect.sleep("2 seconds")),
+  Effect.andThen(Effect.sleep("1 second")),
+  Effect.andThen(Effect.logInfo("完了"))
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO message=開始
+timestamp=... level=INFO message=完了 <-- 3秒後
+*/
+```
+
+</TabItem>
+</Tabs>
+
+上記の例では、`Effect.log`関数を使用して`INFO`メッセージを`"開始"`と`"完了"`でログに記録しています。これらのメッセージはプログラムの実行中に出力されます。
+
+### logWarning
+
+デフォルトでは、`WARN`メッセージが出力されます。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect, Either } from "effect";
+
+const task = Effect.fail("おっと！").pipe(Effect.as(2));
+
+const program = Effect.gen(function* () {
+  const failureOrSuccess = yield* Effect.either(task);
+  if (Either.isLeft(failureOrSuccess)) {
+    yield* Effect.logWarning(failureOrSuccess.left);
+    return 0;
+  } else {
+    return failureOrSuccess.right;
+  }
+});
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=WARN fiber=#0 message="おっと！"
+*/
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const task = Effect.fail("おっと！").pipe(Effect.as(2));
+
+const program = task.pipe(
+  Effect.catchAll((error) => Effect.logWarning(error).pipe(Effect.as(0)))
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=WARN fiber=#0 message="おっと！"
+*/
+```
+
+</TabItem>
+</Tabs>
+
+### logError
+
+デフォルトでは、`ERROR`メッセージが出力されます。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect, Either } from "effect";
+
+const task = Effect.fail("おっと！").pipe(Effect.as(2));
+
+const program = Effect.gen(function* () {
+  const failureOrSuccess = yield* Effect.either(task);
+  if (Either.isLeft(failureOrSuccess)) {
+    yield* Effect.logError(failureOrSuccess.left);
+    return 0;
+  } else {
+    return failureOrSuccess.right;
+  }
+});
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=ERROR fiber=#0 message="おっと！"
+*/
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const task = Effect.fail("おっと！").pipe(Effect.as(2));
+
+const program = task.pipe(
+  Effect.catchAll((error) => Effect.logError(error).pipe(Effect.as(0)))
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=ERROR fiber=#0 message="おっと！"
+*/
+```
+
+</TabItem>
+</Tabs>
+
+### logFatal
+
+デフォルトでは、`FATAL`メッセージが出力されます。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect, Either } from "effect";
+
+const task = Effect.fail("おっと！").pipe(Effect.as(2));
+
+const program = Effect.gen(function* () {
+  const failureOrSuccess = yield* Effect.either(task);
+  if (Either.isLeft(failureOrSuccess)) {
+    yield* Effect.logFatal(failureOrSuccess.left);
+    return 0;
+  } else {
+    return failureOrSuccess.right;
+  }
+});
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=FATAL fiber=#0 message="おっと！"
+*/
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const task = Effect.fail("おっと！").pipe(Effect.as(2));
+
+const program = task.pipe(
+  Effect.catchAll((error) => Effect.logFatal(error).pipe(Effect.as(0)))
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=FATAL fiber=#0 message="おっと！"
+*/
+```
+
+</TabItem>
+</Tabs>
+
+## カスタムアノテーション
+
+`Effect.annotateLogs`関数を使用してカスタムアノテーションをログ出力に組み込むことで、効果の各ログエントリに追加のメタデータを追加し、トレース可能性とコンテキストを向上させることができます。
+
+ここでは、キー/バリューのペアとして単一のアノテーションを適用する方法を示します：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("メッセージ1");
+  yield* Effect.log("メッセージ2");
+}).pipe(Effect.annotateLogs("key", "value")); // キー/バリューのペアとしてのアノテーション
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message=メッセージ1 key=value
+timestamp=... level=INFO fiber=#0 message=メッセージ2 key=value
+*/
+```
+
+複数のアノテーションを同時に適用する場合は、複数のキー/バリューのペアを含むオブジェクトを渡すことができます：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("メッセージ1");
+  yield* Effect.log("メッセージ2");
+}).pipe(Effect.annotateLogs({ key1: "value1", key2: "value2" }));
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message=メッセージ1 key2=value2 key1=value1
+timestamp=... level=INFO fiber=#0 message=メッセージ2 key2=value2 key1=value1
+*/
+```
+
+アノテーションは、`Effect.annotateLogsScoped`を使用してスコープ付きライフタイムで適用することもできます。このメソッドは、エフェクト計算の特定の[スコープ](../resource-management/scope)におけるログでアノテーションの適用を制限します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("アノテーションなし");
+  yield* Effect.annotateLogsScoped({ key: "value" });
+  yield* Effect.log("メッセージ1"); // このログにアノテーションが適用されます
+  yield* Effect.log("メッセージ2"); // このログにアノテーションが適用されます
+}).pipe(Effect.scoped, Effect.andThen(Effect.log("アノテーションなし 再び")));
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="アノテーションなし"
+timestamp=... level=INFO fiber=#0 message=メッセージ1 key=value
+timestamp=... level=INFO fiber=#0 message=メッセージ2 key=value
+timestamp=... level=INFO fiber=#0 message="アノテーションなし 再び"
+*/
+```
+
+## ログスパン
+
+Effect はまた、プログラム内の特定の操作やタスクの期間を測定するためのログスパンをサポートしています。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.sleep("1 second");
+  yield* Effect.log("作業が完了しました！");
+}).pipe(Effect.withLogSpan("myspan"));
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="作業が完了しました！" myspan=1011ms
+*/
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const program = Effect.sleep("1 second").pipe(
+  Effect.andThen(Effect.log("作業が完了しました！")),
+  Effect.withLogSpan("myspan")
+);
+
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="作業が完了しました！" myspan=1011ms
+*/
+```
+
+</TabItem>
+</Tabs>
+
+上記の例では、`Effect.withLogSpan(label)`関数を使用してログスパンを作成します。これは、スパン内のコードブロックの期間を測定します。結果として得られた期間は、自動的にログメッセージ内の注釈として記録されます。
+
+## デフォルトロギングの無効化
+
+テスト実行中にデフォルトロギングをオフにする必要がある場合があります。このセクションでは、Effect フレームワーク内でデフォルトロギングを無効にするさまざまな方法を探索します。
+
+**withMinimumLogLevel を使用**
+
+Effect は、最小ログレベルを設定する便利な関数`withMinimumLogLevel`を提供しており、これによりログを無効化できます。
+
+```ts twoslash
+import { Effect, Logger, LogLevel } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("タスクを実行中...");
+  yield* Effect.sleep("100 millis");
+  console.log("タスク完了");
+});
+
+// ロギング有効（デフォルト）
+Effect.runFork(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message="タスクを実行中..."
+タスク完了
+*/
+
+// withMinimumLogLevelを使ってロギングを無効化
+Effect.runFork(program.pipe(Logger.withMinimumLogLevel(LogLevel.None)));
+/*
+出力:
+タスク完了
+*/
+```
+
+ログレベルを`LogLevel.None`に設定することで、ロギングを無効にし、最終結果だけを表示します。
+
+**レイヤーを使用**
+
+ロギングを無効にする別のアプローチは、最小ログレベルを`LogLevel.None`に設定するレイヤーを作成することです。これにより、すべてのロギングが無効になります。
+
+```ts twoslash
+import { Effect, Logger, LogLevel } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("タスクを実行中...");
+  yield* Effect.sleep("100 millis");
+  console.log("タスク完了");
+});
+
+const layer = Logger.minimumLogLevel(LogLevel.None);
+
+// レイヤーを使用してロギングを無効化
+Effect.runFork(program.pipe(Effect.provide(layer)));
+/*
+出力:
+タスク完了
+*/
+```
+
+**カスタムランタイムの使用**
+
+カスタムランタイムを作成して、ロギングを無効にする設定を含めることでもロギングを無効化できます。
+
+```ts twoslash
+import { Effect, Logger, LogLevel, ManagedRuntime } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.log("タスクを実行中...");
+  yield* Effect.sleep("100 millis");
+  console.log("タスク完了");
+});
+
+const customRuntime = ManagedRuntime.make(
+  Logger.minimumLogLevel(LogLevel.None)
+);
+
+customRuntime.runPromise(program);
+/*
+出力:
+タスク完了
+*/
+```
+
+このアプローチでは、ロギングを無効にする設定を含むカスタムランタイムを作成し、そのカスタムランタイムを使用してプログラムを実行します。
+
+## 構成からのログレベルの読み込み
+
+ログレベルを[構成](../configuration)から取得し、プログラムに組み込むには、`Logger.minimumLogLevel`から生成されたレイヤーを利用します：
+
+```ts twoslash
+import {
+  Effect,
+  Config,
+  Logger,
+  Layer,
+  ConfigProvider,
+  LogLevel,
+} from "effect";
+
+// ログを持つプログラムのシミュレーション
+const program = Effect.gen(function* () {
+  yield* Effect.logError("ERROR!");
+  yield* Effect.logWarning("WARNING!");
+  yield* Effect.logInfo("INFO!");
+  yield* Effect.logDebug("DEBUG!");
+});
+
+// 構成からログレベルをレイヤーとしてロード
+const LogLevelLive = Config.logLevel("LOG_LEVEL").pipe(
+  Effect.andThen((level) => Logger.minimumLogLevel(level)),
+  Layer.unwrapEffect
+);
+
+// 読み込まれたログレベルでプログラムを構成
+const configured = Effect.provide(program, LogLevelLive);
+
+// ConfigProvider.fromMapを使用して構成されたプログラムをテスト
+const test = Effect.provide(
+  configured,
+  Layer.setConfigProvider(
+    ConfigProvider.fromMap(new Map([["LOG_LEVEL", LogLevel.Warning.label]]))
+  )
+);
+
+Effect.runFork(test);
+/*
+出力:
+... level=ERROR fiber=#0 message=ERROR!
+... level=WARN fiber=#0 message=WARNING!
+*/
+```
+
+構成されたプログラムを評価するには、テスト用の`ConfigProvider.fromMap`を使用できます（詳細については[テストサービス](../configuration#testing-services)を参照）。
+
+## カスタムロガー
+
+このセクションでは、カスタムロガーを定義し、それをデフォルトのロガーとして設定する方法を学びます。
+
+まず、`Logger.make`を使用してカスタムロガーを定義します：
+
+```ts twoslash
+import { Logger } from "effect";
+
+export const logger = Logger.make(({ logLevel, message }) => {
+  globalThis.console.log(`[${logLevel.label}] ${message}`);
+});
+```
+
+カスタムロガーを定義したと仮定すると、次にプログラムを定義します。
+
+<Tabs items={["Using Effect.gen", "Using pipe"]}>
+<TabItem
+  label="Using Effect.gen"
+      >
+
+```ts twoslash
+import { Effect } from "effect";
+
+const task1 = Effect.gen(function* () {
+  yield* Effect.sleep("2 seconds");
+  yield* Effect.logDebug("task1 完了");
+});
+
+const task2 = Effect.gen(function* () {
+  yield* Effect.sleep("1 second");
+  yield* Effect.logDebug("task2 完了");
+});
+
+export const program = Effect.gen(function* () {
+  yield* Effect.log("開始");
+  yield* task1;
+  yield* task2;
+  yield* Effect.log("完了");
+});
+```
+
+</TabItem>
+<TabItem
+  label="Using pipe"
+      >
+
+```ts
+import { Effect } from "effect";
+
+const task1 = Effect.sleep("2 seconds").pipe(
+  Effect.andThen(Effect.logDebug("task1 完了"))
+);
+
+const task2 = Effect.sleep("1 second").pipe(
+  Effect.andThen(Effect.logDebug("task2 完了"))
+);
+
+export const program = Effect.log("開始").pipe(
+  Effect.andThen(task1),
+  Effect.andThen(task2),
+  Effect.andThen(Effect.log("完了"))
+);
+```
+
+</TabItem>
+</Tabs>
+
+デフォルトロガーを置き換えるには、`Logger.replace`を使用して特定のレイヤーを作成し、実行前に`Effect.provide`を使用して提供するだけです。
+
+```ts twoslash
+import { Effect, Logger, LogLevel } from "effect";
+import * as CustomLogger from "./CustomLogger";
+import { program } from "./program";
+
+// デフォルトロガーをカスタムロガーで置き換え
+const layer = Logger.replace(Logger.defaultLogger, CustomLogger.logger);
+
+Effect.runFork(
+  program.pipe(
+    Logger.withMinimumLogLevel(LogLevel.Debug),
+    Effect.provide(layer)
+  )
+);
+```
+
+プログラムを実行後、コンソールに表示される内容は以下の通りです：
+
+```bash
+[INFO] 開始
+[DEBUG] task1 完了
+[DEBUG] task2 完了
+[INFO] 完了
+```
+
+## 組み込みロガー
+
+### json
+
+`json`ロガーは、ログエントリを JSON オブジェクトとしてフォーマットし、JSON データを消費するロギングシステムとの統合を容易にします。
+
+```ts twoslash
+import { Effect, Logger } from "effect";
+
+const program = Effect.log("メッセージ1", "メッセージ2").pipe(
+  Effect.annotateLogs({ key1: "value1", key2: "value2" }),
+  Effect.withLogSpan("myspan")
+);
+
+Effect.runFork(program.pipe(Effect.provide(Logger.json)));
+// {"message":["メッセージ1","メッセージ2"],"logLevel":"INFO","timestamp":"...","annotations":{"key2":"value2","key1":"value1"},"spans":{"myspan":0},"fiberId":"#0"}
+```
+
+### logFmt
+
+このロガーは、開発中や生産コンソールでも分かりやすい人間が読みやすい形式でログを出力します。
+
+```ts twoslash
+import { Effect, Logger } from "effect";
+
+const program = Effect.log("メッセージ1", "メッセージ2").pipe(
+  Effect.annotateLogs({ key1: "value1", key2: "value2" }),
+  Effect.withLogSpan("myspan")
+);
+
+Effect.runFork(program.pipe(Effect.provide(Logger.logFmt)));
+// timestamp=... level=INFO fiber=#0 message=メッセージ1 message=メッセージ2 myspan=0ms key2=value2 key1=value1
+```
+
+### structured
+
+structured ロガーは、イベントの追跡可能性を保持するために構造化された詳細なログ出力を提供し、深い分析やトラブルシューティングに適しています。
+
+```ts twoslash
+import { Effect, Logger } from "effect";
+
+const program = Effect.log("メッセージ1", "メッセージ2").pipe(
+  Effect.annotateLogs({ key1: "value1", key2: "value2" }),
+  Effect.withLogSpan("myspan")
+);
+
+Effect.runFork(program.pipe(Effect.provide(Logger.structured)));
+/*
+{
+  message: [ 'メッセージ1', 'メッセージ2' ],
+  logLevel: 'INFO',
+  timestamp: '2024-07-09T14:05:41.623Z',
+  cause: undefined,
+  annotations: { key2: 'value2', key1: 'value1' },
+  spans: { myspan: 0 },
+  fiberId: '#0'
+}
+*/
+```
+
+### pretty
+
+`pretty`ロガーは、`console` API の機能を利用して視覚的に魅力的で色付けされたログ出力を生成します。この機能は、開発やデバッグプロセス中にログメッセージの可読性を向上させるのに特に役立ちます。
+
+```ts twoslash
+import { Effect, Logger } from "effect";
+
+const program = Effect.log("メッセージ1", "メッセージ2").pipe(
+  Effect.annotateLogs({ key1: "value1", key2: "value2" }),
+  Effect.withLogSpan("myspan")
+);
+
+Effect.runFork(program.pipe(Effect.provide(Logger.pretty)));
+/*
+        green --v                      v-- bold and cyan
+[07:51:54.434] INFO (#0) myspan=1ms: メッセージ1
+  メッセージ2
+   v-- bold
+  key2: value2
+  key1: value1
+*/
+```
+
+ログレベルは次のように色付けされています：
+
+| ログレベル | 色         |
+| ---------- | ---------- |
+| トレース   | グレー     |
+| デバッグ   | 青         |
+| 情報       | 緑         |
+| 警告       | 黄色       |
+| エラー     | 赤         |
+| 致命的     | 白背景の赤 |
+
+```
+
+```
+
+```
+
+```

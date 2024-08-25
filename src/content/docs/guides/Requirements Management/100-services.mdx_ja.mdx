@@ -1,0 +1,519 @@
+---
+title: サービスの管理
+excerpt: Effectプログラミングにおけるサービスの概念を理解します。特定の機能を提供するために設計された再利用可能なコンポーネントです。Effectを用いてサービスを管理し、サービスインターフェースの作成、およびサービス実装の提供方法を学びます。サービスが利用可能であるかないかのシナリオを扱うための柔軟性を高めるために、オプショナルサービスの使用を探ります。
+bottomNavigation: pagination
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+プログラミングの文脈において、**サービス**はアプリケーションの異なる部分に使用される再利用可能なコンポーネントまたは機能を指します。  
+サービスは特定の機能を提供するために設計されており、複数のモジュールやコンポーネント間で共有できます。
+
+サービスは、アプリケーションの異なる部分で必要とされる共通のタスクや操作をカプセル化することがよくあります。  
+それらは複雑な操作を処理したり、外部システムや API とやりとりしたり、データを管理したり、その他の専門的な作業を行ったりします。
+
+サービスは通常、モジュール式であり、アプリケーションの他の部分から切り離されて設計されています。  
+これにより、アプリケーション全体の機能に影響を与えることなく、簡単に保守、テスト、交換できます。
+
+## 概要
+
+サービスとその統合に取り組む際は、まず関数管理と依存関係処理の基本原則から始めると良いでしょう。  
+高度な構文に頼らずに行うことを想像してみてください。サービスを必要とする各関数に手動で渡さなければならないとします。
+
+```ts
+const processData = (data: Data, databaseService: DatabaseService) => {
+  // データベースサービスを使用した操作
+};
+```
+
+このアプローチは、アプリケーションが成長するにつれて煩雑になり、複数の関数の層を通してサービスを渡す必要があります。
+
+これを効率化するために、さまざまなサービスをバンドルする環境オブジェクトを使用することを考慮できます。
+
+```ts
+type Context = {
+  databaseService: DatabaseService;
+  loggingService: LoggingService;
+};
+
+const processData = (data: Data, context: Context) => {
+  // コンテキストから複数のサービスを使用
+};
+```
+
+しかし、これには新たな複雑性が生じます：使用する前に環境を正しく設定しなければならず、すべての必要なサービスが含まれていることを確認しなければなりません。これは、密結合されたコードを生み出し、関数合成とテストを困難にします。
+
+Effect ライブラリは、型システムを活用することでこれらの依存関係の管理を簡素化します。  
+Effect では、`Effect<Success, Error, Requirements>`型の関数の型シグネチャで`Requirements`パラメータを使用して、サービスの依存関係を直接宣言できます。
+
+- **依存関係の宣言**: 関数が必要とするサービスをその型で直接指定し、依存関係管理の複雑さを型システムに押し込むことができます。
+- **サービスの提供**: `Effect.provideService`を使用して、必要とする関数にサービス実装を利用可能にします。サービスを最初に提供することで、アプリケーションのすべての部分が必要なサービスに一貫してアクセスできるようになり、クリーンで疎結合のアーキテクチャを維持します。
+
+この方法は、サービスと依存関係の手動処理を抽象化し、開発者がビジネスロジックに集中できるようにします。コンパイラはすべての依存関係が正しく管理されていることを保証します。このアプローチは、コードを単純化するだけでなく、その保守性とスケーラビリティを高めます。
+
+Effect でのサービスの管理を段階的に探っていきましょう。あなたは以下の基本を学ぶことができます：
+
+1. **サービスの作成**: 独自の機能とインターフェースを持つサービスを定義します。
+2. **サービスの使用**: アプリケーションの関数内でサービスにアクセスし、利用します。
+3. **サービス実装の提供**: 宣言された要件を満たすために、サービスの実際の実装を供給します。
+
+## Effect でのサービスの管理
+
+これまでの Effect フレームワークの例では、外部サービスに依存せずに独立して操作する Effect を扱ってきました。これは、`Effect<Success, Error, Requirements>`型シグネチャの`Requirements`パラメータが`never`に設定され、依存関係がないことを示しています。
+
+しかし、実際のアプリケーションでは、特定のサービスに依存して正しく機能する Effect が必要になることがよくあります。これらのサービスは、`Context`と呼ばれる構造を通じて管理され、アクセスされます。
+
+Context は、Effect が必要とするすべてのサービスのリポジトリまたはコンテナとして機能します。  
+これは、これらのサービスを保持するストアのように機能し、アプリケーションのさまざまな部分が必要に応じてそれらにアクセスすることを可能にします。
+
+Context に格納されたサービスは、`Effect`型の`Requirements`パラメータに直接反映されます。  
+Context 内の各サービスは、一意の「タグ」で識別されます。これは、サービスの一意の識別子です。Effect が特定のサービスを使用する必要があるとき、そのサービスのタグが`Requirements`型パラメータに含まれます。
+
+### サービスの作成
+
+乱数を生成するサービスを作成することから始めましょう。
+
+新しいサービスを作成するには、以下の二つが必要です：
+
+- 一意の識別子。
+- サービスの可能な操作を説明する型。
+
+最初のサービスを定義しましょう：
+
+- 一意の識別子として文字列 `"MyRandomService"` を使用します。
+- サービス型には、乱数を返す `next` 操作が一つだけあります。
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+```
+
+エクスポートされた `Random` 値は、Effect における**タグ**と呼ばれます。  
+これはサービスの表現として機能し、Effect が実行時にこのサービスを特定し、使用することを可能にします。
+
+サービスは、タグがキーでサービスが値であるマップとして考えられる`Context`というコレクションに保存されます。`Context = Map<Tag, Service>`。
+
+:::info
+タグをグローバルにするためには、識別子（この場合は文字列 `"MyRandomService"`）を指定する必要があります。  
+これにより、同じ識別子を持つ二つのタグが同じインスタンスを参照することが保証されます。
+
+一意の識別子を使用することは、ライブリロードが発生する可能性のあるシナリオで特に便利です。  
+これは、リロードにわたってインスタンスを保持するのに役立ちます。インスタンスの重複を防げます（このようなことは起こるべきでないですが、一部のバンドラーやフレームワークは予測不可能に動作することがあります）。
+
+:::
+
+**要約**
+
+Effect において、サービス、タグ、コンテキストを理解することは、要件の管理とモジュラーアプリケーションの構築に不可欠です。
+
+| **概念**         | **説明**                                                                                 |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| **サービス**     | 特定の機能を提供し、アプリケーションの異なる部分で使用される再利用可能なコンポーネント。 |
+| **タグ**         | **サービス**を表す一意の識別子。Effect がそれを特定して使用することを可能にする。        |
+| **コンテキスト** | **タグ**をキーとし、**サービス**を値とするコレクション。                                 |
+
+### サービスの使用
+
+サービスタグが定義されたので、シンプルなプログラムを構築してサービスをどのように使用できるか見てみましょう。
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+const program = Effect.gen(function* () {
+  const random = yield* Random;
+  const randomNumber = yield* random.next;
+  console.log(`random number: ${randomNumber}`);
+});
+```
+
+上記のコードでは、`Random` タグをまるで `Effect` 自体のように使用しているのがわかります。  
+これにより、サービスの `next` 操作にアクセスできます。
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Effect, Context, Console } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+const program = Random.pipe(
+  Effect.andThen((random) => random.next),
+  Effect.andThen((randomNumber) =>
+    Console.log(`random number: ${randomNumber}`)
+  )
+);
+```
+
+上記のコードでは、`Random` タグを Effect そのものとしてフラットマップしていることがわかります。  
+これにより、`Effect.andThen` コールバック内でサービスの `next` 操作にアクセスできます。  
+その後、生成された乱数を記録するために `Console.log` ユーティリティを使用します。
+
+</TabItem>
+</Tabs>
+
+`program` 変数の型は、`Requirements` 型パラメータに `Random` を含むことに注意してください：`Effect<void, never, Random>`。
+
+これは、プログラムが成功して実行されるためには `Random` サービスが提供される必要があることを示しています。
+
+必要なサービスを提供せずに Effect を実行しようとすると、型チェックエラーが発生します：
+
+```ts twoslash
+// @errors: 2345
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+const program = Effect.gen(function* () {
+  const random = yield* Random;
+  const randomNumber = yield* random.next;
+  console.log(`random number: ${randomNumber}`);
+});
+
+// ---cut---
+Effect.runSync(program);
+```
+
+このエラーを解決し、プログラムを正常に実行するには、`Random` サービスの実装を提供する必要があります。
+
+次のセクションでは、`Random` サービスを実装し、プログラムに提供して、正常に実行できるようにする方法を探ります。
+
+### サービス実装の提供
+
+`Random` サービスの実際の実装を提供するには、`Effect.provideService` 関数を利用できます。
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+const program = Effect.gen(function* () {
+  const random = yield* Random;
+  const randomNumber = yield* random.next;
+  console.log(`random number: ${randomNumber}`);
+});
+
+// ---cut---
+const runnable = Effect.provideService(program, Random, {
+  next: Effect.sync(() => Math.random()),
+});
+
+Effect.runPromise(runnable);
+/*
+Output:
+random number: 0.8241872233134417
+*/
+```
+
+上記のコードスニペットでは、以前に定義した `program` を呼び出し、`Random` サービスの実装を提供しています。  
+`Effect.provideService` 関数を使用して、`Random` タグをその実装、すなわち乱数を生成する `next` 操作を持つオブジェクトに関連付けています。
+
+注意が必要なのは、`runnable` Effect の `Requirements` 型パラメータが `never` になっていることです。  
+これは、Effect がもはやサービスを提供される必要がないことを示しています。`Random` サービスの実装が整ったため、追加の要件なしにプログラムを実行できます。
+
+### サービス型の抽出
+
+タグからサービス型を取得するには、`Context.Tag.Service` ユーティリティ型を使用します。
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+type RandomShape = Context.Tag.Service<Random>;
+/*
+これは以下と同じです：
+type RandomShape = {
+    readonly next: Effect.Effect<number>;
+}
+*/
+```
+
+## 複数のサービスの使用
+
+複数のサービスを使用する必要がある場合、プロセスはこれまでに学んだサービス定義の繰り返しと同様です。  
+`Random` と `Logger` の二つのサービスが必要な例を見てみましょう。
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+// 'Random'サービス用のタグを作成
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  {
+    readonly next: Effect.Effect<number>;
+  }
+>() {}
+
+// 'Logger'サービス用のタグを作成
+class Logger extends Context.Tag("MyLoggerService")<
+  Logger,
+  {
+    readonly log: (message: string) => Effect.Effect<void>;
+  }
+>() {}
+
+const program = Effect.gen(function* () {
+  // 'Random'と'Logger'サービスのインスタンスを取得
+  const random = yield* Random;
+  const logger = yield* Logger;
+
+  // 'Random'サービスを使用して乱数を生成
+  const randomNumber = yield* random.next;
+
+  // 'Logger'サービスを使用して乱数を記録
+  return yield* logger.log(String(randomNumber));
+});
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+// 'Random'サービス用のタグを作成
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  {
+    readonly next: Effect.Effect<number>;
+  }
+>() {}
+
+// 'Logger'サービス用のタグを作成
+class Logger extends Context.Tag("MyLoggerService")<
+  Logger,
+  {
+    readonly log: (message: string) => Effect.Effect<void>;
+  }
+>() {}
+
+const program =
+  // 'Random'と'Logger'サービスのインスタンスを取得
+  Effect.all([Random, Logger]).pipe(
+    Effect.andThen(([random, logger]) =>
+      // 'Random'サービスを使用して乱数を生成
+      random.next.pipe(
+        Effect.andThen((randomNumber) =>
+          // 'Logger'サービスを使用して乱数を記録
+          logger.log(String(randomNumber))
+        )
+      )
+    )
+  );
+```
+
+</TabItem>
+</Tabs>
+
+`program` Effect は現在、`Requirements` 型パラメータが `Random | Logger` を持っています。  
+これは、`Random` と `Logger` の両方のサービスを提供する必要があることを示しています。
+
+`program` を実行するには、両方のサービスの実装を提供する必要があります：
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  {
+    readonly next: Effect.Effect<number>;
+  }
+>() {}
+
+class Logger extends Context.Tag("MyLoggerService")<
+  Logger,
+  {
+    readonly log: (message: string) => Effect.Effect<void>;
+  }
+>() {}
+
+const program = Effect.gen(function* () {
+  const random = yield* Random;
+  const logger = yield* Logger;
+  const randomNumber = yield* random.next;
+  return yield* logger.log(String(randomNumber));
+});
+
+// ---cut---
+// 'Random'と'Logger'のサービス実装を提供
+const runnable1 = program.pipe(
+  Effect.provideService(Random, {
+    next: Effect.sync(() => Math.random()),
+  }),
+  Effect.provideService(Logger, {
+    log: (message) => Effect.sync(() => console.log(message)),
+  })
+);
+```
+
+また、`provideService` を複数回呼び出す代わりに、サービスの実装を一つの `Context` に組み込み、その後 `Effect.provide` 関数を使用して全体のコンテキストを提供することもできます。
+
+```ts twoslash
+import { Effect, Context } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  {
+    readonly next: Effect.Effect<number>;
+  }
+>() {}
+
+class Logger extends Context.Tag("MyLoggerService")<
+  Logger,
+  {
+    readonly log: (message: string) => Effect.Effect<void>;
+  }
+>() {}
+
+const program = Effect.gen(function* () {
+  const random = yield* Random;
+  const logger = yield* Logger;
+  const randomNumber = yield* random.next;
+  return yield* logger.log(String(randomNumber));
+});
+
+// ---cut---
+// サービスの実装を一つの 'Context' に組み合わせます
+const context = Context.empty().pipe(
+  Context.add(Random, { next: Effect.sync(() => Math.random()) }),
+  Context.add(Logger, {
+    log: (message) => Effect.sync(() => console.log(message)),
+  })
+);
+
+// プログラムに全体のコンテキストを提供
+const runnable2 = Effect.provide(program, context);
+```
+
+各サービスの必要な実装を提供することで、実行可能な Effect が実行時に両方のサービスにアクセスし、利用できるようになります。
+
+## オプショナルサービス
+
+あるサービスの実装にアクセスするのは、それが利用可能な場合にのみ望ましいことがあります。  
+このような場合、`Effect.serviceOption` 関数を使用してこのシナリオを扱うことができます。
+
+`Effect.serviceOption` 関数は、実行前に実際に提供されている場合にのみ利用できる実装を返します。  
+オプショナル性を表すために、提供された実装のオプションを返します。
+
+オプショナルサービスの使用を示す例を見てみましょう：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+サービスを使用するかどうかを判断するために、Option モジュールによって提供される `Option.isNone` 関数を使用できます。  
+この関数を使うことで、サービスが利用可能かどうかを確認でき、サービスがない場合は `true` を返します。
+
+```ts twoslash
+import { Effect, Context, Option } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+const program = Effect.gen(function* () {
+  const maybeRandom = yield* Effect.serviceOption(Random);
+  const randomNumber = Option.isNone(maybeRandom)
+    ? // サービスが利用できない場合、デフォルト値を返す
+      -1
+    : // サービスが利用できる場合
+      yield* maybeRandom.value.next;
+  console.log(randomNumber);
+});
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+サービスを使用できるかどうかを判断するために、`Option.match` 関数を使用することもできます。  
+この関数を使うことで、サービスが利用可能かどうかに基づいて異なるアクションを実行できます。  
+この関数は、サービスが利用できない場合と利用できる場合の二つのコールバックを引数として受け取ります。
+
+```ts twoslash
+import { Effect, Context, Option, Console } from "effect";
+
+class Random extends Context.Tag("MyRandomService")<
+  Random,
+  { readonly next: Effect.Effect<number> }
+>() {}
+
+const program = Effect.serviceOption(Random).pipe(
+  Effect.andThen((maybeRandom) =>
+    Option.match(maybeRandom, {
+      // サービスが利用できない場合、デフォルト値を返す
+      onNone: () => Effect.succeed(-1),
+      // サービスが利用できる場合
+      onSome: (random) => random.next,
+    })
+  ),
+  Effect.andThen((randomNumber) => Console.log(`${randomNumber}`))
+);
+```
+
+</TabItem>
+</Tabs>
+
+上記のコードでは、`program` Effect の `Requirements` 型パラメータが `never` であることに注意してください。  
+これは、実行前に提供されている場合にのみコンテキストから何かを取得できることを示しています。
+
+`Random` サービスを提供せずに `program` Effect を実行すると、
+
+```ts
+Effect.runPromise(program).then(console.log);
+// Output: -1
+```
+
+ログメッセージには `-1` が含まれており、これはサービスが利用できなかったときに提供したデフォルト値です。
+
+しかし、`Random` サービス実装を提供すると、
+
+```ts
+Effect.runPromise(
+  Effect.provideService(program, Random, {
+    next: Effect.sync(() => Math.random()),
+  })
+).then(console.log);
+// Output: 0.9957979486841035
+```
+
+ログメッセージに `Random` サービスの `next` 操作によって生成された乱数が含まれていることがわかります。

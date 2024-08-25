@@ -1,0 +1,337 @@
+---
+title: タイムアウト
+excerpt: Effect.timeoutを使用して操作に時間制約を設定する方法を学びましょう。指定された時間内にタスクを完了させる必要があるシナリオをどのように処理するかを探ります。`timeoutTo`、`timeoutFail`、および`timeoutFailCause`などのバリエーションを使用して、タイムアウトが発生した際の動作をカスタマイズし、時間制約のある操作を管理するためのより多くの制御と柔軟性を提供します。
+bottomNavigation: pagination
+---
+
+プログラミングの世界では、タスクの完了に時間がかかることがよくあります。
+時には、タスクの完了を待つ限度を設定したいことがあります。
+ここで役立つのが`Effect.timeout`関数です。
+この関数を使用することで、操作に時間制約を設け、無限に実行されることを防ぎます。
+
+## 基本的な使い方
+
+### timeout
+
+`Effect.timeout`関数は、操作に時間制限を設定するために[Duration](../../other/data-types/duration)パラメータを使用します。この制限を超えると、`TimeoutException`がトリガーされ、タイムアウトが発生したことを示します。
+
+以下は、`Effect.timeout`が操作に適用される基本的な例です。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const myEffect = Effect.gen(function* () {
+  console.log("処理開始...");
+  yield* Effect.sleep("2秒"); // 処理の遅延をシミュレート
+  console.log("処理完了.");
+  return "結果";
+});
+
+// このエフェクトをラップし、最大許容時間を3秒に設定
+const timedEffect = myEffect.pipe(Effect.timeout("3秒"));
+
+// 出力は、タスクがタイムアウトの範囲内で成功裏に完了することを示します
+Effect.runPromiseExit(timedEffect).then(console.log);
+/*
+出力:
+処理開始...
+処理完了.
+{ _id: 'Exit', _tag: 'Success', value: '結果' }
+*/
+```
+
+上記の例では、操作は指定された時間内に完了するため、結果が正常に返されます。
+
+もし操作が指定された時間を超えると、`TimeoutException`が発生します：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const myEffect = Effect.gen(function* () {
+  console.log("処理開始...");
+  yield* Effect.sleep("2秒");
+  console.log("処理完了.");
+  return "結果";
+});
+// ---cut---
+const timedEffect = myEffect.pipe(Effect.timeout("1秒"));
+
+Effect.runPromiseExit(timedEffect).then(console.log);
+/*
+出力:
+処理開始...
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: { _tag: 'TimeoutException' } }
+}
+*/
+```
+
+### timeoutOption
+
+タイムアウトを通常の結果として扱いたい場合は、`Effect.timeoutOption`を使用できます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const myEffect = Effect.gen(function* () {
+  console.log("処理開始...");
+  yield* Effect.sleep("2秒");
+  console.log("処理完了.");
+  return "結果";
+});
+
+const timedOutEffect = Effect.all([
+  myEffect.pipe(Effect.timeoutOption("3秒")),
+  myEffect.pipe(Effect.timeoutOption("1秒")),
+]);
+
+Effect.runPromise(timedOutEffect).then(console.log);
+/*
+出力:
+処理開始...
+処理完了.
+処理開始...
+[
+  { _id: 'Option', _tag: 'Some', value: '結果' },
+  { _id: 'Option', _tag: 'None' }
+]
+*/
+```
+
+この例では、最初のエフェクトは指定された時間内に完了しますが、2 番目のエフェクトはタイムアウトします。
+タイムアウトしたエフェクトの結果は、[Option](../../other/data-types/option)型でラップされ、タイムアウトを通常の結果として扱えるようになります。
+
+## タイムアウトの処理
+
+操作が指定された時間内に完了しない場合、`Effect.timeout`の動作は、操作が中断可能かどうかによって異なります。
+
+:::info
+**中断不可**のエフェクトは、一度開始されると、タイムアウトメカニズムによって途中で停止できないエフェクトです。これは、エフェクト内の操作が完了する必要があり、一貫性のない状態をシステムに残さないためです。
+
+:::
+
+1. **中断可能な操作**: 操作が中断可能な場合、タイムアウト閾値に達すると即座に終了され、`TimeoutException`が発生します。
+
+   ```ts twoslash
+   import { Effect } from "effect";
+
+   const myEffect = Effect.gen(function* () {
+     console.log("処理開始...");
+     yield* Effect.sleep("2秒"); // 処理の遅延をシミュレート
+     console.log("処理完了.");
+     return "結果";
+   });
+
+   const timedEffect = myEffect.pipe(Effect.timeout("1秒"));
+
+   Effect.runPromiseExit(timedEffect).then(console.log);
+   /*
+   出力:
+   処理開始...
+   {
+     _id: 'Exit',
+     _tag: 'Failure',
+     cause: { _id: 'Cause', _tag: 'Fail', failure: { _tag: 'TimeoutException' } }
+   }
+   */
+   ```
+
+2. **中断不可の操作**: 操作が中断不可の場合、`TimeoutException`が評価される前に完了するまで続行されます。
+
+   ```ts twoslash
+   import { Effect } from "effect";
+
+   const myEffect = Effect.gen(function* () {
+     console.log("処理開始...");
+     yield* Effect.sleep("2秒"); // 処理の遅延をシミュレート
+     console.log("処理完了.");
+     return "結果";
+   });
+
+   const timedEffect = myEffect.pipe(
+     Effect.uninterruptible,
+     Effect.timeout("1秒")
+   );
+
+   // タスクが完了した後にTimeoutExceptionが発生するため、出力されます
+   Effect.runPromiseExit(timedEffect).then(console.log);
+   /*
+   出力:
+   処理開始...
+   処理完了.
+   {
+     _id: 'Exit',
+     _tag: 'Failure',
+     cause: { _id: 'Cause', _tag: 'Fail', failure: { _tag: 'TimeoutException' } }
+   }
+   */
+   ```
+
+## タイムアウト時の切断
+
+`Effect.disconnect`関数は、特に中断不可のエフェクトを扱う際にタイムアウトを洗練された方法で処理するために使用されます。
+
+これにより、中断不可のエフェクトがバックグラウンドで操作を完了できる一方、主な制御フローはタイムアウトが発生したかのように進行します。
+
+以下がその違いです：
+
+- **Effect.disconnect なし**:
+
+  - 中断不可のエフェクトはタイムアウトを無視し、完了するまで実行し続け、その後タイムアウトエラーが評価されます。
+  - このため、タイムアウト条件の認識が遅れることがあります。
+
+- **Effect.disconnect あり**:
+
+  - 中断不可のエフェクトはバックグラウンドで独立して続行され、主な制御フローはタイムアウトを即座に認識し、タイムアウトエラーまたは別のロジックに進むことができます。
+  - この方法は、エフェクトの操作がプログラムの続行をブロックしない場合に特に便利です。
+
+**例**
+
+長時間実行されるデータ処理タスクを開始し、データ処理が長引いた場合でもシステムが応答を維持できるようにするシナリオを考えてみましょう：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const longRunningTask = Effect.gen(function* () {
+  console.log("重い処理を開始...");
+  yield* Effect.sleep("5秒"); // 長いプロセスをシミュレート
+  console.log("重い処理完了.");
+  return "データ処理済み";
+});
+
+const timedEffect = longRunningTask.pipe(
+  Effect.uninterruptible,
+  Effect.disconnect, // タイムアウトした場合でもタスクが独立して完了できる
+  Effect.timeout("1秒")
+);
+
+Effect.runPromiseExit(timedEffect).then(console.log);
+/*
+出力:
+重い処理を開始...
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: { _tag: 'TimeoutException' } }
+}
+重い処理完了.
+*/
+```
+
+## タイムアウト動作のカスタマイズ
+
+基本的な`Effect.timeout`関数に加え、タイムアウトが発生した際の動作をカスタマイズするためのさまざまなバリエーションがあります。
+
+### timeoutFail
+
+`Effect.timeoutFail`関数を使用すると、タイムアウトが発生したときに特定のエラーを生成できます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const myEffect = Effect.gen(function* () {
+  console.log("処理開始...");
+  yield* Effect.sleep("2秒"); // 処理の遅延をシミュレート
+  console.log("処理完了.");
+  return "結果";
+});
+
+class MyTimeoutError {
+  readonly _tag = "MyTimeoutError";
+}
+
+const program = myEffect.pipe(
+  Effect.timeoutFail({
+    duration: "1秒",
+    onTimeout: () => new MyTimeoutError(),
+  })
+);
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+処理開始...
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: {
+    _id: 'Cause',
+    _tag: 'Fail',
+    failure: MyTimeoutError { _tag: 'MyTimeoutError' }
+  }
+}
+*/
+```
+
+### timeoutFailCause
+
+`Effect.timeoutFailCause`関数を使用すると、タイムアウトが発生したときに特定の欠陥を生成できます。
+これは、タイムアウトを例外的なケースとして処理する必要がある場合に便利です。
+
+```ts twoslash
+import { Effect, Cause } from "effect";
+
+const myEffect = Effect.gen(function* () {
+  console.log("処理開始...");
+  yield* Effect.sleep("2秒"); // 処理の遅延をシミュレート
+  console.log("処理完了.");
+  return "結果";
+});
+
+const program = myEffect.pipe(
+  Effect.timeoutFailCause({
+    duration: "1秒",
+    onTimeout: () => Cause.die("タイムアウトしました!"),
+  })
+);
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+処理開始...
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Die', defect: 'タイムアウトしました!' }
+}
+*/
+```
+
+### timeoutTo
+
+`Effect.timeoutTo`関数は`Effect.timeout`に似ていますが、最終的な結果の型に対してより多くの制御を提供します。
+成功した場合とタイムアウトした場合の代替結果を定義できるようにします。
+
+```ts twoslash
+import { Effect, Either } from "effect";
+
+const myEffect = Effect.gen(function* () {
+  console.log("処理開始...");
+  yield* Effect.sleep("2秒"); // 処理の遅延をシミュレート
+  console.log("処理完了.");
+  return "結果";
+});
+
+const program = myEffect.pipe(
+  Effect.timeoutTo({
+    duration: "1秒",
+    // Eitherを返す
+    onSuccess: (result): Either.Either<string, string> => Either.right(result),
+    onTimeout: (): Either.Either<string, string> =>
+      Either.left("タイムアウトしました!"),
+  })
+);
+
+Effect.runPromise(program).then(console.log);
+/*
+出力:
+処理開始...
+{
+  _id: "Either",
+  _tag: "Left",
+  left: "タイムアウトしました!"
+}
+*/
+```

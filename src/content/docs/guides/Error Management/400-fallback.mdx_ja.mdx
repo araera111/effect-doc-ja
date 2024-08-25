@@ -1,0 +1,119 @@
+---
+title: フォールバック
+excerpt: Effectにおける失敗とフォールバックの処理に関するテクニックを探ります。`orElse`を使って代替のEffectを試し、`orElseFail`や`orElseSucceed`を用いて失敗を修正し、`firstSuccessOf`で最初の成功したEffectの結果を取得します。エラーを優雅に処理し、Effectプログラムでフォールバックメカニズムを作成する方法を学びましょう。
+bottomNavigation: pagination
+---
+
+## orElse
+
+一つの Effect を試み、失敗した場合には`Effect.orElse`コンビネータを使って別の Effect を試すことができます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const success = Effect.succeed("成功");
+const failure = Effect.fail("失敗");
+const fallback = Effect.succeed("フォールバック");
+
+const program1 = Effect.orElse(success, () => fallback);
+console.log(Effect.runSync(program1)); // 出力: "成功"
+
+const program2 = Effect.orElse(failure, () => fallback);
+console.log(Effect.runSync(program2)); // 出力: "フォールバック"
+```
+
+## orElseFail / orElseSucceed
+
+これらの二つのオペレーターは、元の失敗を定数の成功または失敗の値で置き換えます。
+
+`Effect.orElseFail`は常に元の失敗を新しいものに置き換えます：
+
+```twoslash include validate
+import { Effect } from "effect"
+
+class NegativeAgeError {
+  readonly _tag = "NegativeAgeError"
+  constructor(readonly age: number) {}
+}
+
+class IllegalAgeError {
+  readonly _tag = "IllegalAgeError"
+  constructor(readonly age: number) {}
+}
+
+const validate = (
+  age: number
+): Effect.Effect<number, NegativeAgeError | IllegalAgeError> => {
+  if (age < 0) {
+    return Effect.fail(new NegativeAgeError(age))
+  } else if (age < 18) {
+    return Effect.fail(new IllegalAgeError(age))
+  } else {
+    return Effect.succeed(age)
+  }
+}
+```
+
+```ts twoslash
+// @include: validate
+
+const program1 = Effect.orElseFail(validate(3), () => "無効な年齢");
+```
+
+`Effect.orElseSucceed`関数は常に元の失敗を成功の値で置き換えるため、結果として得られる Effect は失敗することがありません：
+
+```ts twoslash
+// @include: validate
+// ---cut---
+const program2 = Effect.orElseSucceed(validate(3), () => 0);
+```
+
+## firstSuccessOf
+
+`firstSuccessOf`オペレーターは一連の Effect を実行する簡易的な方法を提供し、最初の成功した Effect の結果を返します。どの Effect も成功しなかった場合、結果の Effect は系列の最後の Effect のエラーで失敗します。
+
+このオペレーターは`Effect.orElse`を利用して複数の Effect を一つの Effect に結合します。
+
+以下の例では、異なるノードから設定を取得しようとしています。プライマリノードからの取得が失敗した場合、次に利用可能なノードから取得し、成功する結果が得られるまで試みます：
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+interface Config {
+  // ...
+}
+
+const makeConfig = (/* ... */): Config => ({});
+
+const remoteConfig = (name: string): Effect.Effect<Config, Error> =>
+  Effect.gen(function* () {
+    if (name === "node3") {
+      yield* Console.log(`ノード ${name} の設定が見つかりました`);
+      return makeConfig();
+    } else {
+      yield* Console.log(`ノード ${name} の設定は利用できません`);
+      return yield* Effect.fail(new Error());
+    }
+  });
+
+const masterConfig = remoteConfig("master");
+
+const nodeConfigs = ["node1", "node2", "node3", "node4"].map(remoteConfig);
+
+const config = Effect.firstSuccessOf([masterConfig, ...nodeConfigs]);
+
+console.log(Effect.runSync(config));
+/*
+出力:
+ノード master の設定は利用できません
+ノード node1 の設定は利用できません
+ノード node2 の設定は利用できません
+ノード node3 の設定が見つかりました
+{}
+*/
+```
+
+:::caution
+`Effect.firstSuccessOf` 関数に提供されるコレクションが空の場合、`IllegalArgumentException`エラーがスローされます。
+
+:::

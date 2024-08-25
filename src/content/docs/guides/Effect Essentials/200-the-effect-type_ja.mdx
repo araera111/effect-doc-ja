@@ -1,0 +1,46 @@
+---
+title: Effect型
+excerpt: Effectエコシステムにおける`Effect<Success, Error, Requirements>`型を探究します。この型は、ワークフローやジョブの不変かつ遅延評価される記述を表します。型パラメータを理解し、これを効果的なプログラムとして概念化します。Effect Runtime Systemを用いて`Effect`値を解釈し、外部世界との効果的な相互作用を学びましょう。
+bottomNavigation: pagination
+---
+
+import { Info } from "../../../../components/callouts";
+
+`Effect<Success, Error, Requirements>`型は、**不変**(immutable)の値であり、**遅延**(lazily)的にワークフローやジョブを記述します。
+
+この型は、プログラムのロジックをカプセル化し、成功時には`Success`型の値を提供し、失敗時には`Error`型のエラーを返します。さらに、プログラムは実行するために`Context<Requirements>`というコンテキストデータのコレクションを必要とします。
+
+概念的に、`Effect<Success, Error, Requirements>`は以下の関数型の Effect 版（effectful version）として考えることができます：
+
+```ts
+type Effect<Success, Error, Requirements> = (
+  context: Context<Requirements>
+) => Error | Success;
+```
+
+しかし、実際には Effect は関数ではありません。Effect は、同期（synchronous）、非同期（asynchronous）、並行処理（concurrent）、およびリソース管理を伴う計算をモデル化することができます。
+
+## 型パラメータ
+
+`Effect`型には、以下の意味を持つ三つの型パラメータがあります：
+
+- **Success** Effect が実行されたときに、成功する可能性のある値の型を表します。
+  この型パラメータが`void`の場合、Effect は有用な情報を生成しないことを意味し、`never`の場合は Effect が永遠に実行される（または失敗するまで）ことを意味します。
+- **Error** Effect を実行する際に発生する可能性のある期待されるエラーを表します。
+  この型パラメータが`never`の場合、`never`型の値が存在しないため、Effect は失敗しないことを意味します。
+- **Requirements** Effect を実行するために必要なコンテキストデータを表します。
+  このデータは`Context`という名前のコレクションに格納されます。
+  この型パラメータが`never`の場合、Effect には要件がなく、`Context`コレクションは空であることを意味します。
+
+:::info
+Effect
+エコシステムでは、`Effect`の型パラメータがそれぞれ`A`、`E`、`R`として略されることがあります。これは、成功値の型**A**、**E**rror、**R**equirements
+の略称です。
+
+:::
+
+`Effect`値は不変であり、すべての Effect 関数は新しい`Effect`値を生成します。
+
+`Effect`値は実際には何も実行しません。これらは効果的な相互作用をモデル化または記述するための値です。
+
+`Effect`は、Effect Runtime System によって外部とのエフェクト処理を伴う相互作用（effectful interactions）として解釈されます。理想的には、これはアプリケーション内の単一のエントリポイントで発生し、そこからエフェクト処理を伴う相互作用（effectful interactions）が開始されます。たとえば、プログラムの実行開始点などです。

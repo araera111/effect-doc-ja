@@ -1,0 +1,138 @@
+---
+title: 今週のEffect - 2024-07-12
+excerpt: Effect 3.5リリース。Michael Arnaldiによる『Effect, A Functional Foundation For TypeScript』。
+date: 2024-07-12
+authors:
+  - name: ダビデ・スコニャミリオ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: マイケル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-07-05
+  - this-week-in-effect-2024-07-19
+---
+
+こんにちは、Effectの皆さん！
+
+今週の「This Week In Effect（**TWIE**）」へようこそ。これは、Effectコミュニティおよびエコシステムにおける最新の進展をお知らせするための毎週の更新です。
+
+Effectは、開発者が複雑な同期および非同期プログラムを作成するのを助ける強力なTypeScriptライブラリです。Effectの大きな特長の一つは、構造化された並行性を活用して非同期のキャンセルや安全なリソース管理などの機能を提供する点であり、これにより、堅牢でスケーラブル、効率的なプログラムの構築が容易になります。
+
+以下のクイックスタートガイドとドキュメントでEffectを始めましょう：
+
+- [Effectクイックスタートガイド](/docs/quickstart)
+- [Effectドキュメント](/docs/introduction)
+
+あなたがEffectの旅をフルに楽しむために必要な情報を簡単に見つけられるようにしたいと考えています。また、コミュニティとの積極的な関与もお待ちしております！このブログ投稿シリーズでは、先週の重要な進展、例えばDiscordでの議論、注目すべき投稿、YouTubeコンテンツ、技術的な進展などをお届けします。
+
+**最近の主要アップデート**
+
+- Effectが[Effect 3.0リリース](https://effect.website/blog/effect-3.0)でAPI安定版となりました。
+- [Effect 3.5](https://effect.website/blog/effect-3.5)がリリースされました。
+- 我々の[Discordコミュニティ](https://discord.gg/effect-ts)が3200人以上のメンバーに到達しました！
+- Effect Days 2024の全講演を[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)に公開しました。
+
+## 技術
+
+[Effect 3.5](https://effect.website/blog/effect-3.5)がリリースされました。
+
+ここでは、先週に発生したすべての技術的変更をお知らせします（Effect 3.5リリースに含まれる変更は記載しません）。
+
+### Effect Core
++ [TrimEnd & TrimStartのリファクタリング](https://github.com/Effect-TS/effect/pull/3181) (リファクタリング)
++ [StreamモジュールのJSDocsに主要関数の例を追加](https://github.com/Effect-TS/effect/pull/3204) (ドキュメント更新)
++ [無効化されたプール項目を使用戦略で回収可能に](https://github.com/Effect-TS/effect/pull/3202) (機能追加)
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
++ [手動で無効化されたプール項目の回収を防止](https://github.com/Effect-TS/effect/pull/3210) (バグ修正)
++ [Micro withConcurrencyテストにおけるレース条件の可能性を減少](https://github.com/Effect-TS/effect/pull/3211) (改善)
++ [Random.makeに例を追加](https://github.com/Effect-TS/effect/pull/3219/) (ドキュメント更新)
++ [bunでのLogger.prettyの修正](https://github.com/Effect-TS/effect/pull/3220) (バグ修正)
++ [ロガー関連関数へのJSDocsを追加](https://github.com/Effect-TS/effect/pull/3221) (ドキュメント更新)
++ [Effect.timeoutでより役立つエラーメッセージを表示](https://github.com/Effect-TS/effect/pull/3228) (最適化)
++ [Logger.prettyのSafariサポートを改善](https://github.com/Effect-TS/effect/pull/3235) (改善)
++ [ブラウザでのLogger.prettyメッセージ色をdeepskyblueに設定](https://github.com/Effect-TS/effect/pull/3236) (改善)
++ [process.isTTY検出の修正](https://github.com/Effect-TS/effect/pull/3240) (バグ修正)
++ [Stream.runの公開関数シグニチャを統一](https://github.com/Effect-TS/effect/pull/3238) (バグ修正)
++ [Option.firstSomeOfで異種引数をサポート](https://github.com/Effect-TS/effect/pull/3230) (バグ修正)
+
+### Effect Platform
++ [不必要なビルド構成を削除](https://github.com/Effect-TS/effect/pull/3207) (バグ修正)
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
++ [/platformのHTTPレスポンス処理を簡素化](https://github.com/Effect-TS/effect/pull/3209) (改善)
++ [/platform/WorkerErrorメッセージを改善](https://github.com/Effect-TS/effect/pull/3223) (改善)
++ [WorkerRunner内での割り込み処理を確実にする](https://github.com/Effect-TS/effect/pull/3241) (バグ修正)
+
+### Effect Experimental
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
++ [experimental内のlmdbテストを無効にする](https://github.com/Effect-TS/effect/pull/3217) (バグ修正)
++ [/experimental PersistenceのPrimaryKeyフォールバックを元に戻す](https://github.com/Effect-TS/effect/pull/3233) (バグ修正)
+
+### Effect Cluster
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect Schema
++ [Zod比較にfilterEffectへの参照を追加し、FAQセクションを修正](https://github.com/Effect-TS/effect/pull/3182) (ドキュメント更新)
++ [Zod比較: 一部のリンクを追加し、タイプミスを修正](https://github.com/Effect-TS/effect/pull/3183) (ドキュメント更新)
++ [CapitalizeおよびUncapitalizeフィルターとスキーマをサポート](https://github.com/Effect-TS/effect/pull/3192) (機能追加)
++ [注釈を使用してTreeFormatterの型出力をカスタマイズする例を追加](https://github.com/Effect-TS/effect/pull/3193) (ドキュメント更新)
++ [AST.PropertySignatureおよびAST.IndexSignatureにtoStringを追加し、IndexSignatureの型表示を修正](https://github.com/Effect-TS/effect/pull/3198) (バグ修正)
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect CLI
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect Vitest
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect Typeclass
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect Opentelemetry
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect Printer
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### Effect RPC
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
++ [rpcに基礎的なドキュメントを追加](https://github.com/Effect-TS/effect/pull/3214) (ドキュメント更新)
+
+### Effect SQL
++ [Babelビルドの後処理を改善](https://github.com/Effect-TS/effect/pull/3206) (バグ修正)
+
+### 一般的な雑務
++ [release-queueワークフローにissue_commentを追加](https://github.com/Effect-TS/effect/pull/3242)
+
+## コミュニティのハイライト
+
+先週、私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に40人以上の新しいEffect者をお迎えしました - 皆さまをお迎えできて非常に嬉しいです！
+
++ [ヨハネス・シクリン](https://x.com/schickling)、Effect DX＆パワーユーザーが[Happy Path Programming](https://podcasters.spotify.com/pod/show/happypathprogramming/episodes/101-Effects-and-Local-First-with-Johannes-Schickling-e2lkhkj)のポッドキャストエピソードに出演し、Effectとローカルファースト開発について語りました。Happy Path Programmingは、ジェームス・ウォードとブルース・エッケルによって運営されています。
+<Tweet id="1810351642874978448" />
+
++ [ダニエル・シュタイガーワルト](https://x.com/steida)、[Evolu](https://www.evolu.dev)の創設者が、10月9日にプラハで開催される[Frontkon 2024](https://www.frontkon.cz)で自身のアプリケーションにおけるEffectの利用について講演します。Evoluは、プライバシー、使いやすさ、ベンダーロックインのないローカルファーストプラットフォームです。
+<Tweet id="1805126236529627137" />
+
+### コンテンツ更新
+
++ [マイケル・アルナルディ](https://x.com/MichaelArnaldi)の[LambdaConf 2024](https://x.com/lambda_conf)での講演が、[LambdaConf YouTubeチャンネル](https://www.youtube.com/@LambdaConf)で視聴可能になりました：「Effect: A ~~functional~~ foundation for TypeScript」。この講演では、マイケルがEffectの使い方や、そのエコシステムから何が「すぐに」得られるかについて、ネイティブなオープンテレメトリー、スキーマバリデーション、構造化された並行性などの機能を紹介します。
+<YouTube url="https://www.youtube.com/embed/BHuY6w9ed5o?si=c4jVrsQM35WeqwVd" />
+
++ [ディロン・マルロイ](https://twitter.com/dillon_mulroy)、[Vercel](https://vercel.com)のソフトウェアエンジニアが、再びライブストリーミングを行いました。**TypeScriptとEffectTSを使ったTwitchオーバーレイの構築**をテーマにしています。以下の2つのエピソードをご覧ください：
+<TwitchPlayerNonInteractive video="2189757748" />
+---
+<TwitchPlayerNonInteractive video="2192282409" />
+
+## 終わりに
+
+今週は以上です。私たちのコミュニティの重要な一員であってくれてありがとうございます。あなたのフィードバックはこのフォーマットを洗練させる上で非常にありがたいです。お気軽にご意見をお寄せください。コミュニティのニーズに合わせてできる限り調整いたします。
+
+_エフェクトコミュニティチーム_

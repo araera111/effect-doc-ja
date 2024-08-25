@@ -1,0 +1,126 @@
+---
+title: 並行および逐次エラー
+excerpt: Effectプログラミングにおける並行および逐次エラーの処理方法を学びます。並行計算や逐次操作を含むシナリオでのエラーハンドリングの挙動を理解します。複数の並行失敗を効率的に公開および処理するためのコンビネータ `Effect.parallelErrors` を探索します。
+bottomNavigation: pagination
+---
+
+通常の Effect アプリケーションでは、エラーが発生すると、通常は Effect ランタイムによって最初に遭遇したエラーで失敗します。例を見てみましょう：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const fail = Effect.fail("ああ、困った！");
+const die = Effect.dieMessage("バン！");
+
+const program = Effect.all([fail, die]).pipe(
+  Effect.andThen(die),
+  Effect.asVoid
+);
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: 'ああ、困った！' }
+}
+*/
+```
+
+この場合、`program` は最初のエラーである「ええ、困った！」で失敗します。
+
+## 並行エラー
+
+ただし、並行計算を行う場合には、複数のエラーに遭遇することがあります。並行計算が関与する場合、アプリケーションは複数のエラーにより失敗することがあります。以下はその例です：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const fail = Effect.fail("ああ、困った！");
+const die = Effect.dieMessage("バン！");
+
+const program = Effect.all([fail, die], { concurrency: "unbounded" }).pipe(
+  Effect.asVoid
+);
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: {
+    _id: 'Cause',
+    _tag: 'Parallel',
+    left: { _id: 'Cause', _tag: 'Fail', failure: 'ああ、困った！' },
+    right: { _id: 'Cause', _tag: 'Die', defect: [Object] }
+  }
+}
+*/
+```
+
+この例では、`program` は `fail` と `die` を並行して実行し、どちらも失敗すると複数のエラーが発生します。
+
+### parallelErrors
+
+Effect は、エラーチャネル内のすべての並行失敗エラーを公開する便利なコンビネータ `Effect.parallelErrors` を提供します。以下はその使用方法です：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const fail1 = Effect.fail("ああ、困った！");
+const fail2 = Effect.fail("ああ、いやだ！");
+const die = Effect.dieMessage("バン！");
+
+const program = Effect.all([fail1, fail2, die], {
+  concurrency: "unbounded",
+}).pipe(Effect.asVoid, Effect.parallelErrors);
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: [ 'ああ、困った！', 'ああ、いやだ！' ] }
+}
+*/
+```
+
+この例では、`Effect.parallelErrors` が `fail1` と `fail2` のエラーを 1 つのエラーに統合します。
+
+:::caution
+この演算子は**失敗**専用であり、欠陥や中断には使用できません。
+
+:::
+
+## 逐次エラー
+
+`Effect.ensuring` のようなリソース安全操作を使用している場合、複数の逐次エラーに遭遇することがあります。これは、元のエフェクトにエラーがあってもなくても、ファイナライザは中断できずに実行されるためです。以下はその例です：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const fail = Effect.fail("ああ、困った！");
+const die = Effect.dieMessage("バン！");
+
+const program = fail.pipe(Effect.ensuring(die));
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: {
+    _id: 'Cause',
+    _tag: 'Sequential',
+    left: { _id: 'Cause', _tag: 'Fail', failure: 'ああ、困った！' },
+    right: { _id: 'Cause', _tag: 'Die', defect: [Object] }
+  }
+}
+*/
+```
+
+この場合、`program` は `fail` とファイナライザ `die` の両方がエラーに遭遇した場合、複数の逐次エラーが発生します。

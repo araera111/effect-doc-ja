@@ -1,0 +1,452 @@
+---
+title: Effectの作成
+excerpt: EffectエコシステムにおけるさまざまなEffectを作成する方法を学びます。従来のプログラミングにおけるエラーをスローすることの欠点を理解し、明示的な成功と失敗の処理のために `Effect.succeed` と `Effect.fail` のようなコンストラクタを探求します。`Effect.sync` と `Effect.try` を用いて同期的(synchronous)なEffectをモデル化し、`Effect.promise` と `Effect.tryPromise` を使用して非同期(asynchronous)Effectをモデル化します。コールバックベースのAPIには `Effect.async` を使用し、Effectの評価を遅延させるためには `Effect.suspend` を使用します。利用可能なコンストラクタをまとめたチートシートもチェックしてみてください。
+bottomNavigation: pagination
+---
+
+Effect は、副作用（side effects)をカプセル化する計算の単位である Effect を作成するさまざまな方法を提供します。このガイドでは、Effect を作成するために使用できる一般的な方法をいくつか説明します。
+
+## なぜエラーをスローしないのか？
+
+従来のプログラミングでは、エラーが発生した場合、それは通常例外をスローすることで処理されます：
+
+```ts twoslash
+const divide = (a: number, b: number): number => {
+  if (b === 0) {
+    throw new Error("ゼロで割ることはできません");
+  }
+  return a / b;
+};
+```
+
+しかし、エラーをスローすることには問題があります。関数の型シグネチャは、例外をスローする可能性があることを示しておらず、潜在的なエラーについて推論するのが難しくなります。
+
+この問題に対処するために、Effect は成功と失敗を表す Effect を作成するための専用コンストラクタ `Effect.succeed` および `Effect.fail` を導入しています。これらのコンストラクタを使用することで、成功と失敗のケースを明示的に処理し、**型システムを活用してエラーを追跡する**ことが可能になります。
+
+### succeed
+
+Effect ライブラリの `Effect.succeed` コンストラクタは、成功が保証されている Effect を明示的に作成するために使用されます。以下のように使用できます：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const success = Effect.succeed(42);
+```
+
+この例では、`success` は `Effect<number, never, never>` のインスタンスです。これは、次のことを意味します：
+
+- いつでも成功し、`number` 型の値を返します。
+- いかなるエラーも生成しません（`never` はエラーが発生しないことを示します）。
+- 環境からの追加データや依存関係を必要としません（`never` は要求がないことを示します）。
+
+### fail
+
+計算が失敗する可能性がある場合、失敗を明示的に管理することが重要です。`Effect.fail` コンストラクタは、プログラムの流れの中でエラーを明示的にカプセル化できるようにします。この方法は、予測可能で型安全な方法で既知のエラー状態（error states)を表すのに便利です。以下は実用的な例です：
+
+```ts twoslash
+import { Effect } from "effect";
+
+// 失敗シナリオを表すEffectを作成
+const failure = Effect.fail(
+  new Error("ネットワークエラーにより操作に失敗しました")
+);
+```
+
+`failure` の型は `Effect<never, Error, never>` であり、次のことを意味します：
+
+- 成功した値が生じることはありません（`never`）。
+- `Error` というエラーで失敗します。
+- 実行するために外部コンテキストに依存しません（`never`）。
+
+`Effect.fail` では `Error` オブジェクトを使用できますが、エラーマネジメントの戦略に応じて文字列、数値、または、より複雑なオブジェクトもサポートしています。ただし、`_tag` フィールドを持つ「タグ付き」エラーを使用することで、エラーの種類を識別し、[Effect.catchTag](../error-management/expected-errors#catchtag)のような標準の Effect 関数と良好に統合されます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+class NetworkError {
+  readonly _tag = "NetworkError";
+}
+
+const failure = Effect.fail(new NetworkError());
+```
+
+`Effect.succeed` と `Effect.fail` を使用することで、成功と失敗のケースを明示的に処理できます。また、型システムによってエラーが確実に追跡され、エラーの詳細を説明されます。
+
+**例：割り算関数の書き換え**
+
+次に、エラーハンドリングを明示的にするために `divide` 関数を Effect を使って書き換える例を見てみましょう：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const divide = (a: number, b: number): Effect.Effect<number, Error> =>
+  b === 0
+    ? Effect.fail(new Error("ゼロで割ることはできません"))
+    : Effect.succeed(a / b);
+```
+
+この例では、`divide` 関数が `Error` で失敗するか、`number` 値で成功する Effect を生成できることを明示的に示しています。型シグネチャはエラー処理の方法を明確にします。関数の呼び出し元が、関数の結果として、どのような値が返されるのかを理解できるようにします。
+
+**例：ユーザー取得操作のシミュレーション**
+
+次に、ハードコードされたユーザーデータを使用して、ユーザー取得操作をモデル化する場面を想定してみましょう。これは、テストシナリオやデータをモックする場合に便利です：
+
+```ts twoslash
+import { Effect } from "effect";
+
+// ユーザー型を定義
+interface User {
+  readonly id: number;
+  readonly name: string;
+}
+
+// データベースからユーザーを取得するシミュレーション用のモック関数
+const getUser = (userId: number): Effect.Effect<User, Error> => {
+  // 通常はデータベースやAPIにアクセスしますが、ここではモックします
+  const userDatabase: Record<number, User> = {
+    1: { id: 1, name: "ジョン・ドウ" },
+    2: { id: 2, name: "ジェーン・スミス" },
+  };
+
+  // "データベース" にユーザーが存在するかを確認し、適切に返す
+  const user = userDatabase[userId];
+  if (user) {
+    return Effect.succeed(user);
+  } else {
+    return Effect.fail(new Error("ユーザーが見つかりません"));
+  }
+};
+
+// 実行時に、ユーザーID 1 のユーザーを成功値として返します
+const exampleUserEffect = getUser(1);
+```
+
+この例では、`exampleUserEffect` はユーザーがシミュレートされたデータベースに存在するかどうかによって、`User` オブジェクトまたは `Error` を取得する結果になります。
+
+Effect を使用したエラーの効果的な処理と管理をさらに深く学ぶには、[エラーマネジメント](../error-management/expected-errors)に関するガイドを探索してみてください。このガイドでは、Effect を使用して TypeScript アプリケーションで堅牢なエラーハンドリングを行うための詳細な洞察と戦略を提供します。
+
+## 同期 Effect のモデル化
+
+JavaScript では、"thunks" を使用して同期的な計算の実行を遅延させることができます。
+
+:::info
+"thunk" とは、引数を受け取らず、何らかの値を返す可能性のある関数のことです。
+
+:::
+
+Thunk は、値が必要になるまで計算を遅らせるのに役立ちます。
+
+同期的な副作用をモデル化するために、Effect は `Effect.sync` と `Effect.try` のコンストラクタを提供します。これらは thunk を受け取ります。
+
+### sync
+
+非同期ではない（例えばインターネットからデータを取得するような操作を含まない）同期的な副作用を扱う場合、`Effect.sync` 関数を使用できます。この関数は、これらの操作から**エラーが発生しないことを確信している場合**に理想的です。
+
+**例：メッセージのロギング**
+
+```ts twoslash
+import { Effect } from "effect";
+
+const log = (message: string) =>
+  Effect.sync(() => {
+    console.log(message); // 副作用
+  });
+
+const program = log("こんにちは、世界！");
+```
+
+上記の例では、`Effect.sync` を使用してコンソールに出力する副作用を遅延させています。
+
+`program` の型は `Effect<void, never, never>` であり、次のことを示します：
+
+- 戻り値を生じません（`void`）。
+- 失敗することは想定されていない（`never` は予期されるエラーがないことを示します）。
+- 外部の依存関係やコンテキストを必要としません（`never`）。
+
+重要な注意点：
+
+- **実行**：`program` 内にカプセル化された副作用（コンソールへのロギング）は、Effect が明示的に [実行](running-effects) されるまで発生しません。これにより、コードの一箇所で副作用を定義し、実行タイミングを制御できるようになり、大規模アプリケーションにおける副作用の管理性と予測可能性が向上します。
+- **エラーハンドリング**：`Effect.sync` に渡す関数がいかなるエラーもスローしないことを確実にすることが重要です。潜在的なエラーが考えられる場合は、代わりに [try](#try) を使用しエラーを穏やかに処理することを検討してください。
+
+:::danger
+何らかの理由で、`Effect.sync`
+に渡された thunk がエラーをスローしてはいけません。
+:::
+
+**予期しないエラーの処理**。`Effect.sync` に渡す関数内でエラーを避けるために最善を尽くしても、エラーが発生することがあります。この場合、"欠陥(defect)" と呼ばれるものが発生します。この欠陥は標準的なエラーではなく、エラーがないはずのロジックの欠陥を示しています。これはプログラムの予期しないクラッシュに類似するものと考えることができ、[Effect.catchAllDefect](../error-management/unexpected-errors#catchalldefect)のようなツールを使用して、さらに管理やログの取得が可能です。この機能により、アプリケーション内の予期しない失敗が失われず、適切に処理されることが保証されます。
+
+### try
+
+失敗する可能性がある同期操作を行う必要がある場合、例えば JSON のパースなどでは、Effect ライブラリの `Effect.try` コンストラクタを使用できます。このコンストラクタは、例外をスローする可能性のある操作を処理するために設計されており、それらの例外をキャッチして Effect フレームワーク内で管理可能なエラーに変換します。
+
+**例：安全な JSON パース**
+
+次のように、JSON 文字列のパースを試みる関数があるとしましょう。この操作は、入力文字列が JSON として正しい形式でない場合、失敗してエラーをスローする可能性があります：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const parse = (input: string) =>
+  Effect.try(
+    () => JSON.parse(input) // 不正な入力の場合はエラーがスローされる場合があります
+  );
+
+const program = parse("");
+```
+
+この例では：
+
+- `parse` は、JSON パース操作をカプセル化する Effect を生成する関数です。
+- `JSON.parse(input)` が無効な入力のためにエラーをスローする場合、`Effect.try` がこのエラーをキャッチし、`program` で表される Effect は `UnknownException` で失敗します。これにより、エラーは黙って無視されるのではなく、Effect の構造化された流れで処理されます。
+
+**エラーハンドリングのカスタマイズ** キャッチした例外をより具体的なエラーに変換したり、エラーをキャッチした際に追加の処理を行うことを望む場合、`Effect.try` にはキャッチされた例外の変換を指定できるオーバーロードがあります。
+
+**例：カスタムエラーハンドリング**
+
+```ts {6} twoslash
+import { Effect } from "effect";
+
+const parse = (input: string) =>
+  Effect.try({
+    try: () => JSON.parse(input), // JSON.parse は不正入力でスローされることがあります
+    catch: (unknown) => new Error(`何かがうまくいきませんでした ${unknown}`), // エラーを再マップ
+  });
+
+const program = parse("");
+```
+
+これは、JavaScript における従来の try-catch ブロックと類似したパターンであると考えることができます：
+
+```ts
+try {
+  return JSON.parse(input);
+} catch (unknown) {
+  throw new Error(`何かがうまくいきませんでした ${unknown}`);
+}
+```
+
+## 非同期 Effect のモデル化
+
+従来のプログラミングでは、非同期計算を処理するために `Promise` を利用することが一般的です。しかし、Promise のエラー処理には問題が伴います。デフォルトでは `Promise<Value>` は解決された値の型 `Value` しか提供せず、これはエラーが型システムに反映されないことを意味します。これにより、表現力が制限され、エラーの処理や追跡が難しくなります。
+
+これらの制限を克服するために、Effect は非同期コンテキストにおける成功と失敗の両方を表す Effect を作成するための専用コンストラクタ `Effect.promise` と `Effect.tryPromise` を導入しています。これらのコンストラクタを使用することで、成功と失敗のケースを明示的に処理し、**型システムを活用してエラーを追跡する**ことが可能になります。
+
+### promise
+
+このコンストラクタは、非同期操作が**常に成功**することを確信している場合、通常の `Promise` と同様です。これは、潜在的なエラーを考慮せずに成功した完了を表す `Effect` を作成することを可能にします。ただし、基盤となる Promise が決して拒否されないことを確実にすることが重要です。
+
+**例：遅延メッセージ**
+
+```ts twoslash
+import { Effect } from "effect";
+
+const delay = (message: string) =>
+  Effect.promise<string>(
+    () =>
+      new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(message);
+        }, 2000);
+      })
+  );
+
+const program = delay("非同期操作が正常に完了しました！");
+```
+
+`program` の値の型は `Effect<string, never, never>` であり、これは次のように解釈できます：
+
+- `string` 型の値で成功します
+- 予想されるエラーは生じない（`never`）
+- コンテキストは不要（`never`）
+
+:::danger
+`Effect.promise` に渡される thunk 内の `Promise`
+は、決して拒否してはいけません。
+:::
+
+**予期しないエラーの処理** 予防策にもかかわらず、`Effect.promise` に渡された thunk が拒否される場合、 ["欠陥"](../error-management/unexpected-errors) を含む `Effect` が生成されます。これは、[Effect.die](../error-management/unexpected-errors#die-diemessage) 関数を使用する際に見られる現象と類似しています。
+
+### tryPromise
+
+`Effect.promise` とは異なり、このコンストラクタは基礎となる `Promise` が**拒否される可能性がある**場合に適しています。エラーをキャッチし適切に処理する方法を提供します。エラーが発生する場合、それはデフォルトでキャッチされ、`UnknownException` としてエラーチャンネルに伝播されます。
+
+**例：TODO アイテムの取得**
+
+```ts twoslash
+import { Effect } from "effect";
+
+const getTodo = (id: number) =>
+  Effect.tryPromise(() =>
+    fetch(`https://jsonplaceholder.typicode.com/todos/${id}`)
+  );
+
+const program = getTodo(1);
+```
+
+`program` の値の型は `Effect<Response, UnknownException, never>` であり、これは次のように解釈できます：
+
+- `Response` 型の値で成功します
+- エラーが発生する可能性がある（`UnknownException`）
+- コンテキストは不要（`never`）
+
+**エラーハンドリングのカスタマイズ** エラーチャンネルに伝播される内容を詳しく制御したい場合、`Effect.tryPromise` のオーバーロードを使用し、再マッピング関数を受け取ることで可能です：
+
+```ts {7} twoslash
+import { Effect } from "effect";
+
+const getTodo = (id: number) =>
+  Effect.tryPromise({
+    try: () => fetch(`https://jsonplaceholder.typicode.com/todos/${id}`),
+    // エラーを再マップ
+    catch: (unknown) => new Error(`何かがうまくいきませんでした ${unknown}`),
+  });
+
+const program = getTodo(1);
+```
+
+## コールバックから
+
+時には `async/await`や `Promise` をサポートしない API で作業し、代わりにコールバックスタイルを使用する必要があります。コールバックベースの API を処理するために、Effect は `Effect.async` コンストラクタを提供しています。
+
+**例：ファイルの読み込み**
+
+例えば、Node.js の `fs` モジュールから `readFile` 非同期 API を Effect でラップする例を見てみましょう（`@types/node` がインストールされていることを確認してください）：
+
+```ts twoslash
+// @types: node
+import { Effect } from "effect";
+import * as NodeFS from "node:fs";
+
+const readFile = (filename: string) =>
+  Effect.async<Buffer, Error>((resume) => {
+    NodeFS.readFile(filename, (error, data) => {
+      if (error) {
+        resume(Effect.fail(error));
+      } else {
+        resume(Effect.succeed(data));
+      }
+    });
+  });
+
+const program = readFile("todos.txt");
+```
+
+上記の例では、TypeScript がコールバックの戻り値に基づいてタイプパラメータを推論できないため、`Effect.async` を呼び出す際に手動で型を注釈しています。型を注釈することで、`resume` に提供される値が期待される型と一致していることを確認します。
+
+:::tip
+Effect フレームワーク内で同期的なコードと非同期的なコードをシームレスに混ぜることができます。すべてが Effect になり、さまざまなタイプの副作用を統一された方法で処理できるようになります。
+
+:::
+
+## 遅延 Effect
+
+`Effect.suspend` は、Effect の作成を遅らせるために使用されます。実際に必要になるまで、Effect の評価を遅延させることができます。`Effect.suspend` 関数は、Effect を表す thunk を受け取り、それを遅延 Effect としてラップします。
+
+```ts
+const suspendedEffect = Effect.suspend(() => effect);
+```
+
+以下に、`Effect.suspend`が役立つ一般的なシナリオをいくつか紹介します。
+
+1. **遅延評価** Effect の評価を必要に応じて遅延させたい場合に使用します。これは、Effect の実行を最適化するのに便利で、常に必要ではない、またはその計算が高価である場合に特に役立ちます。
+
+   副作用やスコープされたキャプチャを持つ Effect が作成される場合は、各呼び出しごとに再実行されるように `Effect.suspend` を使用します。
+
+   ```ts twoslash
+   import { Effect } from "effect";
+
+   let i = 0;
+
+   const bad = Effect.succeed(i++);
+
+   const good = Effect.suspend(() => Effect.succeed(i++));
+
+   console.log(Effect.runSync(bad)); // 出力: 0
+   console.log(Effect.runSync(bad)); // 出力: 0
+
+   console.log(Effect.runSync(good)); // 出力: 1
+   console.log(Effect.runSync(good)); // 出力: 2
+   ```
+
+   :::info
+   この例では、`Effect.runSync`
+   を使用して Effect を実行し、その結果を表示しています（詳細については
+   [Effects の実行](./running-effects#runsync) を参照してください）。
+
+   :::
+
+   この例では、`bad` は `Effect.succeed(i++)` を一度だけ呼び出した結果であり、スコープされた変数をインクリメントしますが、[元の値](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Increment#postfix_increment)を返します。`Effect.runSync(bad)` は新しい計算を行わず、`Effect.succeed(i++)` がすでに呼び出されています。一方、`Effect.runSync(good)` が呼び出されるたびに、`Effect.suspend()` に渡された thunk が実行され、スコープされた変数のもっとも最近の値が出力されます。
+
+2. **循環依存関係の処理** `Effect.suspend` は、Effect 間の循環依存関係を管理するのに役立ちます。1 つの Effect が別の Effect に依存しており、その逆も然りである場合です。例えば、`Effect.suspend` は再帰関数での早期呼び出しを回避するのに使用されることがよくあります。例：
+
+   ```ts twoslash
+   import { Effect } from "effect";
+
+   const blowsUp = (n: number): Effect.Effect<number> =>
+     n < 2
+       ? Effect.succeed(1)
+       : Effect.zipWith(blowsUp(n - 1), blowsUp(n - 2), (a, b) => a + b);
+
+   // console.log(Effect.runSync(blowsUp(32))) // クラッシュ: JavaScriptのヒープがメモリ不足
+
+   const allGood = (n: number): Effect.Effect<number> =>
+     n < 2
+       ? Effect.succeed(1)
+       : Effect.zipWith(
+           Effect.suspend(() => allGood(n - 1)),
+           Effect.suspend(() => allGood(n - 2)),
+           (a, b) => a + b
+         );
+
+   console.log(Effect.runSync(allGood(32))); // 出力: 3524578
+   ```
+
+   :::info
+   この例では、`Effect.zipWith`
+   を使用して 2 つの Effect の結果を組み合わせています（詳細については
+   [zipwith](../control-flow#zipwith) を参照してください）。
+
+   :::
+
+   `blowsUp` 関数は早期実行を伴う再帰的なフィボナッチ数列を生成します。`blowsUp` の各呼び出しは他の呼び出しを即座にトリガーし、JavaScript のコールスタックサイズが急速に増加します。
+
+   一方で、`allGood` は `Effect.suspend` を使用して再帰呼び出しを遅延させることでスタックオーバーフローを回避します。このメカニズムは再帰的な Effect を即座に実行するのではなく、後で実行するようにスケジュールし、コールスタックを浅く保つことでクラッシュを防ぎます。
+
+3. **戻り値型の統一** TypeScript が返される Effect の型の統一に苦労する場合、`Effect.suspend` を使用してこの問題を解決できます。例：
+
+   ```ts twoslash
+   import { Effect } from "effect";
+
+   const ugly = (a: number, b: number) =>
+     b === 0
+       ? Effect.fail(new Error("ゼロで割ることはできません"))
+       : Effect.succeed(a / b);
+
+   const nice = (a: number, b: number) =>
+     Effect.suspend(() =>
+       b === 0
+         ? Effect.fail(new Error("ゼロで割ることはできません"))
+         : Effect.succeed(a / b)
+     );
+   ```
+
+## チートシート
+
+以下の表は、利用可能なコンストラクタの概要およびそれらの入力と出力型を提供します。これにより、ニーズに応じた適切な関数を選択することができます。
+
+| **関数**                      | **引数**                           | **出力**                      |
+| ----------------------------- | ---------------------------------- | ----------------------------- |
+| `succeed`                     | `A`                                | `Effect<A>`                   |
+| `fail`                        | `E`                                | `Effect<never, E>`            |
+| `sync`                        | `() => A`                          | `Effect<A>`                   |
+| `try`                         | `() => A`                          | `Effect<A, UnknownException>` |
+| `try` (オーバーロード)        | `() => A`, `unknown => E`          | `Effect<A, E>`                |
+| `promise`                     | `() => Promise<A>`                 | `Effect<A>`                   |
+| `tryPromise`                  | `() => Promise<A>`                 | `Effect<A, UnknownException>` |
+| `tryPromise` (オーバーロード) | `() => Promise<A>`, `unknown => E` | `Effect<A, E>`                |
+| `async`                       | `(Effect<A, E> => void) => void`   | `Effect<A, E>`                |
+| `suspend`                     | `() => Effect<A, E, R>`            | `Effect<A, E, R>`             |
+
+利用可能なコンストラクタの完全なリストは、[こちら](https://effect-ts.github.io/effect/effect/Effect.ts.html#constructors)を参照してください。
+
+Effect の作成方法を学んだので、次は Effect を実行する方法について学びましょう。次のガイド [Effects の実行](running-effects) をチェックしてください。

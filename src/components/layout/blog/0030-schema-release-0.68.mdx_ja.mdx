@@ -1,0 +1,387 @@
+---
+title: Schema 0.68 (リリース)
+excerpt: 新機能と破壊的変更を強調したリリース投稿
+date: 2024-06-17
+authors:
+  - name: Giulio Canti
+    description: 創業エンジニア
+    avatar: https://pbs.twimg.com/profile_images/507058995845017600/c0OWECjS_400x400.png
+    twitter: https://twitter.com/GiulioCanti
+---
+
+## ParseIssue モデルのリファクタリング
+
+`@effect/schema/ParseResult` モジュールにある `ParseIssue` モデルは、表現力を高めつつ機能性を損なうことのないように、全面的に再設計され、シンプル化されました。このセクションでは、このリファクタリングの動機と詳細について探ります。
+
+### 強化された Schema.filter API
+
+`Schema.filter` API は、構造体の複数のプロパティを含むより複雑なフィルタリングをサポートするように改善されました。これは、`password` フィールドが `confirm_password` フィールドと一致することを確認するような、二つのフィールドを比較する検証に特に便利です。これはフォームの検証において一般的な要件です。
+
+**以前の制約:**
+
+以前は、二つのフィールドを比較するフィルタを実装することは可能でしたが、特定のフィールドに検証メッセージを付けるための簡単な方法がありませんでした。これは、正確なエラーレポートが重要なフォームの検証において課題をもたらしました。
+
+**以前の実装例:**
+
+```ts
+import { ArrayFormatter, Schema } from "@effect/schema"
+import { Either } from "effect"
+
+const Password = Schema.Trim.pipe(Schema.minLength(1))
+
+const MyForm = Schema.Struct({
+  password: Password,
+  confirm_password: Password
+}).pipe(
+  Schema.filter((input) => {
+    if (input.password !== input.confirm_password) {
+      return "Passwords do not match"
+    }
+  })
+)
+
+console.log(
+  "%o",
+  Schema.decodeUnknownEither(MyForm)({
+    password: "abc",
+    confirm_password: "d"
+  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error)))
+)
+/*
+{
+  _id: 'Either',
+  _tag: 'Left',
+  left: [
+    {
+      _tag: 'Type',
+      path: [],
+      message: 'Passwords do not match'
+    }
+  ]
+}
+*/
+```
+
+このシナリオでは、フィルタは機能的には動作しますが、特定のエラーパス (`path: []`) がないために、エラーはそれほど説明的ではなく、役立つものではありません。
+
+### エラーパスの指定
+
+新しい改善により、エラーメッセージと共にエラーパスを指定できるようになり、エラーの特異性が向上し、`react-hook-form` などのツールとの統合に特に便利です。
+
+**更新された実装例:**
+
+```ts
+import { ArrayFormatter, Schema } from "@effect/schema"
+import { Either } from "effect"
+
+const Password = Schema.Trim.pipe(Schema.minLength(1))
+
+const MyForm = Schema.Struct({
+  password: Password,
+  confirm_password: Password
+}).pipe(
+  Schema.filter((input) => {
+    if (input.password !== input.confirm_password) {
+      return {
+        path: ["confirm_password"],
+        message: "Passwords do not match"
+      }
+    }
+  })
+)
+
+console.log(
+  "%o",
+  Schema.decodeUnknownEither(MyForm)({
+    password: "abc",
+    confirm_password: "d"
+  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error)))
+)
+/*
+{
+  _id: 'Either',
+  _tag: 'Left',
+  left: [
+    {
+      _tag: 'Type',
+      path: [ 'confirm_password' ],
+      message: 'Passwords do not match'
+    }
+  ]
+}
+*/
+```
+
+この修正により、エラーが `confirm_password` フィールドに直接関連付けられるようになり、最終ユーザーに対する明確さが向上します。
+
+### 複数のエラー報告
+
+リファクタリングされたAPIは、一度に複数の問題を報告することもサポートしており、複数の検証チェックが同時に失敗する可能性があるフォームで便利です。
+
+**複数の問題報告の例:**
+
+```ts
+import { ArrayFormatter, Schema } from "@effect/schema"
+import { Either } from "effect"
+
+const Password = Schema.Trim.pipe(Schema.minLength(1))
+const OptionalString = Schema.optional(Schema.String)
+
+const MyForm = Schema.Struct({
+  password: Password,
+  confirm_password: Password,
+  name: OptionalString,
+  surname: OptionalString
+}).pipe(
+  Schema.filter((input) => {
+    const issues: Array<Schema.FilterIssue> = []
+    // パスワードは一致する必要があります
+    if (input.password !== input.confirm_password) {
+      issues.push({
+        path: ["confirm_password"],
+        message: "Passwords do not match"
+      })
+    }
+    // 名前または姓のいずれかが必要です
+    if (!input.name && !input.surname) {
+      issues.push({
+        path: ["surname"],
+        message: "Surname must be present if name is not present"
+      })
+    }
+    return issues
+  })
+)
+
+console.log(
+  "%o",
+  Schema.decodeUnknownEither(MyForm)({
+    password: "abc",
+    confirm_password: "d"
+  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error)))
+)
+/*
+{
+  _id: 'Either',
+  _tag: 'Left',
+  left: [
+    {
+      _tag: 'Type',
+      path: [ 'confirm_password' ],
+      message: 'Passwords do not match'
+    },
+    {
+      _tag: 'Type',
+      path: [ 'surname' ],
+      message: 'Surname must be present if name is not present'
+    }
+  ]
+}
+*/
+```
+
+### 新しい ParseIssue モデル
+
+`ParseIssue` 型は、表現力とシンプルさを向上させるために大規模な再構築が行われました。この新しいモデルは、問題を葉と複合型に分類し、明確さを向上させ、エラー処理をより体系的にします。
+
+**ParseIssue 型の構造:**
+
+```ts
+export type ParseIssue =
+  // 葉
+  | Type
+  | Missing
+  | Unexpected
+  | Forbidden
+  // 複合型
+  | Pointer
+  | Refinement
+  | Transformation
+  | Composite
+```
+
+**モデルの主な変更点:**
+
+1. **新しいメンバー:**
+
+   - `Composite`: 複数の `ParseIssue` インスタンスを集約する新しいクラス。
+   - `Missing`: 必要な要素や値が欠如していることを示します。
+   - `Unexpected`: 入力における予期しない要素や値を示します。
+   - `Pointer`: 問題が発生しているデータ構造の部分を指し示します。
+
+2. **削除されたメンバー:**
+   - `Declaration`、`TupleType`、`TypeLiteral`、`Union`、`Member`、`Key`、`Index` のような以前のカテゴリーは、より洗練されたアプローチをとるために `Composite` 型に統合されました。
+
+**Composite の定義:**
+
+```ts
+interface Composite {
+  readonly _tag: "Composite"
+  readonly ast: AST.Annotated
+  readonly actual: unknown
+  readonly issues: ParseIssue | NonEmptyReadonlyArray<ParseIssue>
+  readonly output?: unknown
+}
+```
+
+## 洗練されたエラーメッセージシステム
+
+エラーメッセージのフォーマット方法を強化するために、内部関数 `getErrorMessage` を更新しました。この関数は、エラーの理由、追加の詳細、エラーが発生した場所へのパス、および利用可能な場合はスキーマのAST表現を含むエラーメッセージを構築します。
+
+**例**
+
+```ts
+import { JSONSchema, Schema } from "@effect/schema"
+
+JSONSchema.make(Schema.Struct({ a: Schema.Void }))
+/*
+throws:
+Error: Missing annotation
+at path: ["a"]
+details: Generating a JSON Schema for this schema requires a "jsonSchema" annotation
+schema (VoidKeyword): void
+*/
+```
+
+## 要素アノテーションによるタプルの強化
+
+アノテーションは、タプルの各要素にメタデータを追加するために使用され、各要素の目的や要件をより明確に説明できます。これは、スキーマからドキュメントやJSONスキーマを生成する際に特に有用です。
+
+```ts
+import { JSONSchema, Schema } from "@effect/schema"
+
+// 点の各座標にアノテーションを付けたタプルの定義
+const Point = Schema.Tuple(
+  Schema.element(Schema.Number).annotations({
+    title: "X",
+    description: "X coordinate"
+  }),
+  Schema.optionalElement(Schema.Number).annotations({
+    title: "Y",
+    description: "optional Y coordinate"
+  })
+)
+
+// タプルからのJSONスキーマの生成
+console.log(JSONSchema.make(Point))
+/*
+Output:
+{
+  '$schema': 'http://json-schema.org/draft-07/schema#',
+  type: 'array',
+  minItems: 1,
+  items: [
+    { type: 'number', description: 'X coordinate', title: 'X' },
+    {
+      type: 'number',
+      description: 'optional Y coordinate',
+      title: 'Y'
+    }
+  ],
+  additionalItems: false
+}
+*/
+```
+
+## 欠落メッセージ
+
+新しい `missingMessage` アノテーションを使用して、欠落しているフィールドや要素にカスタムメッセージを提供できます。
+
+例（欠落フィールド）
+
+```ts
+import { Schema } from "@effect/schema"
+
+const Person = Schema.Struct({
+  name: Schema.propertySignature(Schema.String).annotations({
+    missingMessage: () => "Name is required"
+  })
+})
+
+Schema.decodeUnknownSync(Person)({})
+/*
+Output:
+Error: { readonly name: string }
+└─ ["name"]
+   └─ Name is required
+*/
+```
+
+例（欠落要素）
+
+```ts
+import { Schema } from "@effect/schema"
+
+const Point = Schema.Tuple(
+  Schema.element(Schema.Number).annotations({
+    missingMessage: () => "X coordinate is required"
+  }),
+  Schema.element(Schema.Number).annotations({
+    missingMessage: () => "Y coordinate is required"
+  })
+)
+
+Schema.decodeUnknownSync(Point)([], { errors: "all" })
+/*
+Output:
+Error: readonly [number, number]
+├─ [0]
+│  └─ X coordinate is required
+└─ [1]
+   └─ Y coordinate is required
+*/
+```
+
+## アノテーションの簡素化
+
+以前はスキーマにアノテーションを追加するために使用されていた個々のAPIは削除されました。これらの個別のアノテーションAPIは大きな価値を提供せず、維持するのが負担だったためです。代わりに、`annotations` メソッドを直接使用するか、`pipe` 可能なアプローチのために `Schema.annotations` API を使用できます。
+
+以前
+
+```ts
+import { Schema } from "@effect/schema"
+
+// 専用APIを使って識別子を追加する例
+const schema = Schema.String.pipe(Schema.identifier("myIdentitifer"))
+```
+
+今
+
+```ts
+import { Schema } from "@effect/schema"
+
+// アノテーションメソッドを直接使用
+const schema = Schema.String.annotations({ identifier: "myIdentitifer" })
+// または
+const schema2 = Schema.String.pipe(
+  // パイプ可能な形式でアノテーション関数を使う
+  Schema.annotations({ identifier: "myIdentitifer" })
+)
+```
+
+## *Either、*Sync および asserts API のエラーハンドリングの標準化
+
+現在、`*Sync` および `asserts` API は `ParseError` を投げるようになり、以前は `ParseIssue` を `cause` に含む単純な `Error` を投げていました。
+
+```ts
+import { ParseResult, Schema } from "@effect/schema"
+
+try {
+  Schema.decodeUnknownSync(Schema.String)(null)
+} catch (e) {
+  console.log(ParseResult.isParseError(e)) // true
+}
+
+const asserts: (u: unknown) => asserts u is string = Schema.asserts(
+  Schema.String
+)
+try {
+  asserts(null)
+} catch (e) {
+  console.log(ParseResult.isParseError(e)) // true
+}
+```
+
+## 変更履歴
+
+詳細については、私たちの [変更履歴](https://github.com/Effect-TS/effect/blob/main/packages/schema/CHANGELOG.md)をご覧ください。

@@ -1,0 +1,110 @@
+---
+title: Effect 3.2 (リリース)
+excerpt: 新機能と変更点を強調したリリース投稿
+date: 2024-05-20
+authors:
+  - name: Tim Smart
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/3642301555/77cc6dab66dc94fdd77e503fd6d1c1cf_400x400.jpeg
+    twitter: https://twitter.com/tim_smart
+---
+
+Effect 3.2.0がリリースされました！このリリースには、新機能や改善点が多数含まれています。以下は新しい内容の概要です。
+
+## Chunk.difference & Chunk.differenceWith
+
+これらの関数を使用すると、2つの`Chunk`の差分を計算できます。これは、1つのチャンクにある要素が別のチャンクにないかを確認したいときに便利です。
+
+```ts
+expect(
+  Chunk.difference(Chunk.make(1, 2, 3, 4, 5), Chunk.make(1, 2, 3))
+).toEqual(Chunk.make(4, 5))
+```
+
+## Spanがソース位置をキャプチャ
+
+トレーススパンがそのソース位置をキャプチャするようになりました。これは、デバッグやスパンの作成場所を理解する際に役立ちます。また、スパン内で生成されたエラーにソース位置が追加されることもあります。
+
+この機能を無効にするには、`Effect.withSpan`オプションに`captureStackTrace: false`を渡してください：
+
+```ts
+Effect.log("Hello World").pipe(
+  Effect.withSpan("my span", { captureStackTrace: false }),
+)
+```
+
+## Cause.prettyErrors
+
+これを使用すると、スタックトレースがクリーンでスパン情報が追加されたエラーインスタンスをCauseから抽出できます。
+
+Effectを他のライブラリと統合する際に、Errorインスタンスを期待する場合に便利です。
+
+## Effect.functionWithSpan
+
+このAPIを使用すると、スパンでラップされた副作用のある関数を定義できます。
+
+関数の引数を使用してスパンオプションを生成することもできます。
+
+```ts
+import { Effect } from "effect";
+
+const getTodo = Effect.functionWithSpan({
+  body: (id: number) => Effect.succeed(`Got todo ${id}!`),
+  options: (id) => ({
+    name: `getTodo-${id}`,
+    attributes: { id },
+  }),
+});
+```
+
+## Array.Do表記
+
+Do表記が`Array`モジュールに追加され、配列を逐次的に構築できるようになりました。
+
+```ts
+const props = pipe(
+  Array.Do,
+  Array.bind("size", () => ["small", "medium", "large"] as const),
+  Array.bind("theme", () => ["dark", "light", "contrast-light", "contrast-dark"] as const),
+  Array.bind("disabled", () => [false, true]),
+  Array.bind("loading", () => [false, true]),
+)
+```
+
+## Stream.toReadableStreamEffect
+
+`Stream`を`ReadableStream`に変換するには、Effectのコンテキストや要件をサポートする`Stream.toReadableStreamEffect`または`Stream.toReadableStreamRuntime`関数を使用できます。
+
+## Data.TaggedEnumに追加された$isおよび$matchヘルパー
+
+`Data.TaggedEnum.WithGenerics`コンストラクタに`$is`と`$match`ヘルパーが追加されました。これらのAPIを使用して、型安全なチェックやパターンマッチングを行うことができます。
+
+```ts
+type Result<E, A> = Data.TaggedEnum<{
+  Success: { value: A }
+  Failure: {
+    error: E
+    message?: string
+  }
+}>
+interface ResultDefinition extends Data.TaggedEnum.WithGenerics<2> {
+  readonly taggedEnum: Result<this["A"], this["B"]>
+}
+const { $is, $match, Failure, Success } = Data.taggedEnum<ResultDefinition>()
+
+const result: Result<string, number> = Success({ value: 1 })
+
+pipe(
+  result,
+  $match({
+    Success: (_) => _.value,
+    Failure: (_) => _.error
+  })
+) satisfies string | number
+```
+
+## その他の変更
+
+他にもいくつかの小さな変更が行われました。すべての変更を確認するには、CHANGELOGを参照してください: [CHANGELOG](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)。
+
+最新のアップデートをフォローし、細部について話し合うために、[Discordコミュニティ](https://discord.gg/effect-ts)に参加することを忘れないでください！

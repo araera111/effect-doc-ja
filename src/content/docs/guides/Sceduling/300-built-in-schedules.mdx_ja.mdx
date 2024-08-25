@@ -1,0 +1,288 @@
+---
+title: 組み込みスケジュール
+excerpt: Effectの組み込みスケジュールを使って、スケジューリングの力を解放しましょう。`forever`、`once`、`recurs`などの異なるスケジュールを深く掘り下げ、それぞれが持つユニークな繰り返しパターンを探ります。`spaced`と`fixed`スケジュールの振る舞いを見て、特定の間隔で繰り返しをどのように配置するかを理解します。`exponential`や`fibonacci`といった高度なスケジュールについても解説し、増加する遅延を伴う制御された繰り返しを提供します。効果的な操作の正確で効率的な実行のためのスケジューリングの技術をマスターしましょう。
+bottomNavigation: pagination
+---
+
+異なるスケジュールの機能を示すために、以下のヘルパーを使用します。
+
+```twoslash include Delay
+import { Effect, Schedule, TestClock, Fiber, TestContext } from "effect"
+
+let start = 0
+let i = 0
+
+export const log = <A, Out>(
+  action: Effect.Effect<A>,
+  schedule: Schedule.Schedule<Out, void>
+) => {
+  Effect.gen(function* () {
+    const fiber: Fiber.RuntimeFiber<[Out, number]> = yield* Effect.gen(
+      function* () {
+        yield* action
+        const now = yield* TestClock.currentTimeMillis
+        console.log(
+          i === 0
+            ? `delay: ${now - start}`
+            : i === 10
+              ? "..."
+              : `#${i} delay: ${now - start}`
+        )
+        i++
+        start = now
+      }
+    ).pipe(
+      Effect.repeat(schedule.pipe(Schedule.intersect(Schedule.recurs(10)))),
+      Effect.fork
+    )
+    yield* TestClock.adjust(Infinity)
+    yield* Fiber.join(fiber)
+  }).pipe(Effect.provide(TestContext.TestContext), Effect.runPromise)
+}
+```
+
+```ts
+declare const log: <A, Out>(
+  action: Effect.Effect<A>,
+  schedule: Schedule.Schedule<Out, void>
+) => void;
+```
+
+<br/>
+<details>
+  <summary>実装を見るにはクリックしてください</summary>
+
+```ts filename="Delay.ts" twoslash
+// @include: Delay
+```
+
+</details>
+
+`log`ヘルパーは、各実行間の時間遅延を記録します。このヘルパーを使用して、さまざまな組み込みスケジュールの振る舞いを示します。
+
+:::caution
+`log`ヘルパーは[受信時計](../testing/testclock)を使用して時間を加速させるため、実際のアプリケーションで通常発生する時間の経過をシミュレートします。
+
+:::
+
+## forever
+
+常に繰り返し、各実行で繰り返し回数を生成するスケジュールです。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.forever;
+const action = Effect.void;
+log(action, schedule);
+/*
+出力:
+delay: 0
+#1 delay: 0 < forever
+#2 delay: 0
+#3 delay: 0
+#4 delay: 0
+#5 delay: 0
+#6 delay: 0
+#7 delay: 0
+#8 delay: 0
+#9 delay: 0
+...
+*/
+```
+
+## once
+
+1 回だけ繰り返すスケジュールです。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.once;
+const action = Effect.void;
+log(action, schedule);
+/*
+出力:
+delay: 0
+#1 delay: 0 < once
+*/
+```
+
+## recurs
+
+指定された回数だけ繰り返すスケジュールです。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.recurs(5);
+const action = Effect.void;
+log(action, schedule);
+/*
+出力:
+delay: 0
+#1 delay: 0 < recurs
+#2 delay: 0
+#3 delay: 0
+#4 delay: 0
+#5 delay: 0
+*/
+```
+
+## 特定の間隔での繰り返し
+
+スケジューリングの文脈では、一般的に使用される 2 つのスケジュールが`spaced`と`fixed`です。両者は特定の間隔で繰り返すことに関与していますが、繰り返しのタイミングを決定する方法に根本的な違いがあります。
+
+`spaced`スケジュールは、各繰り返しが指定された期間で間隔をあけて繰り返されるパターンを作成します。これは、1 回目の繰り返しが終了して次の繰り返しが開始されるまでに遅延があることを意味します。繰り返し間の期間は一定であり、一貫した間隔パターンを提供します。
+
+一方、`fixed`スケジュールは、アクションの期間や前の繰り返しの完了時間に関係なく、固定間隔で繰り返します。これは、実行時間に関係なく動作し、指定された間隔での定期的な繰り返しを保証します。
+
+### spaced
+
+最後の実行から指定された期間を置いて、継続的に繰り返すスケジュールです。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.spaced("200 millis");
+const action = Effect.delay(Effect.void, "100 millis");
+log(action, schedule);
+/*
+出力:
+delay: 100
+#1 delay: 300 < spaced
+#2 delay: 300
+#3 delay: 300
+#4 delay: 300
+#5 delay: 300
+#6 delay: 300
+#7 delay: 300
+#8 delay: 300
+#9 delay: 300
+...
+*/
+```
+
+最初の遅延は約 100 ミリ秒であり、最初の実行はスケジュールの影響を受けません。以降の遅延は約 200 ミリ秒ずつですが、`spaced`スケジュールの効果を示しています。
+
+### fixed
+
+固定間隔で繰り返すスケジュールです。現在の繰り返し回数を返します。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.fixed("200 millis");
+const action = Effect.delay(Effect.void, "100 millis");
+log(action, schedule);
+/*
+出力:
+delay: 100
+#1 delay: 300 < fixed
+#2 delay: 200
+#3 delay: 200
+#4 delay: 200
+#5 delay: 200
+#6 delay: 200
+#7 delay: 200
+#8 delay: 200
+#9 delay: 200
+...
+*/
+```
+
+最初の遅延は約 100 ミリ秒であり、最初の実行はスケジュールの影響を受けません。以降の遅延は一貫して約 200 ミリ秒ずつですが、`fixed`スケジュールの効果を示しています。
+
+## exponential
+
+指数バックオフを使用して繰り返すスケジュールです。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.exponential("10 millis");
+const action = Effect.void;
+log(action, schedule);
+/*
+出力:
+delay: 0
+#1 delay: 10 < exponential
+#2 delay: 20
+#3 delay: 40
+#4 delay: 80
+#5 delay: 160
+#6 delay: 320
+#7 delay: 640
+#8 delay: 1280
+#9 delay: 2560
+...
+*/
+```
+
+## fibonacci
+
+前の 2 つの遅延を足し合わせて遅延を増加させるスケジュールです（フィボナッチ数列に似ています）。現在の繰り返し間の期間を返します。
+
+```ts twoslash
+// @filename: Delay.ts
+// @include: Delay
+
+// @filename: index.ts
+// ---cut---
+import { Schedule, Effect } from "effect";
+import { log } from "./Delay";
+
+const schedule = Schedule.fibonacci("10 millis");
+const action = Effect.void;
+log(action, schedule);
+/*
+出力:
+delay: 0
+#1 delay: 10 < fibonacci
+#2 delay: 10
+#3 delay: 20
+#4 delay: 30
+#5 delay: 50
+#6 delay: 80
+#7 delay: 130
+#8 delay: 210
+#9 delay: 340
+...
+*/
+```

@@ -1,0 +1,144 @@
+---
+title: 今週のEffect - 2024-05-17
+excerpt: Effectに関する技術的な更新。デイビッド・クールシッドによる「複雑なロジックのための効果的なステートマシン」。マイケル・アルナルディによる「EffectとRemixの統合」第1話
+date: 2024-05-17
+authors:
+  - name: ダビデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: マイケル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - now-in-effect-2024-05-10
+  - now-in-effect-2024-05-24
+---
+
+こんにちは、Effecters の皆さん！
+
+**今週の Effect（TWIE）**へようこそ。これは、私たちのコミュニティや Effect エコシステム内で何が起こっているのかを把握するための週間更新です。
+
+初めての方にお知らせしますが、Effect は複雑な同期プログラムと非同期プログラムを作成するために開発者を支援する強力な TypeScript ライブラリです。Effect が他と異なる重要な特徴の一つは、構造的並行性を活用して非同期キャンセルや安全なリソース管理といった機能を提供する点です。これにより、堅牢でスケーラブル、かつ効率的なプログラムの構築が容易になります。
+
+Effect の旅を始めるには、以下のクイックスタートガイドとドキュメントをご覧ください。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方へ、TWIE とは何か、何を目指しているのかを簡単に説明します。
+
+コミュニティが急速に成長していることを嬉しく思います。ますます多くの人々が Effect を採用しています。一方で、Effect エコシステム内で何が起こっているかを追いかけるのが簡単ではないことも理解しています。
+
+- Effect は[Effect 3.0 リリース](https://effect.website/blog/effect-3.0)により API が安定しました。
+- Discord 内の私たちのコミュニティは**2790 人以上のメンバー**に達しました！
+- 毎週新しい Effect Days のトークが公開されています。見逃さないように、[Effect YouTube チャンネル](https://www.youtube.com/@effect-ts)を登録してください。
+- Effect に関連するすべてのプロジェクトが**重要な更新**を受けています！
+
+私たちは、あなたが Effect の旅を十分に楽しみ、コミュニティに積極的に参加できるよう、必要な情報を簡単に見つけられるようにしたいと考えています。
+
+**そのために、私たちは TWIE を作成しました** - これは、先週の Effect に関する重要なイベント（Discord のディスカッション、X の投稿、YouTube コンテンツなど）を、コミュニティの視点からだけでなく技術的な観点からもお知らせする週間更新です。
+
+では、本題に戻りましょう！
+
+## 技術
+
+以下は、先週に起こったすべての技術的な変更です。
+
+### Effect Core
+
+- [Fix: vitest のカスタムテスターと toMatchObject (rebase)](https://github.com/Effect-TS/effect/pull/2732) (バグ修正)
+- [repeat、repeatN、repeatOrElse に例を追加](https://github.com/Effect-TS/effect/pull/2760) (ドキュメント更新)
+- [Config.Wrap が関数と配列を誤ってラップしていた問題を修正](https://github.com/Effect-TS/effect/pull/2762) (バグ修正)
+- [AbortController のすべての"abort"イベントリスナーに"once: true"を追加し、ハンドラーを実行後に自動的に削除するようにする](https://github.com/Effect-TS/effect/pull/2761) (バグ修正)
+
+### Effect Platform
+
+- [Socket のメモリリークを修正](https://github.com/Effect-TS/effect/pull/2750) (バグ修正)
+- [ブラウザの位置情報 API](https://github.com/Effect-TS/effect/pull/2691) (機能)
+
+### Effect Experimental
+
+- [Socket のメモリリークを修正](https://github.com/Effect-TS/effect/pull/2750) (バグ修正)
+
+### Effect Vitest
+
+- [Fix: vitest のカスタムテスターと toMatchObject (rebase)](https://github.com/Effect-TS/effect/pull/2732) (バグ修正)
+
+### Effect OpenTelemetry
+
+- [otel の依存関係を更新](https://github.com/Effect-TS/effect/pull/2736) (改善)
+
+### Effect SQL
+
+- [sqlite-node クライアントにバックアップ API を追加](https://github.com/Effect-TS/effect/pull/2749) (機能)
+- [Sql: ハードコーディングされた値の代わりに otel のセマンティック規約から定数を使用](https://github.com/Effect-TS/effect/pull/2712) (リファクタリング)
+
+### Effect Schema
+
+- [Schema / ユーザースペースに jsonSchema 注釈型制約を導入する方法を文書化](https://github.com/Effect-TS/effect/pull/2726) (ドキュメント更新)
+- [Schema(internal): jest/expect の一時的な使用を削除](https://github.com/Effect-TS/effect/pull/2734) (リファクタリング)
+- [Schema(readme): suspend の例を改善](https://github.com/Effect-TS/effect/pull/2735) (ドキュメント更新)
+- [asserts によって投げられるエラーに原因を追加](https://github.com/Effect-TS/effect/pull/2738) (バグ修正)
+- [Schema.optional: デフォルトオプションがデコードフェーズおよびデフォルトコンストラクターの両方にデフォルト値を設定できるようになりました](https://github.com/Effect-TS/effect/pull/2741) (リファクタリング)
+- [Pick: 選択されたキーがプロパティシグネチャの変換に関連していない場合は ComposeTransformation を返さない](https://github.com/Effect-TS/effect/pull/2746) (バグ修正)
+- [Schema.is の Predicate の使いやすさを改善](https://github.com/Effect-TS/effect/pull/2756) (改善)
+- [空のルートエントリーポイントのために schema を再公開](https://github.com/Effect-TS/effect/pull/2757) (バグ修正)
+- [Schema: Forbidden パースエラーのドキュメントを追加](https://github.com/Effect-TS/effect/pull/2766) (ドキュメント更新)
+- [Feat: Schema.make コンストラクタのポイントフリー使用を許可](https://github.com/Effect-TS/effect/pull/2769) (機能)
+
+### 一般的な雑務
+
+- [スナップショットワークフローの権限を修正](https://github.com/Effect-TS/effect/pull/2752)
+
+## コミュニティのハイライト
+
+先週、私たちは Discord サーバーに 60 人以上の新しい Effecters を迎えました！Effect コミュニティに参加してくれてありがとうございます。皆さんをお迎えできて嬉しいです！
+
+### コンテンツ更新
+
+月曜日には、Effect Days Conference からの新しいトーク「複雑なロジックのための効果的なステートマシン」が公開されました。デイビッド・クールシッドはこのトークで、アプリケーションにおける複雑なロジックを管理するためのステートマシンと Effect ライブラリの使用について話します。彼はステートマシンがエッジケースやユースケースを明確にするのにどのように役立つか、また Effect ライブラリがステートマシン内のエフェクトを宣言的に表現するためにどのように使用できるかを説明しています。
+
+<YouTube url="https://www.youtube.com/embed/mZJxGgI7FXU?si=mG9FdlMRJnNYFaTO" />
+
+[マッティア・マンザティ](https://twitter.com/MattiaManzati)、Effect Cluster の寄稿者は、[Twitch チャンネル](https://www.twitch.tv/videos/2135438468)で@effect/cluster の作業を続け、今週は Effect/RPC との統合を完了しました。マッティアの最新のビデオは[Effect YouTube チャンネル](https://www.youtube.com/@effect-ts)で確認できます。以下は第 3 話です：
+
+<YouTube url="https://www.youtube.com/embed/8WanmCpq_Mw?si=M9mvFH6umk9273mi" />
+
+[ユバル・ダトナー](https://x.com/Datnerr)、リードフルスタックソフトウェアエンジニアであり長年の Effect のパワーユーザーは、自身のフロントエンド環境での Effect の採用経験について語る記事を書き、シンプルな質問に答えています：[Effect タックスは価値があるのか？](https://dev.to/datner/the-effect-tax-3gn0)
+
+<Tweet id="1789938747238167003" />
+
+[ミラード・ファファイファード](https://twitter.com/miladvafaeifard)、ソフトウェアエンジニアであり[手話技術](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の創設者は、「Effect を利用したサーバー API の構築方法」をテーマにした第 2 回目の動画がありました。
+
+<YouTube url="https://www.youtube.com/embed/-kg4ChAps_c?si=s4T_NWJHIhbXiLEC" />
+
+[マイケル・アルナルディ](https://twitter.com/MichaelArnaldi)の「Effect と Remix の統合」シリーズの第 1 話が[Effect YouTube チャンネル](https://www.youtube.com/channel/UC8wNHsXmEuoikbwRdLeoJQg)で公開されています。
+
+<YouTube url="https://www.youtube.com/embed/THods1Q_qL8?si=PrPsXpG_L0KgwCdA" />
+
+[React Hook Form](https://react-hook-form.com/)がそのリゾルバーに Effect/schema サポートを追加したことを嬉しく思います。
+
+<Tweet id="1790545199539892297" />
+
+...そして[quicktype](https://app.quicktype.io/)はそのバックアップ生成者のリストに Effect/Schema を含めました。
+
+<Tweet id="1790433190286393492" />
+
+[Dillon Mulroy](https://twitter.com/dillon_mulroy)@ [Vercel](https://vercel.com)のソフトウェアエンジニアは、Effect を使って何かを構築した開発者の初体験について特に洞察に富んだコメントを共有しました。
+
+<Tweet id="1790905374867906617" />
+
+## 閉会の言葉
+
+今週はこれでおしまいです。私たちのコミュニティの重要な一部でいてくれてありがとう。フィードバックは非常に貴重ですので、このフォーマットを微調整する際にぜひお聞かせください。ご意見を自由に共有してください。コミュニティのニーズに合わせて最善を尽くします。
+
+_Effect コミュニティチーム_

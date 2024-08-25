@@ -1,0 +1,458 @@
+---
+title: ReactからEffectへ
+excerpt: Reactを知っているなら、あなたはすでにEffectをかなり理解しています。EffectのメンタルモデルがReactから知っている概念にどのようにマッピングされるかを探ってみましょう。
+date: 2024-08-17
+authors:
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+---
+
+React を知っているなら、あなたはすでに Effect をかなり理解しています。Effect のメンタルモデルが React から知っている概念にどのようにマッピングされるかを探ってみましょう。
+
+## 歴史
+
+私がプログラミングを始めた約 20 年前、世界は非常に異なるものでした。Web はまさに爆発しようとしており、ウェブプラットフォームの能力は非常に限られていました。私たちは Ajax の始まりにいて、ほとんどの Web ページは実質的にサーバーからレンダリングされた文書で、少しのインタラクティビティを持っていました。
+
+ある程度はシンプルな世界でした。TypeScript は存在せず、jQuery も存在せず、ブラウザは好きなことをしており、Java Applets は良いアイデアのように見えました。
+
+今日に目を移すと、事態が大きく変わったことが簡単にわかります。ウェブプラットフォームは驚くべき能力を提供しており、私たちが日常的に操作するプログラムのほとんどは完全にウェブ上に構築されています。
+
+20 年以上前の技術の上に今日のアプリケーションを構築することは可能でしょうか？もちろんですが、それは最適ではありません。増大する複雑さの中で、より堅牢な解決策が必要です。タイプセーフティや正しさを保証する強力なモデルなしに、DOM を操作するための直接的な JS 呼び出しを散発的に使用することで、そんなにパワフルなユーザーインターフェースを容易に構築することはできません。
+
+私たちが今日行うことの多くは、Angular や React といったフレームワークによってもたらされたアイデアのおかげで可能になっています。ここでは、なぜ React が 10 年間市場を支配し、今日でも多くの人に選ばれ続けているのかを探ってみたいと思います。
+
+私たちが探求する内容は、他のフレームワークにも当てはまります。実際、これらのアイデアは React 特有のものではなく、より一般的です。
+
+## React の力
+
+まず、自問自答してみましょう。「なぜ React はこんなに強力なのか？」。React で UI をコーディングする際、私たちは一緒に「結合」できる小さな**コンポーネント**のことを考えます。このメンタルモデルにより、複雑さの核心に取り組むことが可能になり、私たちは複雑さをカプセル化するコンポーネントを構築し、それらを結合して、頻繁にクラッシュせず、適切にメンテナンスしやすいパワフルな UI を構築します。
+
+しかし、**コンポーネント**とは何でしょうか？
+
+以下のようなコードを書くことに馴染みがあるかもしれません：
+
+```tsx
+const App = () => {
+  return <div>Hello World</div>;
+};
+```
+
+JSX を取り除いた場合、上記のコードは次のようになります：
+
+```ts
+const App = () => {
+  return React.createElement("div", { children: "Hello World" });
+};
+```
+
+したがって、**コンポーネント**は**関数**であり、**React 要素**を返すもの、あるいはもう少し明確に言うと、コンポーネントは UI の**説明**または**設計図**と言えます。
+
+特定の DOM ノード（以下の例では「root」と呼ばれるところ）にコンポーネントを**マウント**するとき、それまで私たちのコードは**実行**され、その結果の説明が最終的な UI を作成する**副作用**を生じさせます。
+
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+```
+
+これまでの説明を確認してみましょう：
+
+```tsx
+const MyComponent = () => {
+  console.log("MyComponent Invoked");
+  return <div>MyComponent</div>;
+};
+
+const App = () => {
+  <MyComponent />;
+  return <div>Hello World</div>;
+};
+```
+
+このコードを実行すると、次のように変換されます：
+
+```ts
+const MyComponent = () => {
+  console.log("MyComponent Invoked");
+  return React.createElement("div", { children: "MyComponent" });
+};
+
+const App = () => {
+  React.createElement(MyComponent);
+  return React.createElement("div", { children: "Hello World" });
+};
+```
+
+ブラウザのコンソールには「MyComponent Invoked」というメッセージは表示されません。
+
+それは、コンポーネントが**作成された**ものの、返された UI の説明の一部ではないために**レンダリング**されなかったからです。
+
+これは、単にコンポーネントを作成するだけでは副作用が生じないことを証明しています - それは純粋な操作であり、たとえコンポーネント自体が副作用を含んでいるとしてもです。
+
+コードを以下のように変更すると：
+
+```tsx
+const MyComponent = () => {
+  console.log("MyComponent Invoked");
+  return <div>MyComponent</div>;
+};
+
+const App = () => {
+  return <MyComponent />;
+};
+```
+
+コンソールに「MyComponent Invoked」というメッセージが表示されます。これは、副作用が発生していることを意味します。
+
+## 設計図によるプログラミング
+
+React の重要なアイデアは、「DOM にレンダリングできる結合可能な設計図で UI をモデル化すること」に要約できます。これはメンタルモデルを示すために意図的に簡略化されていますが、詳細ははるかに複雑になりますが、詳細はユーザーから隠されています。このアイデアこそが、React を柔軟で使いやすく、メンテナンスしやすいものにしています。いつでもコンポーネントを小さく分割したり、コードをリファクタリングしたりすることができ、以前に機能していた UI がそのまま機能し続けることが保証されます。
+
+このモデルから得られるいくつかのスーパー能力を見てみましょう。まず、コンポーネントは複数回レンダリングできます：
+
+```tsx
+const MyComponent = (props: { message: string }) => {
+  return <div>MyComponent: {props.message}</div>;
+};
+
+const App = () => {
+  return (
+    <div>
+      <MyComponent message="Foo" />
+      <MyComponent message="Bar" />
+      <MyComponent message="Baz" />
+    </div>
+  );
+};
+```
+
+この例はやや仕組まれていますが、もしあなたのコンポーネントがボタンのような興味深いことをするものであれば、非常に強力であることがわかります。`Button`コンポーネントを複数の場所で reutilize し、そのロジックを再記述する必要がありません。
+
+React コンポーネントはクラッシュしてエラーをスローすることもでき、React は親コンポーネント内でそのようなエラーから回復するためのメカニズムを提供します。親コンポーネント内でエラーが捕捉された後、代わりに UI をレンダリングするなどの代替アクションを実行することができます。
+
+```tsx
+export declare namespace ErrorBoundary {
+  interface Props {
+    fallback: React.ReactNode;
+    children: React.ReactNode;
+  }
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundary.Props> {
+  state: {
+    hasError: boolean;
+  };
+
+  constructor(props: React.PropsWithChildren<ErrorBoundary.Props>) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
+
+const MyComponent = () => {
+  throw new Error("Something went deeply wrong");
+  return <div>MyComponent</div>;
+};
+
+const App = () => {
+  return (
+    <ErrorBoundary fallback={<div>Fallback Component!!!</div>}>
+      <MyComponent />
+    </ErrorBoundary>
+  );
+};
+```
+
+提供された API はコンポーネント内でエラーをキャッチするためにはあまり見栄えは良くありませんが、React コンポーネント内でエラーをスローすることは非常に一般的ではありません。コンポーネント内でエラーをスローする唯一の実際的なケースは、最も近い`Suspense`境界で`await`できる`Promise`をスローすることであり、コンポーネントが非同期処理を行うことができるようにします。
+
+見てみましょう：
+
+```tsx
+let resolved = false;
+
+const promiseToAwait = new Promise((resolve) => {
+  setTimeout(() => {
+    resolved = true;
+    resolve(resolved);
+  }, 1000);
+});
+
+const MyComponent = () => {
+  if (!resolved) {
+    throw promiseToAwait;
+  }
+  return <div>MyComponent</div>;
+};
+
+const App = () => {
+  return (
+    <Suspense fallback={<div>Waiting...</div>}>
+      <MyComponent />
+    </Suspense>
+  );
+};
+```
+
+この API はかなり低レベルですが、それを内部で利用してデータ取得のスムーズさ（[React Query](https://tanstack.com/query/latest/docs/framework/react/guides/suspense) に強く感謝）やサーバーコンポーネントを使った SSR からのデータストリーミングなどの機能を提供するライブラリがあります。
+
+さらに、React コンポーネントが親コンポーネントから提供されたコンテキストデータにアクセスできるように、Effect も親 Effect から提供されたコンテキストデータにアクセスできます。見てみましょう：
+
+```tsx
+const ContextualData = React.createContext(0);
+
+const MyComponent = () => {
+  const context = React.useContext(ContextualData);
+
+  return <div>MyComponent: {context}</div>;
+};
+
+const App = () => {
+  return (
+    <ContextualData.Provider value={100}>
+      <MyComponent />
+    </ContextualData.Provider>
+  );
+};
+```
+
+上記のコードでは、数値というコンテキストデータの一部を定義し、最上位の`App`コンポーネントから提供しました。このようにして、React が`MyComponent`をレンダリングするとき、コンポーネントは上から提供された新しいデータを読み取ります。
+
+## なぜ Effect なのか
+
+なぜ私たちは React についてこれほど多くの時間を費やしているのか、皆さんも疑問に思うかもしれません。これは Effect とどのように関連しているのでしょうか？ React が強力なユーザーインターフェースを開発するのに重要であったのと同じように、Effect は汎用コードを書く上でも同様に重要です。この 20 年間で JS と TS は大きく進化し、Node.js によってもたらされたアイデアのおかげで、かつておもちゃの言語だと考えられていたものの上にフルスタックアプリケーションを開発するようになりました。
+
+私たちの JS / TS プログラムの複雑さが増すにつれて、再びプラットフォームにかける要求が言語が提供する能力を超える状況に直面します。jQuery の上に複雑な UI を構築することは非常に難しい作業であり、プレーン JS / TS の上にプロダクショングレードのアプリケーションを開発するのはますます大変になっています。
+
+プロダクショングレードのアプリケーションコードには以下のような要求があります：
+
+- テスト可能性
+- 優雅な中断
+- エラーマネジメント
+- ロギング
+- テレメトリー
+- メトリックス
+- 柔軟性
+
+などなど。
+
+長年にわたり、`AbortController`や OpenTelemetry など、ウェブプラットフォームに多くの機能が追加されてきました。これらのソリューションはどれも孤立状態でうまく機能しそうですが、結局は構成のテストに失敗します。プロダクショングレードのソフトウェアのすべての要件を満たす JS / TS コードを書くことは、NPM 依存関係、ネストされた`try / catch`文、同時処理を管理しようとする試みの悪夢になります。最終的には、脆弱でリファクタリングが困難、そして持続不可能なソフトウェアに至ります。
+
+## Effect モデル
+
+これまでの議論を短く要約すると、**React コンポーネント**は**ユーザーインターフェース**の**説明**または**設計図**であり、同様に、**Effect**は**一般的な計算**の**説明**または**設計図**です。
+
+これを実際に見てみましょう。React で初めに見たものに非常に似た例から始めます：
+
+```ts
+import { Effect } from "effect";
+
+const print = (message: string) =>
+  Effect.sync(() => {
+    console.log(message);
+  });
+
+const printHelloWorld = print("Hello World");
+```
+
+<br />
+<a href="https://effect.website/play#9599967a15cf" target="_blank">
+  Playgroundで開く
+</a>
+
+React で見たように、Effect を単に作成するだけでは副作用は実行されません。実際、React のコンポーネントと同じように、Effect は私たちのプログラムが何をしたいかの設計図に過ぎません。設計図を実行したときにのみ、副作用が発生します。方法を見てみましょう：
+
+```ts
+import { Effect } from "effect";
+
+const print = (message: string) =>
+  Effect.sync(() => {
+    console.log(message);
+  });
+
+const printHelloWorld = print("Hello World");
+
+Effect.runPromise(printHelloWorld);
+```
+
+<br />
+<a href="https://effect.website/play#b36bac0a41ca" target="_blank">
+  Playgroundで開く
+</a>
+
+これで「Hello World」というメッセージがコンソールに表示されるようになりました。
+
+さらに、React で複数のコンポーネントを結合するのと同様に、異なる Effects を結合して、より複雑なプログラムに組み合わせることができます。そのために、ジェネレータ関数を使用します：
+
+```ts
+import { Effect } from "effect";
+
+const print = (message: string) =>
+  Effect.sync(() => {
+    console.log(message);
+  });
+
+const printMessages = Effect.gen(function* () {
+  yield* print("Hello World");
+  yield* print("We’re getting messages");
+});
+
+Effect.runPromise(printMessages);
+```
+
+<br />
+<a href="https://effect.website/play#b5058f3ac17b" target="_blank">
+  Playgroundで開く
+</a>
+
+`yield*`を`await`に、`Effect.gen(function*() { })`を`async function() {}`に心的にマッピングできます。唯一の違いは、引数を渡したい場合は新しいラムダを定義する必要があることです。例えば：
+
+```ts
+import { Effect } from "effect";
+
+const print = (message: string) =>
+  Effect.sync(() => {
+    console.log(message);
+  });
+
+const printMessages = (messages: number) =>
+  Effect.gen(function* () {
+    for (let i = 0; i < messages; i++) {
+      yield* print(`message: ${i}`);
+    }
+  });
+
+Effect.runPromise(printMessages(10));
+```
+
+<br />
+<a href="https://effect.website/play#3c5c45b473a4" target="_blank">
+  Playgroundで開く
+</a>
+
+React コンポーネント内でエラーを発生させて親コンポーネントで処理することができるように、Effect 内でもエラーを発生させ、親 Effect でそれを処理することができます：
+
+```ts
+import { Effect } from "effect";
+
+const print = (message: string) =>
+  Effect.sync(() => {
+    console.log(message);
+  });
+
+class InvalidRandom extends Error {
+  message = "Invalid Random Number";
+}
+
+const printOrFail = Effect.gen(function* () {
+  if (Math.random() > 0.5) {
+    yield* print("Hello World");
+  } else {
+    yield* Effect.fail(new InvalidRandom());
+  }
+});
+
+const program = printOrFail.pipe(
+  Effect.catchAll((e) => print(`Error: ${e.message}`)),
+  Effect.repeatN(10)
+);
+
+Effect.runPromise(program);
+```
+
+<br />
+<a href="https://effect.website/play#a35378f5d2ab" target="_blank">
+  Playgroundで開く
+</a>
+
+上記のコードは、`InvalidRandom`エラーでランダムに失敗します。これを`Effect.catchAll`を使用して親 Effect から回復します。この場合、回復ロジックは単にエラーメッセージをコンソールに記録することです。
+
+しかし、Effect が`React`と異なるのは、エラーが 100%型安全であることです。私たちの`Effect.catchAll`内では、`e`が`InvalidRandom`型であることを知っています。これは Effect が型推論を用いて、プログラムが遭遇する可能性のあるエラーケースを理解し、それを型に表現するからです。`printOrFail`の型を確認すると、
+
+`Effect<void, InvalidRandom, never>`
+
+ということがわかります。これは、この Effect が成功した場合`void`を返しますが、`InvalidRandom`エラーで失敗する可能性もあることを示します。
+
+異なる理由で失敗する可能性のある Effects を結合した場合、最終的な Effect は、すべての可能なエラーを列挙したユニオンを表示します。そうすると、型には次のようなものが表示されます：
+
+`Effect<number, InvalidRandom | NetworkError | ..., never>`。
+
+Effect は**任意の**コードの断片を表すことができ、`console.log`文、fetch 呼び出し、データベースクエリ、計算であれ、実行できます。Effect はまた、同期コードと非同期コードの両方を単一のモデルに統一的に実行できることができ、<a href="https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/" target="_blank">関数の色付け</a>（非同期または同期に異なる型を持つこと）という問題を回避します。
+
+React コンポーネントが親コンポーネントから提供されたコンテキストにアクセスできるのと同様に、Effects も親 Effect から提供されたコンテキストにアクセスできます。見てみましょう：
+
+```ts
+import { Context, Effect } from "effect";
+
+const print = (message: string) =>
+  Effect.sync(() => {
+    console.log(message);
+  });
+
+class ContextualData extends Context.Tag("ContextualData")<
+  ContextualData,
+  number
+>() {}
+
+const printFromContext = Effect.gen(function* () {
+  const n = yield* ContextualData;
+
+  yield* print(`Contextual Data is: ${n}`);
+});
+
+const program = printFromContext.pipe(
+  Effect.provideService(ContextualData, 100)
+);
+
+Effect.runPromise(program);
+```
+
+<br />
+<a href="https://effect.website/play#88051688ce37" target="_blank">
+  Playgroundで開く
+</a>
+
+Effect が React と異なるところは、コンテキストのためにデフォルトの実装を提供することを強制されないことです。Effect はプログラムのすべての要件を其の三番目の型パラメーターで追跡し、すべての要件が満たされていない Effect の実行を禁止します。
+
+`printFromContext`の型を確認すると、
+
+`Effect<void, never, ContextualData>`
+
+ということがわかります。これはこの Effect が成功した場合`void`を返し、予期されるエラーでは失敗せず、実行可能になるために`ContextualData`を必要とすることを意味します。
+
+## 結論
+
+Effect と React は本質的に同じ基盤モデルを共有していることがわかります。両方のライブラリは、後でランタイムによって実行できるプログラムの結合可能な説明を作成することに関するものです。唯一の違いはドメインです。React はユーザーインターフェースの構築に焦点を当てており、Effect は汎用プログラムの作成に焦点を当てています。
+
+これはあくまで紹介に過ぎず、Effect はここに示した以上の多くの機能を提供します。これには以下のような機能が含まれます：
+
+- 同時実行性
+- 再試行スケジューリング
+- テレメトリー
+- メトリックス
+- ロギング
+
+などなど。
+
+Effect に興味がある方は、ぜひ[ドキュメント](https://effect.website/docs/introduction)や[Effect 初心者向けワークショップ](https://www.youtube.com/watch?v=Lz2J1NBnHK4)をご覧ください。
+
+ここまでお付き合いいただき、ありがとうございます。

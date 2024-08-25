@@ -1,0 +1,133 @@
+---
+title: This Week in Effect - 2024-07-19
+excerpt: Effectに関する技術的更新。Michael ArnaldiとMaxwell BrownによるContentlayerの再構築。
+date: 2024-07-19
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-07-12
+  - this-week-in-effect-2024-07-26
+---
+
+こんにちは、Effectersの皆さん！
+
+「This Week In Effect (**TWIE**)」に戻ってきました。Effectコミュニティとエコシステムの最新の進展を把握できる週間更新です。
+
+Effectは、複雑な同期および非同期プログラムを開発者が作成するための強力なTypeScriptライブラリです。Effectの特徴的な点は、構造化された同時実行性を活用し、非同期キャンセルや安全なリソース管理といった機能を提供することで、堅牢でスケーラブルかつ効率的なプログラムの構築を容易にするところです。
+
+以下のクイックスタートガイドとドキュメントを使ってEffectを始めましょう：
+
+- [Effectクイックスタートガイド](/docs/quickstart)
+- [Effectドキュメント](/docs/introduction)
+
+最近の主な更新：
+
+- Effectは[Effect 3.0リリース](https://effect.website/blog/effect-3.0)によりAPIが安定しました。
+- [Effect 3.5](https://effect.website/blog/effect-3.5)がリリースされました。
+- 私たちの[Discordコミュニティ](https://discord.gg/effect-ts)が3240人以上のメンバーに達しました！
+- Effect Days 2024のすべての講演が[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能です。
+
+## 技術
+
+先週発生したすべての技術的変更を以下に示します。
+
+### Effect Core
++ [Cause.prettyでネストされた原因をレンダリング](https://github.com/Effect-TS/effect/pull/3246) (改善)
++ [performance.timeOriginが0の場合、Clockでperformance.now()を直接使用](https://github.com/Effect-TS/effect/pull/3247) (改善)
++ [Predicate.orに対するRefinementsのサポートを追加](https://github.com/Effect-TS/effect/pull/3250) (機能追加)
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
++ [Stream.fromEventListenerのために「unbounded」バッファを使用](https://github.com/Effect-TS/effect/pull/3266) (改善)
++ [Stream.groupByKeyのJSDocカテゴリをutilsからgroupingに変更](https://github.com/Effect-TS/effect/pull/3289) (リファクタリング)
++ [Record.keysからシンボルを正しく除外](https://github.com/Effect-TS/effect/pull/3294) (バグ修正)
++ [bunでのYieldableErrorのレンダリングを修正](https://github.com/Effect-TS/effect/pull/3295) (バグ修正)
++ [Effect.Tagで「name」プロパティの使用を禁止](https://github.com/Effect-TS/effect/pull/3288) (バグ修正)
++ [Struct.keysをObject.keysの型安全な代替として実装](https://github.com/Effect-TS/effect/pull/3282) (機能追加、次のマイナー)
++ [Feat(Stream): Stream.onStart APIを追加](https://github.com/Effect-TS/effect/pull/3302) (機能追加、次のマイナー)
++ [Stream.asyncPush APIを追加](https://github.com/Effect-TS/effect/pull/3277) (機能追加、次のマイナー)
++ [Feat(Stream): onEnd](https://github.com/Effect-TS/effect/pull/3303) (機能追加、次のマイナー)
+
+### Effect SQL
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
++ [/platformのRefailErrorを「cause」プロパティの使用に置き換え](https://github.com/Effect-TS/effect/pull/3260) (改善)
++ [Sql-kysely: internal executeCommitのエラーハンドリングを修正](https://github.com/Effect-TS/effect/pull/3271) (バグ修正、次のマイナー)
+
+### Effect Platform
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
++ [/platformのバックグラウンドワーカーをリファクタリングおよび簡素化](https://github.com/Effect-TS/effect/pull/3255) (リファクタリング)
++ [/platformのRefailErrorを「cause」プロパティの使用に置き換え](https://github.com/Effect-TS/effect/pull/3260) (改善)
++ [NodeHttpServerRequest.toServerResponseを追加して生のNode応答にアクセス](https://github.com/Effect-TS/effect/pull/3265) (機能追加)
++ [MessagePortからブラウザWorkerRunnerを作成可能に](https://github.com/Effect-TS/effect/pull/3263) (機能追加)
++ [/platformのHttpApp.toWebHandlerが現在のランタイムでStreamを実行することを保証](https://github.com/Effect-TS/effect/pull/3278) (バグ修正)
++ [cjs /platformの依存関係を削除](https://github.com/Effect-TS/effect/pull/3281) (改善)
+
+### Effect Experimental
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
++ [/platformのRefailErrorを「cause」プロパティの使用に置き換え](https://github.com/Effect-TS/effect/pull/3260) (改善)
++ [Ndjsonのアンパック時に空行を無視できるように](https://github.com/Effect-TS/effect/pull/3259) (機能追加)
+
+### Effect Cluster
++ [Fix: DurableExecutionJournal.tsのタイポを修正](https://github.com/Effect-TS/effect/pull/3174) (バグ修正)
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
+
+### Effect Schema
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
++ [スキーマのREADMEをSchema.messageからSchema.annotationsに整合させる](https://github.com/Effect-TS/effect/pull/3261) (ドキュメント更新)
++ [RefinementsにおけるJSONスキーマアノテーションの正しい処理を修正](https://github.com/Effect-TS/effect/pull/3284) (バグ修正)
++ [JSONスキーマ: 未定義を含むプロパティシグネチャのデフォルト動作を変更](https://github.com/Effect-TS/effect/pull/3287) (バグ修正)
++ [オプションシグネチャから型レベルのエラーメッセージを削除](https://github.com/Effect-TS/effect/pull/3291) (バグ修正)
++ [「命名規約」ドキュメントセクションを追加](https://github.com/Effect-TS/effect/pull/3298) (ドキュメント更新)
++ [Arbitrary / Pretty / JSON Schema / Equivalencesをトップレベルセクションに移動](https://github.com/Effect-TS/effect/pull/3300) (ドキュメント更新)
+
+### Effect RPC
++ [Router.toHandlerでの変換精度を向上](https://github.com/Effect-TS/effect/pull/3251) (改善)
+
+### Effect Vitest
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
+
+### Effect CLI
++ [依存関係の更新](https://github.com/Effect-TS/effect/pull/3253) (改善)
++ [機能追加: 別名付きパラメータ値に等号を許可](https://github.com/Effect-TS/effect/pull/2755) (機能追加)
+
+### Effect Opentelemetry
++ [シャットダウンを呼び出す前にotelプロバイダーを強制フラッシュ](https://github.com/Effect-TS/effect/pull/3254) (バグ修正)
+
+### 一般的な雑務
++ [bunテストスイートを無効化](https://github.com/Effect-TS/effect/pull/3264)
++ [スナップショット用にpkg.pr.newを使用](https://github.com/Effect-TS/effect/pull/3269) (最適化)
++ [壊れているためコンパクトモードを使用しない](https://github.com/Effect-TS/effect/pull/3273) (バグ修正)
++ [スナップショットのURLを最後の@文字で分割することを確認](https://github.com/Effect-TS/effect/pull/3274) (バグ修正)
+
+## コミュニティのハイライト
+
+先週、私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に40人以上の新しいEffectersを迎えました。皆さんを加えられて非常に嬉しいです！
+
++ [Ecyrbe](https://x.com/ecyrbedev)、テックリードで[Zodios](https://www.zodios.org)の創設者がEffectコアチームに加わり、SQLサブセットパッケージのさらなる改善に貢献します。
+<Tweet id="1812428828305727774" />
+
++ チームの成長と、多くの優秀な個人が引き寄せられていることを誇りに思っており、その成果が認識されていることに喜びを感じています。 :)
+<Tweet id="1812468384388325400" />
+
++ HonoがGünther Brunnerの協力により新たに[Effect Schema Validator](https://github.com/honojs/middleware/tree/main/packages/effect-validator)ミドルウェアを獲得しました。Güntherは2024年6月のHono会議でEffect Schema PRを初めて紹介しました。
+<Tweet id="1813170312181391402" />
+
+## Effectコンテンツ更新
+
++ Michael ArnaldiとMaxwell Brownが水曜日に**Contentlayerの再構築**をテーマに最新のEffectのスーパーパワーを紹介しました。動画は近日中に[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で公開されます。それまで、[MikeのTwitch](https://www.twitch.tv/videos/2200003412)で視聴できます。
+<Tweet id="1813577116807840012" />
+
+## 最後に
+
+今週は以上です。私たちのコミュニティの重要な一員でいてくださってありがとうございます。このフォーマットを微調整するために、皆さんのフィードバックを大変重要視しています。自由にご意見をお聞かせください。私たちのコミュニティのニーズに合わせるよう最大限努めます。
+
+_Effectコミュニティチーム_

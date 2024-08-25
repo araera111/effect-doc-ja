@@ -1,0 +1,523 @@
+---
+title: パイプラインの構築
+excerpt: Effectパイプラインを活用して、値に対する操作の構成やシーケンスを探ります。モジュール性と簡潔な変換を構築するための`pipe`、`Effect.map`、`Effect.flatMap`、`Effect.andThen`、`Effect.tap`、`Effect.all`などの重要な関数について学びます。また、Effectエコシステム内でメソッドの代わりに関数を使用することの利点（ツリーシェイキングや拡張性）を理解します。
+bottomNavigation: pagination
+---
+
+Effect パイプラインは、値に対する操作の構成やシーケンスを可能にし、データの変換と操作を簡潔かつモジュール化された形で実現します。
+
+## パイプラインがアプリケーションの構造化に適している理由
+
+パイプラインは、アプリケーションを構造化し、データ変換を簡潔かつモジュール化された形で処理するための優れた方法です。以下のような多くの利点を提供します。
+
+1. **可読性**: パイプラインを使用すると、関数を読みやすく、直列に構成することができます。データの流れや適用される操作が明確に見えるため、コードの理解と保守が容易になります。
+
+2. **コードの整理**: パイプラインを使用すると、複雑な操作を小さく管理可能な関数に分解することができます。各関数は特定のタスクを実行し、コードはよりモジュール化され、推論しやすくなります。
+
+3. **再利用性**: パイプラインは関数の再利用を促進します。操作を小さな関数に分解することで、異なるパイプラインやコンテキストで再利用でき、コードの再利用性が向上し、重複を減らします。
+
+4. **型の安全性**: タイプシステムを活用することで、パイプラインはコンパイル時にエラーを捕捉します。パイプライン内の関数は明確に定義された入力および出力の型を持ち、データが正しく流れることを保証し、ランタイムエラーを最小限に抑えます。
+
+次に、パイプラインを定義し、いくつかの重要な要素を探っていきましょう。
+
+## pipe
+
+`pipe`関数は、関数を読みやすく直列に構成するためのユーティリティです。一つの関数の出力を次の関数への入力として渡します。これにより、複数の関数を連鎖して複雑な変換を構築できます。
+
+`pipe`の基本的な構文は次のとおりです。
+
+```ts
+import { pipe } from "effect"
+
+const result = pipe(input, func1, func2, ..., funcN)
+```
+
+この構文では、`input`は初期値であり、`func1`、`func2`、...、`funcN`は順次適用される関数です。各関数の結果が次の関数の入力となり、最終的な結果が返されます。
+
+以下に`pipe`の動作を示す例を示します。
+
+![Pipe](/images/mmd/pipeline.svg)
+
+`pipe`に渡される関数は**単一の引数**を持つ必要があることに注意してください。これは、単一の引数でのみ呼び出されるためです。
+
+`pipe`の動作をより良く理解するために、以下に例を見てみましょう。
+
+```ts twoslash
+import { pipe } from "effect";
+
+// シンプルな算術演算を定義
+const increment = (x: number) => x + 1;
+const double = (x: number) => x * 2;
+const subtractTen = (x: number) => x - 10;
+
+// `pipe`を使ってこれらの操作を順次適用
+const result = pipe(5, increment, double, subtractTen);
+
+console.log(result); // 出力: 2
+```
+
+上記の例では、初期値として`5`を使っています。`increment`関数が初期値に`1`を加え、結果として`6`になります。次に`double`関数がその値を倍にして`12`となり、最後に`subtractTen`関数が`12`から`10`を引いて最終出力`2`になります。
+
+この結果は`subtractTen(double(increment(5)))`と同じですが、`pipe`を使用すると、操作が左から右への順番で配列されているため、コードの可読性が向上します。入れ子構造にするのではなく、直列に構成されているからです。
+
+## 関数 vs メソッド
+
+Effect エコシステムでは、ライブラリはしばしばメソッドよりも関数を公開しています。この設計選択には、ツリーシェイキングと拡張性の 2 つの重要な理由があります。
+
+### ツリーシェイキング
+
+ツリーシェイキングとは、ビルドシステムがバンドルプロセス中に未使用のコードを除去する能力を指します。関数はツリーシェイキング可能であり、メソッドはそうではありません。
+
+Effect エコシステムで関数が使用されると、実際にアプリケーションでインポートされて使用されている関数のみが最終的なバンドルコードに含まれます。未使用の関数は自動的に削除され、バンドルサイズが小さくなり、性能が向上します。
+
+一方、メソッドはオブジェクトやプロトタイプに関連付けられ、簡単にツリーシェイキングができません。サブセットのメソッドのみを使用しても、オブジェクトやプロトタイプに関連付けられたすべてのメソッドがバンドルに含まれ、不必要なコードの肥大化を招きます。
+
+### 拡張性
+
+Effect エコシステムで関数を使用するもう一つの重要な利点は、拡張性の容易さです。メソッドの機能を拡張するには、通常オブジェクトのプロトタイプを変更する必要があり、これは複雑でエラーを引き起こす可能性があります。
+
+それに対し、関数を使用すれば、機能を拡張するのがはるかに簡単です。自分の"拡張メソッド"を単なる関数として定義でき、オブジェクトのプロトタイプを変更する必要がありません。これにより、よりクリーンでモジュール化されたコードが促進され、他のライブラリやモジュールとの互換性が向上します。
+
+:::tip
+Effect エコシステムのライブラリにおける関数の使用は、**ツリーシェイキング**を達成し、**拡張性**を確保するために重要です。関数は未使用のコードを排除することで効率的なバンドリングを可能にし、ライブラリの機能拡張に柔軟でモジュール化されたアプローチを提供します。
+
+:::
+
+次に、パイプラインを構築するために`pipe`関数と組み合わせて使用できる API の例をいくつか見てみましょう。
+
+## map
+
+`Effect.map`関数は、`Effect`内の値を変換するために使用されます。関数を受け取り、それを`Effect`内に含まれる値に適用して、変換された値を持つ**新しい**`Effect`を作成します。
+
+**Effect.map の使用法**
+
+`Effect.map`の構文は次のとおりです。
+
+```ts
+import { pipe, Effect } from "effect";
+
+const mappedEffect = pipe(myEffect, Effect.map(transformation));
+// または
+const mappedEffect = Effect.map(myEffect, transformation);
+// または
+const mappedEffect = myEffect.pipe(Effect.map(transformation));
+```
+
+上記のコードでは、`transformation`は値に適用される関数であり、`myEffect`は変換される`Effect`です。
+
+:::info
+`Effect`は不変であることに注意が必要です。つまり、`Effect.map`を使用して`Effect`に適用しても、元のデータ型は変更されません。代わりに、変換された値を持つ`Effect`の新しいコピーが返されます。
+
+:::
+
+**例**
+
+少額の手数料を取引に加算するプログラムを考えてみましょう：
+
+```ts twoslash
+import { pipe, Effect } from "effect";
+
+// 取引金額に少額の手数料を加算する関数
+const addServiceCharge = (amount: number) => amount + 1;
+
+// データベースから取引金額を取得する非同期タスクのシミュレーション
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+// 取引金額に手数料を適用
+const finalAmount = pipe(fetchTransactionAmount, Effect.map(addServiceCharge));
+
+Effect.runPromise(finalAmount).then(console.log); // 出力: 101
+```
+
+## as
+
+`Effect`を定数値にマップし、元の値を置き換えるには、`Effect.as`を使用します。
+
+```ts twoslash
+import { pipe, Effect } from "effect";
+
+const program = pipe(Effect.succeed(5), Effect.as("新しい値"));
+
+Effect.runPromise(program).then(console.log); // 出力: "新しい値"
+```
+
+## flatMap
+
+`Effect.flatMap`関数は、`Effect`インスタンスを生成する変換を連鎖させる必要がある場合に使用されます。これは、非同期操作や前の`Effect`の結果に依存する計算に便利です。
+
+**Effect.flatMap の使用法**
+
+`Effect.flatMap`関数を使用すると、新しい`Effect`値を生成する計算をシーケンスさせ、ネストされた`Effect`構造を"フラット化"できます。
+
+`Effect.flatMap`の構文は次のとおりです。
+
+```ts
+import { pipe, Effect } from "effect";
+
+const flatMappedEffect = pipe(myEffect, Effect.flatMap(transformation));
+// または
+const flatMappedEffect = Effect.flatMap(myEffect, transformation);
+// または
+const flatMappedEffect = myEffect.pipe(Effect.flatMap(transformation));
+```
+
+上記のコードでは、`transformation`は値を受け取って`Effect`を返す関数であり、`myEffect`は変換される最初の`Effect`です。
+
+:::info
+`Effect`は不変であることに注意が必要です。つまり、`Effect.flatMap`を使用して`Effect`に適用しても、元のデータ型は変更されません。代わりに、変換された値を持つ`Effect`の新しいコピーが返されます。
+
+:::
+
+**例**
+
+```ts twoslash
+import { pipe, Effect } from "effect";
+
+// 取引金額に安全に割引を適用する関数
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+// データベースから取引金額を取得する非同期タスクのシミュレーション
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+const finalAmount = pipe(
+  fetchTransactionAmount,
+  Effect.flatMap((amount) => applyDiscount(amount, 5))
+);
+
+Effect.runPromise(finalAmount).then(console.log); // 出力: 95
+```
+
+**すべての Effect が考慮されることの確認**
+
+`Effect.flatMap`内のすべての Effect が最終的な計算に寄与することを確認することが重要です。Effect を無視すると、予期しない動作や誤った結果につながる可能性があります：
+
+```ts {1}
+Effect.flatMap((amount) => {
+  Effect.sync(() => console.log(`割引を適用する: ${amount}`)); // このEffectは無視されます
+  return applyDiscount(amount, 5);
+});
+```
+
+上記の`Effect.sync`は無視され、`applyDiscount(amount, 5)`の結果には影響を与えません。Effect を正しく含めてエラーを避けるためには、`Effect.map`、`Effect.flatMap`、`Effect.andThen`、または`Effect.tap`などの関数を使って明示的にチェーンする必要があります。
+
+**`flatMap`に関するさらなる情報**
+
+多くの開発者が`flatMap`を配列と共に使用することを認識しているかもしれませんが、`Effect`フレームワークではネストされた`Effect`構造を管理し、解決するために使用されます。
+もし目標が Effect 内のネストされた配列をフラット化すること（`Effect<Array<Array<A>>>`）であれば、次のようにできます。
+
+```ts twoslash
+import { pipe, Effect, Array } from "effect";
+
+const flattened = pipe(
+  Effect.succeed([
+    [1, 2],
+    [3, 4],
+  ]),
+  Effect.map((nested) => Array.flatten(nested))
+);
+```
+
+または、標準の`Array.prototype.flat()`メソッドを使用して行うこともできます。
+
+## andThen
+
+`Effect.map`および`Effect.flatMap`関数は、異なるシナリオで`Effect`を別の`Effect`に変換します。最初のシナリオでは、変換関数が`Effect`を返さない場合に`Effect.map`が使用され、2 番目のシナリオでは、変換関数がまだ`Effect`を返す場合に`Effect.flatMap`が使用されます。しかし、両方のシナリオが変換を含むため、Effect モジュールは便利なオールインワンソリューションである`Effect.andThen`を公開しています。
+
+`Effect.andThen`関数は、通常 2 つの`Effect`のアクションを実行します。2 番目のアクションは、最初のアクションの結果に依存することがあります。
+
+```ts
+import { pipe, Effect } from "effect";
+
+const transformedEffect = pipe(myEffect, Effect.andThen(anotherEffect));
+// または
+const transformedEffect = Effect.andThen(myEffect, anotherEffect);
+// または
+const transformedEffect = myEffect.pipe(Effect.andThen(anotherEffect));
+```
+
+`anotherEffect`アクションはさまざまな形を取り得ます：
+
+1. 値（すなわち、`Effect.as`の同じ機能）
+2. 値を返す関数（すなわち、`Effect.map`の同じ機能）
+3. `Promise`
+4. `Promise`を返す関数
+5. `Effect`
+6. `Effect`を返す関数（すなわち、`Effect.flatMap`の同じ機能）
+
+**例**
+
+`Effect.andThen`を使用する代わりに`Effect.map`と`Effect.flatMap`を比較する例を見てみましょう。
+
+```ts
+import { pipe, Effect } from "effect";
+
+// 取引金額に安全に割引を適用する関数
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+// データベースから取引金額を取得する非同期タスクのシミュレーション
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+// Effect.mapとEffect.flatMapを使用
+const result1 = pipe(
+  fetchTransactionAmount,
+  Effect.map((amount) => amount * 2),
+  Effect.flatMap((amount) => applyDiscount(amount, 5))
+);
+
+Effect.runPromise(result1).then(console.log); // 出力: 190
+
+// Effect.andThenを使用
+const result2 = pipe(
+  fetchTransactionAmount,
+  Effect.andThen((amount) => amount * 2),
+  Effect.andThen((amount) => applyDiscount(amount, 5))
+);
+
+Effect.runPromise(result2).then(console.log); // 出力: 190
+```
+
+`Option`（選択値の処理に一般的に使用される型）や`Either`（単純なエラーシナリオを処理するための型）が`Effect.andThen`と互換性があることにも注意が必要です。ただし、これらの型が使用される場合、操作は前述のシナリオ 5 および 6 に分類され、`Option`および`Either`はこの文脈で`Effect`として機能します。
+
+**Option を使った例**
+
+```ts twoslash
+import { pipe, Effect, Option } from "effect";
+
+// データベースから数値を取得する非同期タスクのシミュレーション
+const fetchNumberValue = Effect.promise(() => Promise.resolve(42));
+
+// タイプはEffect<Option<number>, never, never>であることが期待されますが、
+// 実際にはEffect<number, NoSuchElementException, never>です。
+const program = pipe(
+  fetchNumberValue,
+  Effect.andThen((x) => (x > 0 ? Option.some(x) : Option.none()))
+);
+```
+
+型`Option<A>`は、`Effect<A, NoSuchElementException>`という型の Effect として解釈されます。
+
+**Either を使った例**
+
+```ts twoslash
+import { pipe, Effect, Either } from "effect";
+
+// 文字列から整数を解析する関数（失敗する可能性あり）
+const parseInteger = (input: string): Either.Either<number, string> =>
+  isNaN(parseInt(input))
+    ? Either.left("無効な整数")
+    : Either.right(parseInt(input));
+
+// データベースから文字列を取得する非同期タスクのシミュレーション
+const fetchStringValue = Effect.promise(() => Promise.resolve("42"));
+
+// タイプはEffect<Either<number, string>, never, never>であることが期待されますが、
+// 実際にはEffect<number, string, never>です。
+const program = pipe(
+  fetchStringValue,
+  Effect.andThen((str) => parseInteger(str))
+);
+```
+
+型`Either<A, E>`は、`Effect<A, E>`という型の Effect として解釈されます。
+
+## tap
+
+`Effect.tap` API は`Effect.flatMap`と似た構文を持っていますが、変換関数の結果は**無視**されます。これは、前の計算から返された値が次の計算にも利用可能であることを意味します。
+
+**例**
+
+```ts twoslash
+import { pipe, Effect } from "effect";
+
+// 取引金額に安全に割引を適用する関数
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+// データベースから取引金額を取得する非同期タスクのシミュレーション
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+const finalAmount = pipe(
+  fetchTransactionAmount,
+  Effect.tap((amount) =>
+    Effect.sync(() => console.log(`割引を適用する: ${amount}`))
+  ),
+  // `amount`はまだ利用可能です！
+  Effect.flatMap((amount) => applyDiscount(amount, 5))
+);
+
+Effect.runPromise(finalAmount).then(console.log);
+/*
+出力:
+割引を適用する: 100
+95
+*/
+```
+
+`Effect.tap`を使用すると、計算中に副作用を実行できますが、結果を変更しません。これは、ログを記録したり、追加のアクションを実行したり、中間値を観察したりする際に便利です。
+
+## all
+
+`Effect.all`関数は、複数の効果を組み合わせて、結果のタプルを生成する単一の効果を生成するための強力なユーティリティです。
+
+**Effect.all の使用法**
+
+`Effect.all`の構文は次のとおりです。
+
+```ts
+import { Effect } from "effect"
+
+const combinedEffect = Effect.all([effect1, effect2, ...])
+```
+
+`Effect.all`関数は、これらの効果を**順次**実行します（同時実行の管理やこれらの効果の実行方法を制御するオプションについては、[同時実行オプション](../concurrency/concurrency-options)ドキュメントを参照してください）。
+
+この関数は、各個々の効果の結果を含むタプルを生成する新しい効果を返します。結果の順序は、`Effect.all`に渡された元の効果の順序に対応しています。
+
+**例**
+
+```ts twoslash
+import { Effect } from "effect";
+
+// 設定をファイルから読み取るシミュレーション関数
+const webConfig = Effect.promise(() =>
+  Promise.resolve({ dbConnection: "localhost", port: 8080 })
+);
+
+// データベース接続の確認を行うシミュレーション関数
+const checkDatabaseConnectivity = Effect.promise(() =>
+  Promise.resolve("データベースに接続しました")
+);
+
+// スタートアップチェックを実行するために両方の効果を組み合わせる
+const startupChecks = Effect.all([webConfig, checkDatabaseConnectivity]);
+
+Effect.runPromise(startupChecks).then(([config, dbStatus]) => {
+  console.log(`設定: ${JSON.stringify(config)}, DBステータス: ${dbStatus}`);
+});
+/*
+出力:
+設定: {"dbConnection":"localhost","port":8080}, DBステータス: データベースに接続しました
+*/
+```
+
+:::info
+`Effect.all`関数は、タプルを組み合わせるだけでなく、イテラブル、構造体、およびレコードとも動作します。`all`の完全な可能性を探るには、[Effect の制御フローオペレーターの紹介](../control-flow#all)ドキュメントにアクセスしてください。
+
+:::
+
+## 最初のパイプラインを構築する
+
+次に、`pipe`、`Effect.all`、`Effect.andThen`を組み合わせて、一連の変換を実行するパイプラインを構築しましょう。
+
+```ts twoslash
+import { Effect, pipe } from "effect";
+
+// 取引金額に少額の手数料を加算する関数
+const addServiceCharge = (amount: number) => amount + 1;
+
+// 取引金額に安全に割引を適用する関数
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+// データベースから取引金額を取得する非同期タスクのシミュレーション
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+// 設定ファイルから割引率を取得する非同期タスクのシミュレーション
+const fetchDiscountRate = Effect.promise(() => Promise.resolve(5));
+
+// 効果のパイプラインを作成
+const program = pipe(
+  Effect.all([fetchTransactionAmount, fetchDiscountRate]),
+  Effect.flatMap(([transactionAmount, discountRate]) =>
+    applyDiscount(transactionAmount, discountRate)
+  ),
+  Effect.map(addServiceCharge),
+  Effect.map((finalAmount) => `請求額: ${finalAmount}`)
+);
+
+// プログラムを実行して結果をログに記録
+Effect.runPromise(program).then(console.log); // 出力: "請求額: 96"
+```
+
+## pipe メソッド
+
+Effect は、[rxjs](https://rxjs.dev/api/index/function/pipe)の`pipe`メソッドに似た`pipe`メソッドも提供しています。このメソッドを使用すると、複数の操作を連鎖させることができ、コードが簡潔で読みやすくなります。
+
+`pipe` **メソッド**の使い方は次のとおりです。
+
+```ts
+const result = effect.pipe(func1, func2, ..., funcN)
+```
+
+これは、次のように`pipe` **関数**を使用するのと同等です。
+
+```ts
+const result = pipe(effect, func1, func2, ..., funcN)
+```
+
+`pipe`メソッドはすべての`Effect`および多くの他のデータ型で使用でき、`Function`モジュールから`pipe`関数をインポートする必要がなくなり、キーストロークを節約します。
+
+前の例を`pipe`メソッドを使って書き直してみましょう。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const addServiceCharge = (amount: number) => amount + 1;
+
+const applyDiscount = (
+  total: number,
+  discountRate: number
+): Effect.Effect<number, Error> =>
+  discountRate === 0
+    ? Effect.fail(new Error("割引率はゼロにできません"))
+    : Effect.succeed(total - (total * discountRate) / 100);
+
+const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
+
+const fetchDiscountRate = Effect.promise(() => Promise.resolve(5));
+
+// ---cut---
+const program = Effect.all([fetchTransactionAmount, fetchDiscountRate]).pipe(
+  Effect.flatMap(([transactionAmount, discountRate]) =>
+    applyDiscount(transactionAmount, discountRate)
+  ),
+  Effect.map(addServiceCharge),
+  Effect.map((finalAmount) => `請求額: ${finalAmount}`)
+);
+```
+
+## チートシート
+
+これまで見てきた変換関数をまとめましょう：
+
+| **関数**  | **入力**                                  | **出力**                    |
+| --------- | ----------------------------------------- | --------------------------- |
+| `map`     | `Effect<A, E, R>`, `A => B`               | `Effect<B, E, R>`           |
+| `flatMap` | `Effect<A, E, R>`, `A => Effect<B, E, R>` | `Effect<B, E, R>`           |
+| `andThen` | `Effect<A, E, R>`, \*                     | `Effect<B, E, R>`           |
+| `tap`     | `Effect<A, E, R>`, `A => Effect<B, E, R>` | `Effect<A, E, R>`           |
+| `all`     | `[Effect<A, E, R>, Effect<B, E, R>, ...]` | `Effect<[A, B, ...], E, R>` |
+
+これらの関数は、`Effect`計算を変換し、連鎖させるための強力なツールです。これらを使用することで、`Effect`内の値に関数を適用し、複雑な計算のパイプラインを構築できます。

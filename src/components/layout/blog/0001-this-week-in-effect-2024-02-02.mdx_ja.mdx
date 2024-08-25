@@ -1,0 +1,310 @@
+---
+title: This Week in Effect - 2024-02-02
+excerpt: This Week in Effectは、Effectコミュニティとエコシステムで起こったことをまとめた週刊ブログ投稿です。すべてのニュース、機能、および変更を把握するのに役立ちます！
+date: 2024-02-02
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-02-09
+---
+
+import Tweet from "astro-tweet";
+
+こんにちは、Effecters！初めての**T**his **W**eek **I**n **E**ffect (**TWIE**)へようこそ。
+
+この新しい形式を通じて、私たちのコミュニティと Effect エコシステム内で進行中のすべての事に目を向けていただけることを嬉しく思います。
+
+ここが初めての方へ、Effect は開発者が複雑な同期プログラムや非同期プログラムを作成するのを手助けするために設計された強力な TypeScript ライブラリです。Effect の大きな特徴の 1 つは、構造化された同時実行性を利用して、非同期キャンセルや安全なリソース管理といった機能を提供することです。これにより、強固でスケーラブルかつ効率的なプログラムを構築することが容易になります。
+
+まずは、以下にあるクイックスタートガイドとドキュメントを参照してください。これが Effect の旅の最初の一歩となります。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+コミュニティで先週何が起こったのかを紹介する前に、TWIE について少しお話ししたいと思います。
+
+私たちは、ますます多くの人々が Effect を採用し、コミュニティが急速に成長していることを目の当たりにしており、Effect エコシステムで起こっているすべての情報を把握するのは難しいと理解しています。
+
+- 私たちの Discord サーバーは**1850 人以上のメンバー**に達し、エンゲージメントは過去最高のものとなっています。
+- 2024 年 2 月 23 日にウィーンで開催される最初の**[Effect Days Conference](/events/effect-days)**が近づいており、たくさんの新しいコンテンツが登場します。
+- Effect に関連するすべてのプロジェクトが**重要な更新**を受けており、GitHub でも多くの活動が行われています。
+
+そこで、私たちはあなたが Effect の旅を十分に楽しむために必要な情報を簡単に見つけられるようにしたいと考えました。
+
+**これが TWIE を作成した理由です** – 先週の Effect に関する重要なイベントをお知らせするための週刊更新であり、コミュニティからの情報（Discord での議論、X の投稿、YouTube コンテンツなど）や技術的な観点からの情報を含みます。
+
+このようにして、Effect エコシステム内で起こっているすべてのことに目を光らせ、私たちのコミュニティに積極的に関与していただけるようお手伝いしたいのです。
+
+さあ、始めましょう！
+
+## テクノロジー
+
+今週のすべての機能、バグ修正、そして変更（時には破壊的なもの）をリストアップします。
+
+### 一般的な作業
+
+- [発行物の由来を追加](https://github.com/Effect-TS/effect/pull/2019)
+
+これは、パッケージの発行物の[由来](https://docs.npmjs.com/generating-provenance-statements)を追加します。
+
+### Effect Core
+
+- [intoDeferred を文書化](https://github.com/Effect-TS/effect/pull/2004)
+
+`Effect.intoDeferred`のために JSDoc ドキュメントを追加しました。
+
+- [FiberId のハッシュ化を最適化](https://github.com/Effect-TS/effect/pull/2007)
+
+計算をキャッシュすることで FiberId ハッシュの計算性能を向上させました。
+
+- [タイムアウトのために TimeoutException を使用](https://github.com/Effect-TS/effect/pull/1995)（破壊的変更）
+
+タイムアウトのために`TimeoutException`を使用します。以前はタイムアウトに`NoSuchElementException`を使用しており、これは`Effect.optionFromOptional`などのコンビネータを使用する際に混乱を招き、エラーが発生しやすくなっていました。
+
+以下のコードは現在有効です：
+
+```ts
+import { Effect } from "effect";
+
+const recoverFromTimeout = Effect.sleep("2 seconds").pipe(
+  Effect.timeout("1 second"),
+  Effect.catchTag("TimeoutException", () =>
+    Effect.log("プログラムがタイムアウトしました")
+  )
+);
+```
+
+- [Equal & Hash を暗黙的にする](https://github.com/Effect-TS/effect/pull/2023)（破壊的変更）
+
+この変更により、`Data`型を削除し、`Equal`と`Hash`を暗黙的な特性にします。
+
+主な理由は、`Data<A>`が`A & Equal`に構造的に等しいことですが、`Equal`を拡張したからといって、その平面的な等価性が実装されているわけではなく、型が単にノイズを追加するだけで安全性を得られなかったからです。
+
+モジュール`Data`は値レベルでは変更されず、以前に利用可能であったすべての関数はまったく同じ方法で機能します。
+
+型レベルでは、関数は`Readonly`のバリアントを返します。たとえば、以下のようにします：
+
+```ts
+import { Data } from "effect";
+
+const obj = Data.struct({
+  a: 0,
+  b: 1,
+});
+```
+
+これは`obj`を次のように型付けします：
+
+```ts
+declare const obj: {
+  readonly a: number;
+  readonly b: number;
+};
+```
+
+- [ReadonlyRecord の命名を改善](https://github.com/Effect-TS/effect/pull/2024)（破壊的変更）
+
+`ReadonlyRecord`モジュール内のメソッドの命名を改善しました。具体的には、`ReadonlyRecord.upsert`を`ReadonlyRecord.set`に、`ReadonlyRecord.update`を`ReadonlyRecord.replace`に変更しました。また、特定のキーの`ReadonlyRecord`の値に関数を適用するための新しい`ReadonlyRecord.modify`コンビネータを追加しました。
+
+### Effect Schema
+
+- [README に注釈を追加](https://github.com/Effect-TS/effect/pull/1996)
+
+プロジェクトの README に新しいセクションを追加し、`Arbitrary<A>`インスタンスの生成をカスタマイズする方法を説明しています。
+
+- [Schema.optional のオーバーロードを再編成](https://github.com/Effect-TS/effect/pull/2005)
+
+デフォルトを指定する際の開発体験を改善するために、`Schema.optional`のオーバーロードを再編成しました。
+
+- [変換との同等性を修正](https://github.com/Effect-TS/effect/pull/2017)
+
+スキーマが変換を含む場合をサポートするように、`Equivalence`の生成を改善しました。具体的には、次のコード：
+
+```ts
+import { Schema } from "@effect/schema";
+
+const schema = S.NumberFromString;
+const equivalence = E.make(schema);
+```
+
+はもはやエラーをスローしません。
+
+- [過剰なプロパティを保持するオプションを追加](https://github.com/Effect-TS/effect/pull/2011)
+
+解析時に過剰なプロパティを保持するための`option`を追加しました。この機能については[問題](https://github.com/Effect-TS/effect/issues/2008)で詳細に説明されています。まとめると次のようになります：
+
+```ts
+const data = S.parseSync({
+  foo: S.string,
+})({
+  foo: "ok",
+  bar: "ok",
+});
+```
+
+上記のコードは、スキーマに定義されていない`bar`プロパティを削除しますが、以下の追加オプションを使用すると：
+
+```ts
+const data = S.parseSync({
+  foo: S.string,
+})(
+  {
+    foo: "ok",
+    bar: "ok",
+  },
+  {
+    onExcessProperty: "preserve",
+  }
+);
+```
+
+過剰なプロパティはもはや削除されません。
+
+- [スキーマのジェネリックを再配置](https://github.com/Effect-TS/effect/pull/2026)（破壊的変更）
+
+型パラメータの順序を入れ替え、明示的な型定義を簡素化します。つまり、`Schema<R, I, A>`は`Schema<A, I = A, R = never>`に変更され、この変更により型パラメータのデフォルトを指定できるようになります。
+
+これにより、次のように単純なスキーマを型付けできます：
+
+```ts
+import { Schema } from "@effect/schema";
+
+declare const number: Schema<number>;
+```
+
+そして最も重要なのは、必要ない場合に文脈を無視できるようになります：
+
+```ts
+import { Schema } from "@effect/schema";
+
+declare const numberFromString: Schema<number, string>;
+```
+
+常にすべてのパラメータを書かなければならないわけではありません：
+
+```ts
+import { Schema } from "@effect/schema";
+
+declare const number: Schema<never, number, number>;
+```
+
+### Effect Platform
+
+- [フォークされたファイバーが中断可能であることを保証](https://github.com/Effect-TS/effect/pull/1999)
+
+中断不可能な領域でフォークされたファイバーが中断できることを保証します。
+
+- [Transferable に Proxy を使用](https://github.com/Effect-TS/effect/pull/2020)
+
+プラットフォームスキーマ`Transferable`に`Proxy`を使用します。
+
+- [Http Client に URL オブジェクトをサポート](https://github.com/Effect-TS/effect/pull/2016)
+
+HTTP Client に URL オブジェクトのサポートを追加しました。以下のコードは現在有効です：
+
+```ts
+import { HttpClientRequest, HttpClient } from "@effect/platform";
+import { Effect } from "effect";
+
+const request = HttpClientRequest.get(new URL("https://www.google.com/")).pipe(
+  HttpClient.fetchOk,
+  Effect.flatMap((_) => _.text)
+);
+```
+
+- [再エクスポートを削除し、パッケージの名前を変更](https://github.com/Effect-TS/effect/pull/2025)（破壊的変更）
+
+`@effect/platform-*`パッケージからの再エクスポートを削除し、専門モジュールの名前を改善しました。一般的なモジュールである`HttpClient`は、今後は`@effect/platform`からのみインポートでき、特定のモジュールは特定のプラットフォームパッケージからインポートできます（この場合は`@effect/platform-node`）。
+
+```ts
+import { Runtime } from "@effect/platform-node";
+```
+
+は次のようになります：
+
+```ts
+import { NodeRuntime } from "@effect/platform-node";
+```
+
+また：
+
+```ts
+import { HttpClient } from "@effect/platform-node";
+```
+
+は次のようになります：
+
+```ts
+import { HttpClient } from "@effect/platform";
+```
+
+- [Transferable のエンコーディングを修正](https://github.com/Effect-TS/effect/pull/2027)（破壊的変更）
+
+Transferable スキーマのエンコーディングを修正します。これは、型レベルの変更が含まれているため、破壊的です。
+
+### Effect Experimental
+
+- [フォークされたファイバーが中断可能であることを保証](https://github.com/Effect-TS/effect/pull/1999)
+
+中断不可能な領域でフォークされたファイバーが中断できることを保証します。
+
+### Effect CLI
+
+- [単一入力のエラーレポートを修正](https://github.com/Effect-TS/effect/pull/2001)
+
+可変引数オプションに単一の入力が提供された場合に適切なエラーレポートを保証します。以前は、チェックが静かにスキップされていました。
+
+- [README を更新](https://github.com/Effect-TS/effect/pull/2003)
+
+README を修正して、以下のように更新しました：
+
+- 実行可能パラメータの導入：CLI はもはや`process.argv`をスライスする必要がなく、実行可能パスを自動的に処理します。
+- README の例から欠落していた`Args`を追加しました。
+
+## コミュニティ
+
+なんと、先週 22 人の新しい Effecter を迎えました！コミュニティに参加していただきありがとうございます。今後の活発な参加を楽しみにしています！
+
+### Effect Days の更新
+
+お知らせです！ウィーンからの大きな発表です！
+
+2 月 22 日の Effect Days ワークショップにさらに 5 つの席を追加しました！ワークショップとカンファレンスの両方のチケットは急速に売り切れているため、機会を逃さないようにしてください！
+
+<Tweet id="1753044739773833579" />
+
+カンファレンスが近づく中、最終スピーカーを発表しました：Tim Smart、Effect Core コントリビューターおよび Effectful Technologies の創設エンジニアです！
+
+<Tweet id="1752300636719517899" />
+
+ウィーンのスピーカー全員のラインアップはこちらでご確認いただけます：[スピーカー](/events/effect-days#speakers)
+
+また、23 日が近づくにつれ、スピーカーたちがスピーチの短いビデオプレビューを公開しています。
+
+こちらが Antoine Coulon のビデオです：
+
+<Tweet id="1750133279678742956" />
+
+そして Mattia Manzati のビデオはこちらです：
+
+<Tweet id="1750807628995772490" />
+
+## 閉会のメッセージ
+
+今週は以上です。私たちのコミュニティの大切な一員でいてくださり、ありがとうございます。皆さんのフィードバックやリクエストは、私たちがこの新しい形式を調整する上で非常に重要です。お気軽にご意見をお聞かせください。コミュニティのニーズに応じて最善を尽くすよう努めます。
+
+Effect コミュニティチーム

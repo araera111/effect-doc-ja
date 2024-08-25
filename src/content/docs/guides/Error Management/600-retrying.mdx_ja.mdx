@@ -1,0 +1,177 @@
+---
+title: 再試行
+excerpt: Effectの再試行機能をマスターすることで、アプリケーションの耐障害性を高める方法を学びます。`retry`、`retryN`、`retryOrElse`関数やスケジュールポリシーを探索し、一時的な障害を自動で処理する方法を学びましょう。ネットワークリクエスト、データベース操作、その他のエラーが発生しやすい操作に対処する際に、Effectが堅牢な再試行戦略の実装をどのように簡素化するかを発見してください。
+bottomNavigation: pagination
+---
+
+ソフトウェア開発では、ネットワークの問題、リソースの利用不可、外部依存関係など、さまざまな要因により操作が一時的に失敗する状況に遭遇することがよくあります。このような場合、操作を自動的に再試行して、最終的に成功させることが望ましいことが多いです。
+
+再試行は、一時的な障害を処理し、重要な操作の成功した実行を保証するための強力なメカニズムです。Effect では、ビルトインの関数やスケジュール戦略を利用して、再試行をシンプルかつ柔軟に行うことができます。
+
+本ガイドでは、Effect における再試行の概念を探り、失敗シナリオを処理するために`retry`および`retryOrElse`関数をどのように使用するかを学びます。また、操作を何回再試行すべきか、いつ再試行すべきかを指示する再試行ポリシーをスケジュールを使って定義する方法も見ていきます。
+
+ネットワークリクエスト、データベース操作、またはその他のエラーが発生しやすい操作に取り組んでいる場合、Effect の再試行機能をマスターすることで、アプリケーションの耐障害性と信頼性を大幅に向上させることができます。
+
+異なる再試行関数の機能を示すために、可能な失敗をシミュレートする以下のヘルパーを使用します：
+
+```twoslash include fake
+import { Effect } from "effect"
+
+let count = 0
+
+// 可能な失敗を伴うエフェクトをシミュレート
+export const effect = Effect.async<string, Error>((resume) => {
+  if (count <= 2) {
+    count++
+    console.log("failure")
+    resume(Effect.fail(new Error()))
+  } else {
+    console.log("success")
+    resume(Effect.succeed("yay!"))
+  }
+})
+```
+
+```ts filename="fake.ts" twoslash
+// @include: fake
+```
+
+## retry
+
+`retry`の基本的な構文は以下の通りです：
+
+```ts
+Effect.retry(effect, policy);
+```
+
+**例**
+
+```ts twoslash
+// @filename: fake.ts
+// @include: fake
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Schedule } from "effect";
+import { effect } from "./fake";
+
+// 再試行間の固定遅延を使用して繰り返しポリシーを定義
+const policy = Schedule.fixed("100 millis");
+
+const repeated = Effect.retry(effect, policy);
+
+Effect.runPromise(repeated).then(console.log);
+/*
+出力:
+failure
+failure
+failure
+success
+yay!
+*/
+```
+
+## n 回再試行
+
+ポリシーが単純で、失敗したエフェクトが即座に再試行される場合にはショートカットがあります：
+
+```ts twoslash
+// @filename: fake.ts
+// @include: fake
+
+// @filename: index.ts
+// ---cut---
+import { Effect } from "effect";
+import { effect } from "./fake";
+
+Effect.runPromise(Effect.retry(effect, { times: 5 }));
+/*
+出力:
+failure
+failure
+failure
+success
+*/
+```
+
+## retryOrElse
+
+エラーが発生した場合にフォールバック戦略を定義できる別のバージョンの`retry`があります。
+何か問題が起きた場合、`retryOrElse`関数を使用してそれを処理できます。
+再試行が失敗したときに実行される`orElse`コールバックを追加することができます。
+
+`retryOrElse`の基本的な構文は以下の通りです：
+
+```ts
+Effect.retryOrElse(effect, policy, fallback);
+```
+
+**例**
+
+```ts twoslash
+// @filename: fake.ts
+// @include: fake
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Schedule, Console } from "effect";
+import { effect } from "./fake";
+
+const policy = Schedule.addDelay(
+  Schedule.recurs(2), // 最大で2回再試行
+  () => "100 millis" // 再試行の間に100ミリ秒の遅延を追加
+);
+
+// 指定されたポリシーでエフェクトを再試行し、すべての再試行が失敗した場合はフォールバックエフェクトを提供する新しいエフェクトを作成
+const repeated = Effect.retryOrElse(effect, policy, () =>
+  Console.log("orElse").pipe(Effect.as("default value"))
+);
+
+Effect.runPromise(repeated).then(console.log);
+/*
+出力:
+failure
+failure
+failure
+orElse
+default value
+*/
+```
+
+## 条件に基づく再試行
+
+条件を指定することで、エフェクトの再試行方法を管理することができます。`while`または`until`オプションを利用します。
+
+```ts twoslash
+import { Effect } from "effect";
+
+let count = 0;
+
+// 各呼び出しごとに異なるエラーをシミュレートするエフェクトを定義
+const action = Effect.failSync(() => {
+  console.log(`Action called ${++count} time(s)`);
+  return `Error ${count}`;
+});
+
+// 特定の条件が満たされるまでアクションを再試行
+const program = Effect.retry(action, { until: (err) => err === "Error 3" });
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+Action called 1 time(s)
+Action called 2 time(s)
+Action called 3 time(s)
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: 'Error 3' }
+}
+*/
+```
+
+:::info
+成功した結果に基づいた条件を設定するには
+[Effect.repeat](../scheduling/repetition#repeating-based-on-a-condition)を使用することを検討してください。
+
+:::

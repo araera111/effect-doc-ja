@@ -1,0 +1,190 @@
+---
+title: 今週のEffect - 2024-03-22
+excerpt: Schema 0.64などの主要な技術リリース、ウィーンでの最近のEffect Daysカンファレンスからの洞察、そして私たちのコミュニティからの新しいエキサイティングなコンテンツをお届けします。
+date: 2024-03-22
+authors:
+  - name: ダビデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のeffect-2024-03-15
+  - 今週のeffect-2024-03-29
+---
+
+import { YouTube, Tweet } from "astro-embed";
+
+こんにちは、Effecters！
+
+**今週の Effect（TWIE）**に戻ってきてくれてありがとうございます！これは、コミュニティや Effect エコシステム内で何が起こっているかを把握するための毎週のアップデートです。
+
+初めての方へ、Effect は開発者が複雑な同期および非同期プログラムを作成するのを支援する強力な TypeScript ライブラリです。Effect を他のものと差別化する主な特徴の一つは、構造化された並行性を活用して、非同期キャンセルや安全なリソース管理などの機能を提供し、堅牢でスケーラブルかつ効率的なプログラムの構築を容易にしている点です。
+
+まず、以下にあるクイックスタートガイドとドキュメントが Effect の旅の第一歩となります。お楽しみください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方には、TWIE の目的とその内容について少しご紹介します。
+
+私たちは、コミュニティが急速に成長しているのを見て嬉しく思っています。ますます多くの人々が Effect を採用しています。同時に、Effect エコシステムで何が起こっているかを把握するのは簡単ではないかもしれません。
+
+- 私たちの Discord サーバーは数日前に**2060+メンバー**を達成し、エンゲージメントは過去最高に達しました。
+- 2024 年 2 月 23 日にウィーンで初の**[Effect Days Conference](/events/effect-days)**を開催し、コミュニティと直接つながる素晴らしい体験をしました。ウィーンに参加できなかった方も、たくさんのエキサイティングなアップデートやコンテンツが用意されていますので、お楽しみに！
+- Effect に関連するすべてのプロジェクトが**重要なアップデート**を受けており、GitHub に多くのアクティビティがあります！
+
+私たちは、Effect の旅を最大限に楽しむために必要な情報を簡単に見つけられるようにし、コミュニティに積極的に関与できるようにしたいと考えています！
+
+**そのために、私たちは TWIE を作成しました** - これは、先週の Effect に関する重要なイベントをコミュニティ（Discord のディスカッション、X 投稿、YouTube コンテンツなど）や技術的な視点からお知らせする毎週のアップデートです。
+
+それでは、ビジネスに戻りましょう！
+
+## 技術
+
+今週の大ニュース：**Schema 0.64**がリリースされました！すべての[Schema 0.64 の変更と改善](https://effect.website/blog/schema-release-0.64)を探索してみてください。
+
+以下は、先週行われたすべての変更のリストです。
+
+### Effect Core
+
+- [FiberSet/Map 内のファイバーの未処理ログレベルを none に設定する](https://github.com/Effect-TS/effect/pull/2328) (改善)
+- [Fix: Effect.Tag 生成のプロキシ関数が andThen/tap などの関数/isEffect チェックで動作するように修正](https://github.com/Effect-TS/effect/pull/2266) (バグ修正)
+- [Predicate.isTruthy を追加](https://github.com/Effect-TS/effect/pull/2336) (機能)
+- [Effect.if の最初の引数が Effect でない場合にクラッシュしないように修正](https://github.com/Effect-TS/effect/pull/2299) (バグ修正)
+- [fiber ref からラベルを使用しないメトリクスを修正](https://github.com/Effect-TS/effect/pull/2351) (バグ修正)
+- [NoSuchElementException で失敗する Effect.filterOrFail のオーバーロードを追加](https://github.com/Effect-TS/effect/pull/2354) (機能)
+- [/platform 内のより多くのデータ型を Inspectable に実装](https://github.com/Effect-TS/effect/pull/2357) (機能)
+- [ランタイムメトリクスにおいて上昇/下降ではなく増分カウンタを使用](https://github.com/Effect-TS/effect/pull/2373) (バグ修正)
+- [@effect/opentelemetry メトリクスを仕様に準拠させる](https://github.com/Effect-TS/effect/pull/2375) (バグ修正)
+- [ConfigError \_tag を修正](https://github.com/Effect-TS/effect/pull/2206) (バグ修正)
+- [HaltStrategy.match 関数のシグネチャを変更](https://github.com/Effect-TS/effect/pull/2202) (リファクタリング, 次のマイナー)
+- [Cache, ScopedCache の型パラメータを交換](https://github.com/Effect-TS/effect/pull/2239) (リファクタリング, 次のマイナー)
+- [getEquivalence のパラメータ順を修正](https://github.com/Effect-TS/effect/pull/2243) (リファクタリング, 次のマイナー)
+- [頻度メトリクスキータイプに preregisteredWords オプションを追加](https://github.com/Effect-TS/effect/pull/2377) (機能)
+- [トレーサーを無効にするための fiber ref を追加](https://github.com/Effect-TS/effect/pull/2381) (機能)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2384) (改善)
+- [no-op スパンに名前を追加](https://github.com/Effect-TS/effect/pull/2386) (機能)
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+- [独自の NoInfer 型をネイティブの NoInfer 型に置き換え](https://github.com/Effect-TS/effect/pull/2390) (リファクタリング, 次のマイナー)
+
+### Effect Opentelemetry
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2384) (改善)
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+- [@effect/opentelemetry メトリクスを仕様に準拠させる](https://github.com/Effect-TS/effect/pull/2375) (バグ修正)
+
+### Effect Vitest
+
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+- [vitest ヘルパーを@effect/vitest として公開](https://github.com/Effect-TS/effect/pull/2369) (改善)
+
+### Effect Printer
+
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+
+### Effect RPC
+
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+
+### Effect Typeclass
+
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+
+### Effect Experimental
+
+- [**proto**の使用を削除](https://github.com/Effect-TS/effect/pull/2352) (リファクタリング)
+- [ResultPersistence に clear API を追加](https://github.com/Effect-TS/effect/pull/2355) (機能)
+- [Persistence モジュールに Redis と TimeToLive を追加](https://github.com/Effect-TS/effect/pull/2383) (機能)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2384) (改善)
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+
+### Effect Platform
+
+- [Socket ファイバーが中断可能であることを確認](https://github.com/Effect-TS/effect/pull/2325) (機能)
+- [WebSocket イベントが見逃されないことを確認](https://github.com/Effect-TS/effect/pull/232) (機能)
+- [WebSocket の onclose + onerror に Deferred.unsafeDone を使用](https://github.com/Effect-TS/effect/pull/2330) (改善)
+- [/platform FileSystem に.watch メソッドを追加](https://github.com/Effect-TS/effect/pull/2334) (機能)
+- [/platform 内のより多くのデータ型を Inspectable に実装](https://github.com/Effect-TS/effect/pull/2357) (機能)
+- [単一ファイルの監視を追加](https://github.com/Effect-TS/effect/pull/2360) (機能)
+- [@parcel/watcher がインポートできなかった場合、node fs.watch にフェイルバック](https://github.com/Effect-TS/effect/pull/2368) (バグ修正)
+- [/platform データ型の型パラメータを交換](https://github.com/Effect-TS/effect/pull/2376) (リファクタリング)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2384) (改善)
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+- [README: Terminal、Command、および FileSystem に関する基本的なドキュメントを追加](https://github.com/Effect-TS/effect/pull/2393) (ドキュメント更新)
+
+### Effect CLI
+
+- [**proto**の使用を削除](https://github.com/Effect-TS/effect/pull/2352) (リファクタリング)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2384) (改善)
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+
+### Effect Schema
+
+- [欠落している Date API インターフェイスを追加](https://github.com/Effect-TS/effect/pull/2332) (機能)
+- [JSONSchema: アノテーションを通じてオーバーライドを許可](https://github.com/Effect-TS/effect/pull/2337) (バグ修正)
+- [TaggedClass、TaggedError、および TaggedRequest 内で effect/Types の Simplify を使用](https://github.com/Effect-TS/effect/pull/2339) (バグ修正)
+- [effect/Boolean の not を使用](https://github.com/Effect-TS/effect/pull/2340) (リファクタリング)
+- [effect/BigDecimal の negate を使用](https://github.com/Effect-TS/effect/pull/2341) (リファクタリング)
+- [pick/omit を改善し、Class のサポートを追加](https://github.com/Effect-TS/effect/pull/2343) (機能)
+- [ガードを推測できる TS 5.5 でのテストを修正](https://github.com/Effect-TS/effect/pull/2344) (バグ修正)
+- [BrandSchema を戻す](https://github.com/Effect-TS/effect/pull/2347) (機能)
+- [Class API 識別子を公開](https://github.com/Effect-TS/effect/pull/2348) (機能)
+- [typeAST、encodedAST の実装を修正](https://github.com/Effect-TS/effect/pull/2349) (バグ修正)
+- [ソート、平坦化、統合を削除](https://github.com/Effect-TS/effect/pull/2350) (リファクタリング)
+- [optional dual を作成](https://github.com/Effect-TS/effect/pull/2353) (機能)
+- [partial dual を作成](https://github.com/Effect-TS/effect/pull/2356) (機能)
+- [エクスポートの防御コピーを作成](https://github.com/Effect-TS/effect/pull/2363) (リファクタリング)
+- [README を更新](https://github.com/Effect-TS/effect/pull/2365) (ドキュメント更新)
+- [すべての型を改善し、追加の any / never の組み合わせを含むようにする](https://github.com/Effect-TS/effect/pull/2366) (改善)
+- [Schema テンプレートリテラル正規表現の特殊文字をエスケープ](https://github.com/Effect-TS/effect/pull/2370) (バグ修正)
+- [内部の TAG 定数を排除することでエラーメッセージを強化](https://github.com/Effect-TS/effect/pull/2379) (リファクタリング)
+- [ドキュメント: optionalToOptional および optionalToRequired](https://github.com/Effect-TS/effect/pull/2380) (ドキュメント更新)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2384) (改善)
+- [欠陥情報と TaggedError メッセージを保持](https://github.com/Effect-TS/effect/pull/2359) (改善)
+- [TypeScript を 5.4 に更新](https://github.com/Effect-TS/effect/pull/2385) (改善)
+- [カスタム Simplify 型を削除](https://github.com/Effect-TS/effect/pull/2391) (リファクタリング)
+
+## コミュニティ
+
+先週、私たちの[Discord サーバー](https://discord.gg/effect-ts)に+30 人の新しい Effecters を迎えました！新しいメンバー全員が Effect コミュニティに参加してくれてありがとう、そして私たちはあなたを歓迎します！
+
+### コンテンツアップデート
+
+今週のコミュニティの重要なハイライトを見てみましょう。
+
+まず、[Milad](https://www.youtube.com/@SignLanguageTech)による手話の素晴らしいビデオを紹介します。Effect をあなたのオーディエンスに広めるための献身に感謝します、Milad！
+
+<YouTube id="K30lWUYluI4" />
+
+次に、Effect Days からの新しいコンテンツをお届けします。ワークショップの参加者 2 名の証言をご紹介します。
+
+**[inato](https://inato.com/)**のローラ・レトリュ＝シャバステルさん：
+
+<YouTube id="X40nAhv4dY4" />
+
+そして[サンドロ・マリオーネ](https://twitter.com/SandroMaglione)さん：
+
+<YouTube id="Ebwu5h_xRk8" />
+
+フランス語を話す皆様へのお知らせです：初の[Effect Paris Meetup](https://www.meetup.com/fr-FR/effect-paris/)が 4 月に開催されます！イベントを整理してくれた[Evryg](https://www.evryg.com)チーム、[ジャン＝バティスト・ムッソ](https://twitter.com/jbmusso)、[アントワーヌ・クーロン](https://twitter.com/c9antoine)に感謝します。
+
+<Tweet id="1764621821184262629" />
+
+多くのニュースやコンテンツが続々と到着予定ですので、最新情報を得るために[Twitter アカウント](https://twitter.com/EffectTS_)や[YouTube チャンネル](https://www.youtube.com/@effect-ts)をフォローするのをお忘れなく！
+
+## 最後に
+
+今週は以上です。私たちのコミュニティの重要な一員でいることに感謝します。この新しい形式を調整する中で、皆様のフィードバックは非常に重要です。気軽にご意見をお寄せください。私たちは、コミュニティのニーズに合わせるために最善を尽くします。
+
+_The Effect Community Team_

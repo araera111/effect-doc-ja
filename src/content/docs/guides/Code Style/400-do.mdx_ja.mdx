@@ -1,0 +1,187 @@
+---
+title: 過剰なネストを簡素化する
+excerpt: elapsed 関数を使用して、さまざまなアプローチでコードを簡素化する方法を学びます。このガイドでは、単純なパイプ、"doシミュレーション"、および簡潔な `Effect.gen` コンストラクタを使用してエフェクトの実行にかかる時間を計算し、ログに記録する方法を示します。あなたのコーディングスタイルに合った方法を選び、コードの可読性を高めましょう。
+bottomNavigation: pagination
+---
+
+エフェクトが実行されるのにかかる時間を印刷するカスタム関数 `elapsed` を作成したいとします。
+
+## 単純なパイプを使用する
+
+最初は、標準の `pipe` [メソッド](../essentials/pipeline#the-pipe-method) を使用したコードが思いつくかもしれませんが、このアプローチは過剰なネストを引き起こし、冗長で読みづらいコードになる可能性があります。
+
+```ts twoslash
+import { Effect, Console } from "effect"
+
+// 現在のタイムスタンプを取得
+const now = Effect.sync(() => new Date().getTime())
+
+// `self` を実行するのにかかった時間を印刷
+const elapsed = <R, E, A>(
+  self: Effect.Effect<A, E, R>
+): Effect.Effect<A, E, R> =>
+  now.pipe(
+    Effect.andThen((startMillis) =>
+      self.pipe(
+        Effect.andThen((result) =>
+          now.pipe(
+            Effect.andThen((endMillis) => {
+              // ミリ秒単位で経過時間を計算
+              const elapsed = endMillis - startMillis
+              // 経過時間をログに記録
+              return Console.log(`Elapsed: ${elapsed}`).pipe(
+                Effect.map(() => result)
+              )
+            })
+          )
+        )
+      )
+    )
+  )
+
+// 200ミリ秒の遅延で成功する計算をシミュレート
+const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"))
+
+const program = elapsed(task)
+
+Effect.runPromise(program).then(console.log)
+/*
+Output:
+Elapsed: 204
+some task
+*/
+```
+
+この問題に対処し、コードをより管理しやすくする解決策があります。それが「doシミュレーション」です。
+
+## 「doシミュレーション」を使用する
+
+Effect の「doシミュレーション」は、他のプログラミング言語の「do記法」に似た、より宣言的なスタイルでコードを書くことを可能にします。これにより、`Effect.bind` や `Effect.let` のような関数を使用して、変数を定義し、それらに操作を行うことができます。
+
+doシミュレーションの使い方は以下の通りです。
+
+1. `Effect.Do` 値を使用して doシミュレーションを開始します：
+
+   ```ts
+   const program = Effect.Do.pipe(/* ... 残りのコード */)
+   ```
+
+2. doシミュレーションのスコープ内で、`Effect.bind` 関数を使用して変数を定義し、それらを `Effect` 値にバインドできます：
+
+   ```ts
+   Effect.bind("variableName", (scope) => effectValue)
+   ```
+
+- `variableName` は、定義したい変数の名前です。スコープ内で一意である必要があります。
+- `effectValue` は、変数にバインドしたい `Effect` 値です。関数呼び出しの結果や他の有効な `Effect` 値である必要があります。
+
+3. 複数の `Effect.bind` ステートメントを累積して、スコープ内で複数の変数を定義できます：
+
+   ```ts
+   Effect.bind("variable1", () => effectValue1),
+   Effect.bind("variable2", ({ variable1 }) => effectValue2),
+   // ... 追加のバインドステートメント
+   ```
+
+4. doシミュレーションのスコープ内でも、`Effect.let` 関数を使用して変数を定義し、それらを単純な値にバインドできます：
+
+   ```ts
+   Effect.let("variableName", (scope) => simpleValue)
+   ```
+
+- `variableName` は、変数に付ける名前です。先ほどと同様に、スコープ内で一意である必要があります。
+- `simpleValue` は、変数に割り当てたい値です。`number`、`string`、または `boolean` のような単純な値である必要があります。
+
+5. `Effect.andThen`、`Effect.flatMap`、`Effect.tap`、`Effect.map` などの通常のEffect関数は、doシミュレーション内でも引き続き使用できます。これらの関数は、スコープ内で累積された変数を引数として受け取ります：
+
+   ```ts
+   Effect.andThen(({ variable1, variable2 }) => {
+     // variable1 と variable2 を使用して操作を行う
+     // 結果として `Effect` 値を返す
+   })
+   ```
+
+doシミュレーションを用いることで、`elapsed` コンビネーターを次のように書き換えることができます：
+
+```ts twoslash
+import { Effect, Console } from "effect"
+
+// 現在のタイムスタンプを取得
+const now = Effect.sync(() => new Date().getTime())
+
+const elapsed = <R, E, A>(
+  self: Effect.Effect<A, E, R>
+): Effect.Effect<A, E, R> =>
+  Effect.Do.pipe(
+    Effect.bind("startMillis", () => now),
+    Effect.bind("result", () => self),
+    Effect.bind("endMillis", () => now),
+    Effect.let(
+      "elapsed",
+      ({ startMillis, endMillis }) => endMillis - startMillis // ミリ秒単位で経過時間を計算
+    ),
+    Effect.tap(({ elapsed }) => Console.log(`Elapsed: ${elapsed}`)), // 経過時間をログに記録
+    Effect.map(({ result }) => result)
+  )
+
+// 200ミリ秒の遅延で成功する計算をシミュレート
+const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"))
+
+const program = elapsed(task)
+
+Effect.runPromise(program).then(console.log)
+/*
+Output:
+Elapsed: 204
+some task
+*/
+```
+
+このソリューションでは、doシミュレーションを使用してコードが簡素化されました。`elapsed` 関数は `Effect.Do` から始まり、シミュレーションスコープに入ります。
+スコープ内では、`Effect.bind` を使用して変数を定義し、それらを対応するエフェクトにバインドしています。
+
+## `Effect.gen` を使用する
+
+最も簡潔で便利な解決策は、`Effect.gen` コンストラクタを使用することです。これにより、エフェクトを扱う際に [ジェネレータ](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) を使用できます。このアプローチは、ジェネレータ構文が提供するネイティブスコープを活用し、過剰なネストを回避し、より簡潔なコードを実現します。
+
+```ts twoslash
+import { Effect } from "effect"
+
+// 現在のタイムスタンプを取得
+const now = Effect.sync(() => new Date().getTime())
+
+// `self` を実行するのにかかった時間を印刷
+const elapsed = <R, E, A>(
+  self: Effect.Effect<A, E, R>
+): Effect.Effect<A, E, R> =>
+  Effect.gen(function* () {
+    const startMillis = yield* now
+    const result = yield* self
+    const endMillis = yield* now
+    // ミリ秒単位で経過時間を計算
+    const elapsed = endMillis - startMillis
+    // 経過時間をログに記録
+    console.log(`Elapsed: ${elapsed}`)
+    return result
+  })
+
+// 200ミリ秒の遅延で成功する計算をシミュレート
+const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"))
+
+const program = elapsed(task)
+
+Effect.runPromise(program).then(console.log)
+/*
+Output:
+Elapsed: 204
+some task
+*/
+```
+
+このソリューションでは、コードを簡素化するために [ジェネレータ](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) を使用することに切り替えています。`elapsed` 関数は現在、実行フローを定義するためにジェネレータ関数 (`Effect.gen`) を使用しています。ジェネレータ内では、`yield*` を使用してエフェクトを呼び出し、その結果を変数にバインドします。これにより、ネストが排除され、より読みやすく、直線的なコード構造が提供されます。
+
+Effectにおけるジェネレータスタイルは、より線形で逐次的な実行フローを使用しており、従来の命令型プログラミング言語に似ています。これにより、コードが読みやすく、理解しやすくなります。特に、命令型プログラミングパラダイムに慣れている開発者にとって理解しやすいです。
+
+対照的に、パイプスタイルは、特に複雑なエフェクトのある計算を扱う際に過剰なネストを引き起こす可能性があります。これにより、コードが追跡しにくくなり、デバッグが難しくなることがあります。
+
+Effectにおけるジェネレータの使い方についての詳細は、[Effectにおけるジェネレータの使用ガイド](../essentials/using-generators)を参照してください。

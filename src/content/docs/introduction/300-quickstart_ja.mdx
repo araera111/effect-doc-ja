@@ -1,0 +1,290 @@
+---
+title: クイックスタート
+excerpt: TypeScriptを使用して、新しいEffectプロジェクトをゼロからセットアップする方法を学びます。Node.js、Deno、Bun、Vite + React環境をカバーしています。各プラットフォームの手順に従って、Effectライブラリを使用した基本的なプログラムを作成します。
+bottomNavigation: pagination
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+このチュートリアルでは、**TypeScript 5.4 以降**を使用してゼロから新しい Effect プロジェクトをセットアップする手順を案内します。
+
+<Tabs items={["Node.js", "Deno", "Bun", "Vite + React"]}>
+<TabItem label="Node.js">
+
+**Node.js**の新しい Effect プロジェクトを作成するための手順は以下の通りです。
+
+1. 最初のステップとして、プロジェクトディレクトリを作成し、その中に移動します：
+
+   ```bash filename="Terminal"
+   mkdir hello-effect
+   cd hello-effect
+   ```
+
+2. 次に、npm を使用して TypeScript プロジェクトを初期化します（TypeScript 5.0 またはそれ以降をインストールしていることを確認してください）：
+
+   ```bash filename="Terminal"
+   npm init -y
+   npm install typescript --save-dev
+   ```
+
+   これにより、TypeScript プロジェクトの初期セットアップを含む`package.json`ファイルが作成されます。
+
+3. 次に、TypeScript を初期化します：
+
+   ```bash filename="Terminal"
+   npx tsc --init
+   ```
+
+   このコマンドを実行すると、TypeScript の設定オプションを含む`tsconfig.json`ファイルが生成されます。重要なオプションのひとつに`strict`フラグがあります。
+
+   `tsconfig.json`ファイルを開き、`strict`オプションの値が`true`に設定されていることを確認してください。
+
+   ```json filename="tsconfig.json"
+   {
+     "compilerOptions": {
+       "strict": true
+     }
+   }
+   ```
+
+4. 次に、必要なパッケージを依存関係としてインストールします：
+
+   ```bash filename="Terminal"
+   npm install effect
+   ```
+
+   このパッケージは、Effect プロジェクトの基盤となる機能を提供します。
+
+次に、すべてが正しくセットアップされていることを確認するために、簡単なプログラムを書いて実行します。
+
+ターミナルで以下のコマンドを実行します：
+
+```bash filename="Terminal"
+mkdir src
+touch src/index.ts
+```
+
+`index.ts`ファイルを開き、以下のコードを追加します：
+
+```ts filename="src/index.ts"
+import { Effect, Console } from "effect";
+
+const program = Console.log("Hello, World!");
+
+Effect.runSync(program);
+```
+
+`index.ts`ファイルを実行します。ここでは、[ts-node](https://github.com/TypeStrong/ts-node)を使用してターミナルで`index.ts`ファイルを実行します：
+
+```bash filename="Terminal"
+npx ts-node src/index.ts
+```
+
+`"Hello, World!"`というメッセージが表示されるはずです。これにより、プログラムが正しく動作していることを確認できます。
+
+</TabItem>
+<TabItem
+  label="Deno"
+      >
+
+**Deno**の新しい Effect プロジェクトを作成するための手順は以下の通りです。
+
+1. 最初のステップとして、プロジェクトディレクトリを作成し、その中に移動します：
+
+   ```bash filename="Terminal"
+   mkdir hello-effect
+   cd hello-effect
+   ```
+
+2. 次に、Deno を初期化します：
+
+   ```bash filename="Terminal"
+   deno init
+   ```
+
+すべてが正しくセットアップされていることを確認するために、簡単なプログラムを書いて実行します。
+
+`main.ts`ファイルを開き、内容を以下のコードに置き換えます：
+
+```ts filename="main.ts"
+import { Effect, Console } from "npm:effect";
+
+const program = Console.log("Hello, World!");
+
+Effect.runSync(program);
+```
+
+`main.ts`ファイルを実行します：
+
+```bash filename="Terminal"
+deno run main.ts
+```
+
+`"Hello, World!"`というメッセージが表示されるはずです。これにより、プログラムが正しく動作していることを確認できます。
+
+</TabItem>
+<TabItem
+  label="Bun"
+      >
+
+**Bun**の新しい Effect プロジェクトを作成するための手順は以下の通りです。
+
+1. 最初のステップとして、プロジェクトディレクトリを作成し、その中に移動します：
+
+   ```bash filename="Terminal"
+   mkdir hello-effect
+   cd hello-effect
+   ```
+
+2. 次に、Bun を初期化します：
+
+   ```bash filename="Terminal"
+   bun init
+   ```
+
+   このコマンドを実行すると、TypeScript の設定オプションを含む`tsconfig.json`ファイルが生成されます。重要なオプションのひとつに`strict`フラグがあります。
+
+   `tsconfig.json`ファイルを開き、`strict`オプションの値が`true`に設定されていることを確認してください。
+
+   ```json filename="tsconfig.json"
+   {
+     "compilerOptions": {
+       "strict": true
+     }
+   }
+   ```
+
+3. 次に、必要なパッケージを依存関係としてインストールします：
+
+   ```bash filename="Terminal"
+   bun add effect
+   ```
+
+   このパッケージは、Effect プロジェクトの基盤となる機能を提供します。
+
+簡単なプログラムを書いて、すべてが正しくセットアップされていることを確認しましょう。
+
+`index.ts`ファイルを開き、内容を以下のコードに置き換えます：
+
+```ts filename="index.ts"
+import { Effect, Console } from "effect";
+
+const program = Console.log("Hello, World!");
+
+Effect.runSync(program);
+```
+
+`index.ts`ファイルを実行します：
+
+```bash filename="Terminal"
+bun index.ts
+```
+
+`"Hello, World!"`というメッセージが表示されるはずです。これにより、プログラムが正しく動作していることを確認できます。
+
+</TabItem>
+<TabItem
+  label="Vite + React"
+      >
+
+**Vite + React**の新しい Effect プロジェクトを作成するための手順は以下の通りです。
+
+1. Vite プロジェクトのテンプレートを使用するため、ターミナルで以下のコマンドを実行します：
+
+   ```bash filename="Terminal"
+   # npm 6.x
+   npm create vite@latest hello-effect --template react-ts
+
+   # npm 7+, 追加のダブルダッシュが必要です：
+   npm create vite@latest hello-effect -- --template react-ts
+   ```
+
+   このコマンドは、React と TypeScript のテンプレートを持つ新しい Vite プロジェクトを作成します。
+
+2. 新しく作成されたプロジェクトディレクトリに移動し、必要なパッケージをインストールします：
+
+   ```bash filename="Terminal"
+   cd hello-effect
+   npm install
+   ```
+
+   パッケージがインストールされたら、`tsconfig.json`ファイルを開き、`strict`オプションの値が`true`に設定されていることを確認します。
+
+   ```json filename="tsconfig.json"
+   {
+     "compilerOptions": {
+       "strict": true
+     }
+   }
+   ```
+
+3. 次に、必要な`effect`パッケージを依存関係としてインストールします：
+
+   ```bash filename="Terminal"
+   npm install effect
+   ```
+
+   `effect`パッケージは、Effect プロジェクトの基盤となる機能を提供します。
+
+簡単なプログラムを書いて、すべてが正しくセットアップされていることを確認しましょう。
+
+`src/App.tsx`ファイルを開き、その内容を以下のコードに置き換えます：
+
+```tsx {1,5,10-16,30}
+import { useState, useMemo, useCallback } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
+import { Effect } from "effect";
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  // Effect<void>
+  const task = useMemo(
+    () => Effect.sync(() => setCount((current) => current + 1)),
+    [setCount]
+  );
+
+  const increment = useCallback(() => Effect.runSync(task), [task]);
+
+  return (
+    <>
+      <div>
+        <a href="https://vitejs.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={increment}>count is {count}</button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  );
+}
+
+export default App;
+```
+
+これらの変更を加えた後、以下のコマンドを実行して開発サーバーを起動します：
+
+```bash filename="Terminal"
+npm run dev
+```
+
+その後、**o**を押してアプリケーションをブラウザで開きます。
+
+ボタンをクリックすると、カウントが増加するはずです。これにより、プログラムが正しく動作していることを確認できます。
+
+</TabItem>
+
+</Tabs>

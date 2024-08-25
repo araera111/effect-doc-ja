@@ -1,0 +1,29 @@
+---
+title: Effect 2.4 (リリース)
+excerpt: 新機能と破壊的変更を強調したリリース投稿
+date: 2024-02-21
+authors:
+  - name: マイケル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+---
+
+`Effect`の新しいマイナーリリースが公開されました。ここでお知らせしたい大きな変更があります。
+
++ `Schedule<Env, In, Out>`が`Schedule<Out, In = unknown, Env = never>`に変更されました。この変更により、クリーンな型シグネチャ（`Schedule<void>`）が得られ、重要度に基づいて型が整理されます。
++ `Either<L, R>`が`Either<R, L = never>`に変更されました。この変更により、クリーンな型シグネチャ（`Either<void>`）が得られ、重要度に基づいて型が整理されます。
+
+上記の変更に対して、できるだけ簡単に移行できるようにコードモッドがリリースされました。
+
+以下のコマンドを実行して実行できます。
+
+```bash
+npx @effect/codemod minor-2.4 src/**/*
+```
+
+完璧ではないかもしれません - 問題が発生した場合はお知らせください。また、変更を元に戻す必要がある場合に備えて、実行する前に変更をコミットすることを忘れないでください。
+
+他にもいくつかの小さな変更がありましたので、すべてをご覧になりたい場合は、[Changelog](https://github.com/Effect-TS/effect/blob/7356dd8e6bff6b4842d77de4b7c7305334c8860b/packages/effect/CHANGELOG.md#240)や[Version PR](https://github.com/Effect-TS/effect/pull/2195)を自由にお読みください。
+
+最新の更新をフォローしたり、細かいディスカッションを行ったりするために、ぜひ私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に参加してください！

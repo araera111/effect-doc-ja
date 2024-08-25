@@ -1,0 +1,24 @@
+---
+title: デフォルトサービス
+excerpt: EffectのデフォルトサービスであるClock、Console、Random、ConfigProvider、Tracerについて探求しましょう。Effectがどのようにこれらのサービスのライブバージョンを自動的に提供し、プログラム内での明示的な実装を不要にするかを学びます。
+bottomNavigation: pagination
+---
+
+Effectには、5つのプリビルトサービスが備わっています。
+
+```ts
+type DefaultServices = Clock | Console | Random | ConfigProvider | Tracer
+```
+
+これらのサービスを利用する際、明示的に実装を提供する必要はありません。Effectが自動的にこれらのサービスのライブバージョンを効果に供給し、手動でのセットアップを不要にしてくれます。
+
+```ts twoslash
+import { Effect, Clock, Console } from "effect"
+
+const program = Effect.gen(function* () {
+  const now = yield* Clock.currentTimeMillis
+  yield* Console.log(`アプリケーションは ${new Date(now)} に起動しました`)
+})
+```
+
+ご覧のとおり、プログラムが`Clock`と`Console`の両方を利用している場合でも、エフェクトを実行するために必要なサービスを示す`Requirements`パラメータは`never`のままです。Effectがこれらのサービスをシームレスに処理してくれるのです。

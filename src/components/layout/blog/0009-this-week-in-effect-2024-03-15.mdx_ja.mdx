@@ -1,0 +1,135 @@
+---
+title: 今週のEffect - 2024-03-15
+excerpt: 技術的なアップデートと、4月に開催される初のEffectパリミートアップのエキサイティングな発表！
+date: 2024-03-15
+authors:
+  - name: ダビデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-03-08
+  - this-week-in-effect-2024-03-22
+---
+
+import { YouTube, Tweet } from "astro-embed";
+
+こんにちは、Effecters の皆さん！
+
+**T**his **W**eek **I**n **E**ffect（**TWIE**）にようこそ。これは私たちのコミュニティと Effect エコシステム内でのすべての出来事を追跡するための週次アップデートです。
+
+初めての方へ、Effect は開発者が複雑な同期および非同期プログラムを作成するのを支援するためにデザインされた強力な TypeScript ライブラリです。Effect の特徴の一つは、構造化された並行処理を活用し、非同期キャンセルや安全なリソース管理といった機能を提供することです。これにより、堅牢でスケーラブル、かつ効率的なプログラムの構築が容易になります。
+
+始めるために、以下に Effect のクイックスタートガイドとドキュメントを掲載しています。これが、あなたの Effect の旅の第一歩です。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方のために、TWIE とは何か、何を目的としているのかを簡単に説明します。
+
+コミュニティが急速に成長していることを嬉しく思います。ますます多くの人が Effect を採用しています。一方で、Effect エコシステム内での出来事を把握するのが難しいことも理解しています：
+
+- 私たちの Discord サーバーは数日前に**2050 人以上のメンバー**に達し、エンゲージメントは過去最高です。
+- 2024 年 2 月 23 日にウィーンで初の**[Effect Days Conference](/events/effect-days)**が開催されました。コミュニティとの直接的なつながりを持つ素晴らしい経験でした。ウィーンに参加できなかった方のために、エキサイティングなアップデートやコンテンツがたくさん来るので、お楽しみに！
+- Effect に関するすべてのプロジェクトが**重要なアップデート**を受けており、GitHub 上でも多くの活動が行われています。
+
+私たちは、あなたが Effect の旅を十分に楽しんで、コミュニティに積極的に関与できるよう、必要な情報を簡単に見つけられるようにしたいと考えています。
+
+**それが TWIE を作成した理由です** – 先週の Effect に関する重要なイベントをお知らせする週次アップデートで、コミュニティからの情報（Discord の議論、X の投稿、YouTube のコンテンツなど）と技術的な視点の両方からお伝えします。
+
+それでは、本題に戻ります！
+
+## 技術
+
+以下に、先週のすべての変更点をリストアップします。
+
+### Effect Core
+
+- [単一の期間入力を許可](https://github.com/Effect-TS/effect/pull/2263)（機能、次のマイナーリリース）
+- [Tap と andThen のフォールスルー関数](https://github.com/Effect-TS/effect/pull/2264)（バグ修正、次のマイナーリリース）
+- [ロガーのバッチ処理と構造化ログの追加](https://github.com/Effect-TS/effect/pull/2270)（機能、次のマイナーリリース）
+- [ManagedRuntime モジュールを追加し、段階的な導入を容易に](https://github.com/Effect-TS/effect/pull/2211)（機能）
+- [PromiseLike のサポートを追加](https://github.com/Effect-TS/effect/pull/2280)（機能）
+- [AbortSignal のサポートを runPromise に追加](https://github.com/Effect-TS/effect/pull/2285)（機能）
+- [RequestResolver のパフォーマンス改善](https://github.com/Effect-TS/effect/pull/2288)（改善）
+- [ManagedRuntime に AbortSignal サポートを追加](https://github.com/Effect-TS/effect/pull/2293)（機能）
+
+### Effect Experimental
+
+- [プラットフォーム HTTP サーバーに WebSocket サポートを追加](https://github.com/Effect-TS/effect/pull/2261)（機能、次のマイナーリリース）
+- [Persistence のエラーメッセージを改善](https://github.com/Effect-TS/effect/pull/2274)（改善、次のマイナーリリース）
+- [スキーマ: 次のマイナーリリース](https://github.com/Effect-TS/effect/pull/2172)（リファクタリング、ブレイキングチェンジ、次のマイナーリリース）
+
+### Effect Platform
+
+- [プラットフォーム HTTP サーバーに WebSocket サポートを追加](https://github.com/Effect-TS/effect/pull/2261)（機能、次のマイナーリリース）
+- [ソケットハンドラーのエラーを.run Effect に伝播](https://github.com/Effect-TS/effect/pull/2267)（機能、次のマイナーリリース）
+- [PlatformLogger モジュールを追加](https://github.com/Effect-TS/effect/pull/2269)（機能、次のマイナーリリース）
+- [log.txt を削除](https://github.com/Effect-TS/effect/pull/2272)（ドキュメント更新、次のマイナーリリース）
+- [プラットフォーム docgen を修正](https://github.com/Effect-TS/effect/pull/2272)（バグ修正、次のマイナーリリース）
+- [プラットフォームのエラーメッセージを改善](https://github.com/Effect-TS/effect/pull/2276)（改善）
+- [スキーマ: 次のマイナーリリース](https://github.com/Effect-TS/effect/pull/2172)（リファクタリング、ブレイキングチェンジ、次のマイナーリリース）
+- [ソケットに OpenTimeout & CloseEvent を追加](https://github.com/Effect-TS/effect/pull/2281)（機能）
+- [追加メタデータを持つ SocketCloseError を追加](https://github.com/Effect-TS/effect/pull/2283)（機能）
+- [http multipart PersistedFile スキーマに Schema.declare を使用](https://github.com/Effect-TS/effect/pull/2284)（リファクタリング）
+- [http フォームスキーマにオプションフィールドを許可](https://github.com/Effect-TS/effect/pull/2286)（機能）
+- [/platform runMain のエラーレポートを無効にするオプションを追加](https://github.com/Effect-TS/effect/pull/2287)（機能）
+
+### Effect RPC
+
+- [スキーマ: 次のマイナーリリース](https://github.com/Effect-TS/effect/pull/2172)（リファクタリング、ブレイキングチェンジ、次のマイナーリリース）
+
+### Effect Schema
+
+- [sortedSet コンビネータのアンカリーを解除](https://github.com/Effect-TS/effect/pull/2265)（改善、次のマイナーリリース）
+- [スキーマ: 次のマイナーリリース](https://github.com/Effect-TS/effect/pull/2172)（リファクタリング、ブレイキングチェンジ、次のマイナーリリース）
+- [propertySignature をリファクタリングし、propertySignatureAnnotations を追加](https://github.com/Effect-TS/effect/pull/2282)（リファクタリング）
+- [スキーマ注釈インターフェースを namespace Annotations にリファクタリング](https://github.com/Effect-TS/effect/pull/2289)（リファクタリング）
+- [PropertySignatureAST を PropertySignature namespace に移動](https://github.com/Effect-TS/effect/pull/2291)（リファクタリング）
+- [AST: getTemplateLiteralRegExp API を公開](https://github.com/Effect-TS/effect/pull/2292)（改善）
+- [pluck をリファクタリング](https://github.com/Effect-TS/effect/pull/2294)（リファクタリング）
+- [propertySignatureAnnotations を削除](https://github.com/Effect-TS/effect/pull/2295)（リファクタリング）
+- [ミュータブル API インターフェースを追加](https://github.com/Effect-TS/effect/pull/2297)（機能）
+- [headOr を headOrElse にリネーム](https://github.com/Effect-TS/effect/pull/2298)（リファクタリング）
+- [Schema.sortedSet を追加](https://github.com/Effect-TS/effect/pull/2241)（機能、次のマイナーリリース）
+
+### 一般的な雑務
+
+- [改善されたチェンジセット](https://github.com/Effect-TS/effect/pull/2279)
+
+## コミュニティ
+
+先週、新たに 50 人以上の Effecters が私たちの[Discord サーバー](https://discord.gg/effect-ts)に参加しました！新しいメンバーの皆さん、Effect コミュニティにようこそ！あなたたちと一緒に過ごせることを楽しみにしています！
+
+### コンテンツアップデート
+
+フランス語圏の皆さんへ、先週の発表を見逃した方のために：初の[Effect パリミートアップ](https://www.meetup.com/fr-FR/effect-paris/)が 4 月に開催されます！イベントの開催にあたり、[Evryg](https://www.evryg.com)チーム、[ジャン＝バティスト・ミュッソ](https://twitter.com/jbmusso)、[アントワーヌ・クーロン](https://twitter.com/c9antoine)に感謝します。
+
+<Tweet id="1764621821184262629" />
+
+私たちのコミュニティメンバーは、アドバイス、説明、サポートを提供する際に最高です。そのため、[ステファン](https://twitter.com/stephaneledorze)のアドバイスをサポートすることができます：
+
+<Tweet id="1766121534744125869" />
+
+私たちのカンファレンスデイのまとめに対するポジティブなフィードバックを受けて、見逃した方のために再共有します。
+
+<YouTube id="CfbR-1XRlTA" />
+
+たくさんのニュースやコンテンツが到着予定ですので、私たちの[X アカウント](https://twitter.com/EffectTS_)と[YouTube チャンネル](https://www.youtube.com/@effect-ts)をフォローし、最新情報をお見逃しなく！
+
+## 終わりに
+
+今週の内容は以上です。コミュニティの重要な一員でいてくださり、ありがとうございます。私たちはこの新しいフォーマットを調整する上で、あなたのフィードバックを非常に重視しています。ぜひあなたの考えを共有してください。私たちはコミュニティのニーズに合わせるよう最善を尽くします。
+
+_The Effect Community Team_

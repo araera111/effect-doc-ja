@@ -1,0 +1,476 @@
+---
+title: スキーマ 0.67 (リリース)
+excerpt: 新機能と破壊的変更を強調したリリース投稿
+date: 2024-05-10
+authors:
+  - name: ジュリオ・カンティ
+    description: 創設エンジニア
+    avatar: https://pbs.twimg.com/profile_images/507058995845017600/c0OWECjS_400x400.png
+    twitter: https://twitter.com/GiulioCanti
+---
+
+## 型抽出の簡素化
+
+スキーマを扱う際、自動的に型を抽出する必要があることがよくあります。
+これを容易にするために、`Schema` インターフェースにいくつかの変更を加えました。
+これにより、`Schema.Schema.Type` や `Schema.Schema.Encoded` を使用せずに、簡単にスキーマから `Type` と `Encoded` にアクセスできるようになりました。
+
+```ts
+import { Schema } from "@effect/schema";
+
+const PersonSchema = Schema.Struct({
+  name: Schema.String,
+  age: Schema.NumberFromString,
+});
+
+type PersonType = typeof PersonSchema.Type;
+
+type PersonEncoded = typeof PersonSchema.Encoded;
+```
+
+## デフォルトコンストラクタ
+
+データを扱う際、特定のスキーマに一致する値を作成することは重要です。
+このプロセスを簡素化するために、さまざまなタイプのスキーマに対して **デフォルトコンストラクタ** を導入しました：`Struct`、`filter`、および `brand` です。
+各例を通じて、それらがどのように機能するかをよりよく理解しましょう。
+
+**例** (`Struct`)
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyStruct = Schema.Struct({
+  name: Schema.NonEmpty,
+});
+
+MyStruct.make({ name: "a" }); // ok
+MyStruct.make({ name: "" });
+/*
+throws
+Error: { name: NonEmpty }
+└─ ["name"]
+   └─ NonEmpty
+      └─ Predicate refinement failure
+         └─ Expected NonEmpty (非空文字列), actual ""
+*/
+```
+
+**例** (`filter`)
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyNumber = Schema.Number.pipe(Schema.between(1, 10));
+
+// const n: number
+const n = MyNumber.make(5); // ok
+MyNumber.make(20);
+/*
+throws
+Error: 1 から 10 の間の数値
+└─ Predicate refinement failure
+  └─ Expected a number between 1 and 10, actual 20
+*/
+```
+
+**例** (`brand`)
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyBrand = Schema.Number.pipe(
+  Schema.between(1, 10),
+  Schema.brand("MyNumber")
+);
+
+// const n: number & Brand<"MyNumber">
+const n = MyBrand.make(5); // ok
+MyBrand.make(20);
+/*
+throws
+Error: 1 から 10 の間の数値
+└─ Predicate refinement failure
+  └─ Expected a number between 1 and 10, actual 20
+*/
+```
+
+デフォルトコンストラクタを利用する際は、生成される値の型を理解することが重要です。`MyBrand` の例では、コンストラクタの返り値の型は `number & Brand<"MyNumber">` で、生成される値が `number` にブランド "MyNumber" が付加されたものであることを示しています。
+
+これはフィルタの例と異なり、返り値の型は単純に `number` です。ブランドは型に関する追加の情報を提供し、データの識別と操作を容易にします。
+
+デフォルトコンストラクタは入力がスキーマに適合しない場合に **エラーを投げる** ため、「安全でない」と見なされます。これは、デフォルトコンストラクタの目的が、準拠する値を迅速に作成するための手段を提供することにあるためです（たとえば、テストや構成の作成時、またはコンストラクタに渡される入力が有効であり、逆の状況が例外であることが想定される場合）。
+
+### デフォルトコンストラクタの値
+
+オブジェクトを構築する際、特定のフィールドにデフォルト値を割り当てて新しいインスタンスの作成を簡素化したいことがよくあります。
+私たちの新しい `Schema.withConstructorDefault` コンビネータを使用すると、**デフォルトコンストラクタ内のフィールドのオプショナル性を簡単に管理** できます。
+
+**例**
+
+```ts
+import { Schema } from "@effect/schema";
+
+const PersonSchema = Schema.Struct({
+  name: Schema.NonEmpty,
+  age: Schema.Number.pipe(
+    Schema.propertySignature,
+    Schema.withConstructorDefault(() => 0)
+  ),
+});
+
+// ageフィールドはオプショナルで、デフォルトは0
+console.log(PersonSchema.make({ name: "John" }));
+// => { age: 0, name: 'John' }
+```
+
+デフォルト値は **遅延評価** されます。これは、コンストラクタが呼び出されるたびにデフォルトの新しいインスタンスが生成されることを意味します：
+
+```ts
+import { Schema } from "@effect/schema";
+
+const PersonSchema = Schema.Struct({
+  name: Schema.NonEmpty,
+  age: Schema.Number.pipe(
+    Schema.propertySignature,
+    Schema.withConstructorDefault(() => 0)
+  ),
+  timestamp: Schema.Number.pipe(
+    Schema.propertySignature,
+    Schema.withConstructorDefault(() => new Date().getTime())
+  ),
+});
+
+console.log(PersonSchema.make({ name: "name1" }));
+// => { age: 0, timestamp: 1714232909221, name: 'name1' }
+console.log(PersonSchema.make({ name: "name2" }));
+// => { age: 0, timestamp: 1714232909227, name: 'name2' }
+```
+
+`timestamp` フィールドがどのように変化するかに注意してください。
+
+デフォルトは `Class` API の使用でも適用できます：
+
+```ts
+import { Schema } from "@effect/schema";
+
+class Person extends Schema.Class<Person>("Person")({
+  name: Schema.NonEmpty,
+  age: Schema.Number.pipe(
+    Schema.propertySignature,
+    Schema.withConstructorDefault(() => 0)
+  ),
+  timestamp: Schema.Number.pipe(
+    Schema.propertySignature,
+    Schema.withConstructorDefault(() => new Date().getTime())
+  ),
+}) {}
+
+console.log(new Person({ name: "name1" }));
+// => Person { age: 0, timestamp: 1714400867208, name: 'name1' }
+console.log(new Person({ name: "name2" }));
+// => Person { age: 0, timestamp: 1714400867215, name: 'name2' }
+```
+
+## デフォルトデコーディング値
+
+新しい `Schema.withDecodingDefault` コンビネータを使うことで、**デコーディングプロセス中のフィールドのオプショナル性** を簡単に扱うことができます。
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MySchema = Schema.Struct({
+  a: Schema.optional(Schema.String).pipe(Schema.withDecodingDefault(() => "")),
+});
+
+console.log(Schema.decodeUnknownSync(MySchema)({}));
+// => { a: '' }
+console.log(Schema.decodeUnknownSync(MySchema)({ a: undefined }));
+// => { a: '' }
+console.log(Schema.decodeUnknownSync(MySchema)({ a: "a" }));
+// => { a: 'a' }
+```
+
+デコーディングフェーズとデフォルトコンストラクタの両方でデフォルト値を設定したい場合は、`Schema.withDefaults` を利用できます：
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MySchema = Schema.Struct({
+  a: Schema.optional(Schema.String).pipe(
+    Schema.withDefaults({
+      decoding: () => "",
+      constructor: () => "-",
+    })
+  ),
+});
+
+console.log(Schema.decodeUnknownSync(MySchema)({}));
+// => { a: '' }
+console.log(Schema.decodeUnknownSync(MySchema)({ a: undefined }));
+// => { a: '' }
+console.log(Schema.decodeUnknownSync(MySchema)({ a: "a" }));
+// => { a: 'a' }
+
+console.log(MySchema.make({})); // => { a: '-' }
+console.log(MySchema.make({ a: "a" })); // => { a: 'a' }
+```
+
+## カスタムメッセージシステムのリファクタリング
+
+ユーザー定義のカスタムメッセージを管理するシステムを、より直感的にリファクタリングしました。
+
+今では、カスタムメッセージはデフォルトでは絶対的な優先権を持たなくなりました。代わりに、`override` という新しいフラグを `true` に設定することで明示的にオプトインする動作になります。例を見てみましょう：
+
+**以前のアプローチ**
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyString = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(2)
+).annotations({
+  // このメッセージは常に優先されます
+  // したがって、任意のエラーに対して常に同じメッセージが表示されます
+  message: () => "私のカスタムメッセージ",
+});
+
+const decode = Schema.decodeUnknownEither(MyString);
+
+console.log(decode(null)); // "私のカスタムメッセージ"
+console.log(decode("")); // "私のカスタムメッセージ"
+console.log(decode("abc")); // "私のカスタムメッセージ"
+```
+
+ご覧のとおり、どこでデコーディングエラーが発生しても、常に同じエラーメッセージが表示されます。これは以前のバージョンでは、カスタムメッセージがデフォルトで以前のフィルタによって生成されたものを上書きするためです。
+
+新しいシステムで同じスキーマがどのように機能するか見てみましょう。
+
+**現在のアプローチ**
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyString = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(2)
+).annotations({
+  // このメッセージは maxLength フィルタが失敗した場合のみ表示されます
+  message: () => "私のカスタムメッセージ",
+});
+
+const decode = Schema.decodeUnknownEither(MyString);
+
+console.log(decode(null)); // "Expected a string, actual null"
+console.log(decode("")); // `Expected a string at least 1 character(s) long, actual ""`
+console.log(decode("abc")); // "私のカスタムメッセージ"
+```
+
+古い動作を復元したい場合（たとえば、ユーザーが、有効な値が満たすべき特性を説明する単一の累積カスタムメッセージを定義したい場面を考えるなど）は、`override` フラグを `true` に設定する必要があります：
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyString = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(2)
+).annotations({
+  // `override` フラグを `true` に設定することで
+  // このメッセージは任意のエラーに対して常に表示されます
+  message: () => ({ message: "私のカスタムメッセージ", override: true }),
+});
+
+const decode = Schema.decodeUnknownEither(MyString);
+
+console.log(decode(null)); // "私のカスタムメッセージ"
+console.log(decode("")); // "私のカスタムメッセージ"
+console.log(decode("abc")); // "私のカスタムメッセージ"
+```
+
+## フィルタ API インターフェース
+
+`filter` API に新しいインターフェースを導入しました。これにより、公開された `from` フィールドを使って細かく定義されたスキーマにアクセスできるようになりました。
+
+```ts
+import { Schema } from "@effect/schema";
+
+const MyFilter = Schema.Struct({
+  a: Schema.String,
+}).pipe(Schema.filter(() => /* 何らかのフィルタ... */ true));
+
+// const aField: typeof Schema.String
+const aField = MyFilter.from.fields.a;
+```
+
+`filter` 関数のシグネチャが簡素化され、デフォルトメッセージを設定する際の使い勝手が向上しました。新しい `filter` のシグネチャでは、引数として渡される述語の型は以下の通りです：
+
+```ts
+predicate: (a: A, options: ParseOptions, self: AST.Refinement) =>
+  undefined | boolean | string | ParseResult.ParseIssue;
+```
+
+セマンティクスは次の通りです：
+
+- `true` はフィルタが成功したことを意味します。
+- `false` または `undefined` はフィルタが失敗し、デフォルトメッセージが設定されないことを意味します。
+- `string` はフィルタが失敗し、返される文字列がデフォルトメッセージとして使用されることを意味します。
+- `ParseIssue` はフィルタが失敗し、返される ParseIssue がエラーとして使用されることを意味します。
+
+**例**
+
+```ts
+import { Schema } from "@effect/schema";
+
+const Positive = Schema.Number.pipe(
+  Schema.filter((n) => (n > 0 ? undefined : "正の値でなければなりません"))
+);
+
+Schema.decodeUnknownSync(Positive)(-1);
+/*
+throws
+Error: { number | filter }
+└─ Predicate refinement failure
+   └─ 正の値でなければなりません
+*/
+```
+
+## JSON スキーマコンパイラのリファクタリング
+
+JSON スキーマコンパイラがリファクタリングされ、よりユーザーフレンドリーになりました。今では、`make` API がデコーディングフェーズの入力部分に最適な JSON スキーマを生成しようとします。つまり、最も入れ子になったスキーマから始まり、各リファインメントを遍歴し、最初に見つかった変換で停止します。
+
+例を見てみましょう：
+
+```ts
+import { JSONSchema, Schema } from "@effect/schema";
+
+const MySchema = Schema.Struct({
+  foo: Schema.String.pipe(Schema.minLength(2)),
+  bar: Schema.optional(Schema.NumberFromString, {
+    default: () => 0,
+  }),
+});
+
+console.log(JSON.stringify(JSONSchema.make(MySchema), null, 2));
+```
+
+次に、以前と新しいバージョンで生成された JSON スキーマを比較してみましょう。
+
+**以前**
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["bar", "foo"],
+  "properties": {
+    "bar": {
+      "type": "number",
+      "description": "a number",
+      "title": "number"
+    },
+    "foo": {
+      "type": "string",
+      "description": "a string at least 2 character(s) long",
+      "title": "string",
+      "minLength": 2
+    }
+  },
+  "additionalProperties": false,
+  "title": "Struct (Type side)"
+}
+```
+
+ご覧の通り、生成された JSON スキーマには：
+
+- 制約 (`"minLength": 2`) で正しくモデル化された必須の `foo` フィールド
+- **必須の数値 `bar` フィールド**
+
+これが以前のバージョンで、`JSONSchema.make` API がデフォルトでスキーマの `Type` 部分の JSON スキーマを生成するためです。すなわち：
+
+```ts
+type Type = Schema.Schema.Type<typeof MySchema>;
+/*
+type Type = {
+    readonly foo: string;
+    readonly bar: number;
+}
+*/
+```
+
+しかし、通常、私たちはデコーディングプロセスの入力部分に対する JSON スキーマの生成に関心があります。つまり、この場合：
+
+```ts
+type Encoded = Schema.Schema.Encoded<typeof MySchema>;
+/*
+type Encoded = {
+    readonly foo: string;
+    readonly bar?: string | undefined;
+}
+*/
+```
+
+一見したところ、`Schema.encodedSchema(schema)` の JSON スキーマを生成することが考えられる解決策のように思えるかもしれません：
+
+```ts
+console.log(
+  JSON.stringify(JSONSchema.make(Schema.encodedSchema(MySchema)), null, 2)
+);
+```
+
+しかし、結果は次のようになります：
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["foo"],
+  "properties": {
+    "foo": {
+      "type": "string",
+      "description": "a string",
+      "title": "string"
+    },
+    "bar": {
+      "type": "string",
+      "description": "a string",
+      "title": "string"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+ご覧の通り、`"minLength": 2` 制約が失われており、これはリファインメントを使用してスキーマを正確に定義する際に有用な部分です。
+
+**以降**
+
+それでは、同じスキーマに対して `JSONSchema.make` API がデフォルトで生成するものを見てみましょう：
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["foo"],
+  "properties": {
+    "foo": {
+      "type": "string",
+      "description": "a string at least 2 character(s) long",
+      "title": "string",
+      "minLength": 2
+    },
+    "bar": {
+      "type": "string",
+      "description": "a string",
+      "title": "string"
+    }
+  },
+  "additionalProperties": false,
+  "title": "Struct (Encoded side)"
+}
+```
+
+リファインメントが保持されていることを確認できます。
+
+## チェンジログ
+
+詳細については、私たちの [チェンジログ](https://github.com/Effect-TS/effect/blob/main/packages/schema/CHANGELOG.md) を参照してください。

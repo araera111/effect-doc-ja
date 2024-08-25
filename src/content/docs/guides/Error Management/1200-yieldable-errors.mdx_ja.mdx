@@ -1,0 +1,71 @@
+---
+title: Yield可能なエラー
+excerpt: Effectプログラミングにおける「Yield可能なエラー」について学びましょう。これは、ジェネレーター関数内でカスタムエラーを扱うための便利な方法です。基底およびタグ付きのYield可能なエラーを作成するための `Data.Error` および `Data.TaggedError` コンストラクタを探索し、コード内のエラー処理を簡素化します。
+bottomNavigation: pagination
+---
+
+「Yield 可能なエラー」とは、`Effect.gen`で使用される[ジェネレーター関数](../essentials/using-generators)内で Yield される特別なタイプのエラーです。これらのエラーの特徴は、それらを処理するために `Effect.fail` API を明示的に使用する必要がないことです。これにより、コード内でカスタムエラーを扱うより直感的で便利な方法が提供されます。
+
+## Data.Error
+
+`Data.Error` コンストラクタを使うことで、基底 Yield 可能エラークラスを作成できます。このクラスは、コード内のさまざまな種類のエラーを表すために使用できます。以下のように使用できます：
+
+```ts twoslash
+import { Effect, Data } from "effect";
+
+class MyError extends Data.Error<{ message: string }> {}
+
+export const program = Effect.gen(function* () {
+  yield* new MyError({ message: "ああ、やばい！" }); // yield* Effect.fail(new MyError({ message: "ああ、やばい！" }) と同じ
+});
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: { message: 'ああ、やばい！' } }
+}
+*/
+```
+
+## Data.TaggedError
+
+`Data.TaggedError` コンストラクタは、タグ付き Yield 可能エラーを作成するのに便利です。これらのエラーには `_tag` という異なるプロパティがあり、これが一意の識別子として機能し、エラーを互いに区別できるようにします。以下のように使用できます：
+
+```ts twoslash
+import { Effect, Data, Random } from "effect";
+
+// _tag: "Foo" を持つエラー
+class FooError extends Data.TaggedError("Foo")<{
+  message: string;
+}> {}
+
+// _tag: "Bar" を持つエラー
+class BarError extends Data.TaggedError("Bar")<{
+  randomNumber: number;
+}> {}
+
+export const program = Effect.gen(function* () {
+  const n = yield* Random.next;
+  return n > 0.5
+    ? "やった！"
+    : n < 0.2
+    ? yield* new FooError({ message: "ああ、やばい！" })
+    : yield* new BarError({ randomNumber: n });
+}).pipe(
+  Effect.catchTags({
+    Foo: (error) => Effect.succeed(`Fooエラー: ${error.message}`),
+    Bar: (error) => Effect.succeed(`Barエラー: ${error.randomNumber}`),
+  })
+);
+
+Effect.runPromise(program).then(console.log, console.error);
+/*
+例の出力 (n < 0.2):
+Fooエラー: ああ、やばい！
+*/
+```
+
+この例では、特定のタグ ("Foo" と "Bar") を持つ `FooError` と `BarError` クラスを作成しています。これらのタグは、コード内でエラーを処理する際にエラーのタイプを特定するのに役立ちます。

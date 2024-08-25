@@ -1,0 +1,216 @@
+---
+title: 予期しないエラー
+excerpt: Effectが欠陥などの回復不能なエラーをどのように処理するかを学びます。`die`、`dieMessage`、`orDie`、`orDieWith`などの関数を提供し、効果の実行を終了させたり、予期しないエラーを処理したり、欠陥から回復するための技術を探求します。特定の欠陥を管理し、選択的に回復するための`catchAllDefect`や`catchSomeDefect`の使用を発見しましょう。
+bottomNavigation: pagination
+---
+
+予期しないエラーが発生する状況があり、それに対する処理をどうするか決める必要があります。Effect は、そのようなシナリオに対処するための関数を提供しており、エフェクトの実行中にエラーが発生した際に適切な対応を取ることを可能にします。
+
+## 回復不能なエラーの生成
+
+`Effect<never, E, never>`型の値を作成するために`fail`のようなコンビネータを活用することができるのと同様に、Effect ライブラリは欠陥を作成するためのツールを提供しています。
+
+ビジネスロジックの観点から回復不可能なエラーに対処する際、欠陥を作成することは一般的な必要性です。例えば、接続を確立しようとしたが、複数回の再試行の後に拒否される場合などです。
+
+そのような場合、エフェクトの実行を終了し、stdout や外部監視サービスなどを通じて報告に移ることが最良の解決策であることがあります。
+
+以下の関数とコンビネータは、エフェクトを終了させることを可能にし、`Effect<A, E, R>`型の値を`Effect<A, never, R>`型の値に変換するためにしばしば使用されます。これにより、プログラマは回復の手段がないエラーを処理し回復する必要から逃れることができます。
+
+### die / dieMessage
+
+`Effect.die`関数は指定されたエラーをスローするエフェクトを返し、`Effect.dieMessage`は指定されたテキストメッセージを持つ`RuntimeException`をスローします。これらの関数は、コード内で欠陥、つまり重大かつ予期しないエラーが検出されたときにファイバーを終了させるために便利です。
+
+`die`を使用した例：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const divide = (a: number, b: number): Effect.Effect<number> =>
+  b === 0
+    ? Effect.die(new Error("ゼロで割ることはできません"))
+    : Effect.succeed(a / b);
+
+Effect.runSync(divide(1, 0)); // エラーをスロー: ゼロで割ることはできません
+```
+
+`dieMessage`を使用した例：
+
+```ts twoslash
+import { Effect } from "effect";
+
+const divide = (a: number, b: number): Effect.Effect<number> =>
+  b === 0
+    ? Effect.dieMessage("ゼロで割ることはできません")
+    : Effect.succeed(a / b);
+
+Effect.runSync(divide(1, 0)); // エラーをスロー: RuntimeException: ゼロで割ることはできません
+```
+
+### orDie
+
+`Effect.orDie`関数は、エフェクトの失敗をファイバーの終了に変換し、すべての失敗をチェックされないものとし、エフェクトの型に含めません。これは、回復したくないエラーを処理するために使用できます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const divide = (a: number, b: number): Effect.Effect<number, Error> =>
+  b === 0
+    ? Effect.fail(new Error("ゼロで割ることはできません"))
+    : Effect.succeed(a / b);
+
+const program = Effect.orDie(divide(1, 0));
+
+Effect.runSync(program); // エラーをスロー: ゼロで割ることはできません
+```
+
+`Effect.orDie`を使用した後、`program`のエラーチャネル型は`never`となり、すべての失敗がチェックされないことを示し、エラーが発生した場合にエフェクトがファイバーを終了することを期待されます。
+
+### orDieWith
+
+`Effect.orDie`と同様に、`Effect.orDieWith`関数は、指定されたマッピング関数を使用してエフェクトの失敗をファイバーの終了に変換します。ファイバーを終了させる前にエラーメッセージをカスタマイズすることができます。
+
+```ts twoslash
+import { Effect } from "effect";
+
+const divide = (a: number, b: number): Effect.Effect<number, Error> =>
+  b === 0
+    ? Effect.fail(new Error("ゼロで割ることはできません"))
+    : Effect.succeed(a / b);
+
+const program = Effect.orDieWith(
+  divide(1, 0),
+  (error) => new Error(`欠陥: ${error.message}`)
+);
+
+Effect.runSync(program); // エラーをスロー: 欠陥: ゼロで割ることはできません
+```
+
+`Effect.orDieWith`を使用した後、`program`のエラーチャネル型は`never`で、`Effect.orDie`と同様です。
+
+## キャッチ
+
+Effect は、エフェクトの実行中に発生する可能性のある予期しないエラーを処理するための 2 つの関数を提供します。
+
+:::caution
+欠陥から回復するための妥当な方法はありません。我々がこれから議論する関数は、Effect と外部システムとの境界でのみ使用すべきであり、診断または説明目的で欠陥に関する情報を伝達するためのものです。
+
+:::
+
+### exit
+
+`Effect.exit`関数は、`Effect<A, E, R>`を`Exit`データ型内で成功と失敗の両方をカプセル化するエフェクトに変換します：
+
+```ts
+Effect<A, E, R> -> Effect<Exit<A, E>, never, R>
+```
+
+その結果、返される`Effect`は失敗することができなくなります。潜在的な失敗は`Exit`の`Failure`型内で表現されるようになりました。返される`Effect`のエラー型は`never`と定義され、エフェクトが失敗しないように構造化されていることを示しています。
+
+`Exit`を返すことで、この型で「パターンマッチ」を行い、生成関数内で失敗と成功のケースの両方を処理できるようになります。
+
+```ts twoslash
+import { Effect, Cause, Console, Exit } from "effect";
+
+// ランタイムエラーをシミュレートする
+const task = Effect.dieMessage("バン!");
+
+const program = Effect.gen(function* () {
+  const exit = yield* Effect.exit(task);
+  if (Exit.isFailure(exit)) {
+    const cause = exit.cause;
+    if (Cause.isDieType(cause) && Cause.isRuntimeException(cause.defect)) {
+      yield* Console.log(
+        `ランタイム例外欠陥がキャッチされました: ${cause.defect.message}`
+      );
+    } else {
+      yield* Console.log("未知の欠陥がキャッチされました。");
+    }
+  }
+});
+
+// 我々はすべての欠陥をキャッチしたため、Exit.Successを得ます
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+ランタイム例外欠陥がキャッチされました: バン!
+{
+  _id: "Exit",
+  _tag: "Success",
+  value: undefined
+}
+*/
+```
+
+### catchAllDefect
+
+`Effect.catchAllDefect`関数は、提供された関数を使用してすべての欠陥から回復することを可能にします。以下はその例です：
+
+```ts twoslash
+import { Effect, Cause, Console } from "effect";
+
+// ランタイムエラーをシミュレートする
+const task = Effect.dieMessage("バン!");
+
+const program = Effect.catchAllDefect(task, (defect) => {
+  if (Cause.isRuntimeException(defect)) {
+    return Console.log(
+      `ランタイム例外欠陥がキャッチされました: ${defect.message}`
+    );
+  }
+  return Console.log("未知の欠陥がキャッチされました。");
+});
+
+// 我々はすべての欠陥をキャッチしたため、Exit.Successを得ます
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+ランタイム例外欠陥がキャッチされました: バン!
+{
+  _id: "Exit",
+  _tag: "Success",
+  value: undefined
+}
+*/
+```
+
+`catchAllDefect`は欠陥のみを処理でき、`Effect.fail`によって引き起こされるような予期されたエラーや、`Effect.interrupt`を使用している際の実行の中断を処理できないことを理解することが重要です。
+
+欠陥とは、事前に予測できず、信頼できる方法で対処できないエラーを指します。一般的には、欠陥によってアプリケーションがクラッシュすることを許可することが推奨されます。なぜなら、欠陥はしばしば対処すべき深刻な問題を示しているからです。
+
+しかし、動的に読み込まれるプラグインを扱う場合など、特定のケースでは制御された回復アプローチが必要な場合があります。例えば、我々のアプリケーションがプラグインのランタイム読み込みをサポートし、プラグイン内で欠陥が発生した場合、その欠陥をログに記録し、アプリケーション全体をクラッシュさせる代わりに影響を受けたプラグインだけを再読み込みするという手段を選ぶかもしれません。これにより、アプリケーションのより柔軟かつ中断のない運用が可能になります。
+
+### catchSomeDefect
+
+Effect の`Effect.catchSomeDefect`関数は、指定された部分関数を使用して特定の欠陥から回復することができます。以下はその例です：
+
+```ts twoslash
+import { Effect, Cause, Option, Console } from "effect";
+
+// ランタイムエラーをシミュレートする
+const task = Effect.dieMessage("バン!");
+
+const program = Effect.catchSomeDefect(task, (defect) => {
+  if (Cause.isIllegalArgumentException(defect)) {
+    return Option.some(
+      Console.log(
+        `IllegalArgumentException欠陥がキャッチされました: ${defect.message}`
+      )
+    );
+  }
+  return Option.none();
+});
+
+// 我々はIllegalArgumentExceptionのみをキャッチしているため、
+// ランタイムエラーをシミュレートしたため、Exit.Failureを得ます。
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Die', defect: { _tag: 'RuntimeException' } }
+}
+*/
+```
+
+`catchSomeDefect`も欠陥のみを処理可能であり、`Effect.fail`によって引き起こされるような[期待されたエラー](expected-errors)や[実行中の中断](../concurrency/interruption-model)を処理できないことを理解することが重要です。

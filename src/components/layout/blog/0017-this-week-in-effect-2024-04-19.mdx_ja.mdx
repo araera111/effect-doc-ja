@@ -1,0 +1,213 @@
+---
+title: 今週のEffect - 2024-04-19
+excerpt: Effect 3.0の発表とコミュニティの反応。Effectに関する技術的なアップデート。
+date: 2024-04-19
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のeffect-2024-04-12
+  - 今週のeffect-2024-04-26
+---
+
+こんにちは、Effecters！
+
+ようこそ戻ってきました！**今週のEffect（TWIE）**では、コミュニティやEffectエコシステム内での出来事を把握できるよう、毎週の更新をお届けします。
+
+初めての方へ、Effectは開発者が複雑な同期及び非同期プログラムを作成するのを助けるために設計された強力なTypeScriptライブラリです。Effectの特徴は、構造化された並行性を利用して、非同期キャンセルや安全なリソース管理などの機能を提供し、堅牢でスケーラブルかつ効率的なプログラムを簡単に構築できるようにすることです。
+
+あなたのEffectの旅を始めるには、以下のクイックスタートガイドとドキュメントをご覧ください。お楽しみください！
+
+[Effectクイックスタートガイド](/docs/quickstart)
+
+[Effectドキュメント](/docs/introduction)
+
+## TWIEの概要
+
+TWIEが初めての方に向けて、TWIEが何であるか、何を目指しているのかを簡単に説明します。
+
+私たちは、Effectを採用する人々が増え続けるコミュニティの急成長を嬉しく思っています。同時に、Effectエコシステム内で起きていることを把握するのが容易でないことも理解しています。
+
+- EffectはEffect 3.0のリリースによりAPIが安定しました。
+- 私たちのDiscordサーバーは数日前に**2280人以上のメンバー**に達し、エンゲージメントが史上最高に達しています。
+- Effect Daysの講演を毎週公開し始めました。最新の講演を見逃さないように、[YouTubeチャンネルを登録](https://www.youtube.com/@effect-ts)してください。
+- Effectに関連する全てのプロジェクトが**重要なアップデート**を受け、多くの活動がGitHubで行われています！
+
+私たちは、あなたがEffectの旅を存分に楽しみ、コミュニティに積極的に関与できる情報を簡単に見つけられるようにしたいと考えています。
+
+**それがTWIEを作った理由です** - 先週のEffectに関する重要なイベントを、コミュニティからの情報（Discordの議論、Xの投稿、YouTubeのコンテンツなど）と技術的観点からお知らせする毎週のアップデートです。
+
+それでは、本題に戻りましょう！
+
+## 技術
+遠回しなことは言いませんので、今週の大きなニュースにいきましょう：Effect 3.0をリリースし、Effectのコアパッケージが安定しました。このリリースは、チームの5年間の努力とコミュニティのサポートの結果です。
+
+<YouTube url="https://www.youtube.com/embed/ViSiXfBKElQ?si=65O07HfOc3qFzqAI" />
+
+3.0からは、メインパッケージ`effect`がセマンティックバージョニングに従います：
+
+1) メジャーリリースには破壊的変更が含まれます
+2) マイナーリリースには新機能や新モジュールが含まれます
+3) パッチリリースにはバグ修正が含まれます
+
+今後の私たちのコミットメントは、他のEffectエコシステムライブラリも安定させることです。
+
+フルの[Effect 3.0発表](https://effect.website/blog/effect-3.0)をお読みください。
+
+それでは、先週の全ての変更点を見てみましょう。
+
+### Effect Core
++ [mapAccumループでマッピング関数に正しい値が渡されるように確認](https://github.com/Effect-TS/effect/pull/2507) (バグ修正)
++ [Fiber.joinAllの戻り値の型を配列に変更](https://github.com/Effect-TS/effect/pull/2521) (バグ修正)
++ [globalThis.locationがundefinedに設定されているときのUrlParams.makeUrlを修正](https://github.com/Effect-TS/effect/pull/2514) (バグ修正)
++ [実行中のファイバーへの参照を保持するためのFiberHandleモジュールを追加](https://github.com/Effect-TS/effect/pull/2524) (新機能、次のマイナー)
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [必要ない場合にFiberHandle/Mapでエフェクトをスキップ](https://github.com/Effect-TS/effect/pull/2539) (改善)
++ [Array.isArrayの型定義を改善](https://github.com/Effect-TS/effect/pull/2552) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
++ [Stream.fromEventListenerを追加](https://github.com/Effect-TS/effect/pull/2513) (新機能、次のマイナー)
++ [Effect.timeoutOptionを追加](https://github.com/Effect-TS/effect/pull/2541) (新機能、次のマイナー)
++ [Match.withReturnType APIを追加](https://github.com/Effect-TS/effect/pull/2568) (新機能)
+
+### Effect SQL
++ [sqlfx/sqlを@effect/sqlパッケージに移動](https://github.com/Effect-TS/effect/pull/2104) (新機能)
++ [sqlパッケージの出所を無効にする](https://github.com/Effect-TS/effect/pull/2528) (バグ修正)
++ [sql Migratorモジュールのクリーンアップ](https://github.com/Effect-TS/effect/pull/2530) (リファクタリング)
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [sqlfxの移行ノートを/sqlに追加](https://github.com/Effect-TS/effect/pull/2544) (改善)
++ [README内のsql.inの例を更新](https://github.com/Effect-TS/effect/pull/2545) (ドキュメント更新)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
++ [sqlite react nativeのためにop-sqliteを使用](https://github.com/Effect-TS/effect/pull/2569) (新機能)
+
+### Effect Platform
++ [httpハンドラーを中断不可能にする](https://github.com/Effect-TS/effect/pull/2515) (新機能)
++ [中断不可能をルートオプションに移動](https://github.com/Effect-TS/effect/pull/2517) (新機能)
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [fs.watchバックエンドをカスタマイズ可能にする](https://github.com/Effect-TS/effect/pull/2542) (新機能)
++ [Commandのstdinが早すぎるタイミングで閉じられないよう修正](https://github.com/Effect-TS/effect/pull/2556) (バグ修正)
++ [テスト用のno-opファイルシステムコンストラクタを追加](https://github.com/Effect-TS/effect/pull/2558) (新機能)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
++ [Stream.fromEventListenerを追加](https://github.com/Effect-TS/effect/pull/2513) (新機能、次のマイナー)
++ [Http.response.voidヘルパーを追加、voidを返すhttpリクエストを作成するための](https://github.com/Effect-TS/effect/pull/2565) (新機能)
++ [httpトレースにスパン属性を追加](https://github.com/Effect-TS/effect/pull/2567) (新機能)
+
+### Effect RPC
++ [rpc httpストリームでコンテキストが利用できるようにする](https://github.com/Effect-TS/effect/pull/2516) (新機能)
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+### Effect Typeclass
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
++ [typeclassパッケージのREADMEを更新](https://github.com/Effect-TS/effect/pull/2571) (ドキュメント更新)
+
+### Effect Opentelemetry
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
++ [@opentelemetry/*のピア依存関係を更新し、許可されたバージョンに使用されたインポートが含まれることを保証](https://github.com/Effect-TS/effect/pull/2572) (バグ修正)
++ [env変数からリソースを構築するためのotel Resource.layerFromEnvを追加](https://github.com/Effect-TS/effect/pull/2575) (新機能)
+
+### Effect Experimental
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+### Effect Printer
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+### Effect Schema
++ [FastCheckを再エクスポート](https://github.com/Effect-TS/effect/pull/2505) (バグ修正)
++ [LazyArbitraryと新しいmakeを導入](https://github.com/Effect-TS/effect/pull/2508) (新機能)
++ [AST.pickでキーのリネームを正しく処理するように修正](https://github.com/Effect-TS/effect/pull/2511) (バグ修正)
++ [Schema: スキーマ名を統合](https://github.com/Effect-TS/effect/pull/2497) (リファクタリング)
++ [codemodの実行に関する指示を追加](https://github.com/Effect-TS/effect/pull/2519) (ドキュメント更新)
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [Schema: CとB間で双方向のサブタイプ関係を有効にするためにcomposeのオーバーロードを追加](https://github.com/Effect-TS/effect/pull/2531) (新機能)
++ [transformOrFailとtransformOrFailFromの署名をexported Classインターフェース内で追加の省略可能な引数を含むように修正](https://github.com/Effect-TS/effect/pull/2550) (バグ修正)
++ [Schema: テストファイル名を新しい命名規則に合わせてリファクタリング](https://github.com/Effect-TS/effect/pull/2560) (リファクタリング)
++ [Schema: Zod比較セクションを拡大し、有用なマイグレーションガイドとなるコード比較のリストを含める](https://github.com/Effect-TS/effect/pull/2563) (ドキュメント更新)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
++ [Schema: 部分的/必須: プロパティ署名の変換でプロパティキーのリネームを追加](https://github.com/Effect-TS/effect/pull/2577) (バグ修正)
+
+### Effect Vitest
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+### Effect CLI
++ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
++ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+### 一般的な雑務
++ [Effect 3.0の変更セットを追加](https://github.com/Effect-TS/effect/pull/2526)
++ [パッケージ説明を洗練](https://github.com/Effect-TS/effect/pull/2532)
++ [AsyncFiberExceptionのタイプミスを修正](https://github.com/Effect-TS/effect/pull/2533)
++ [devDependenciesを更新](https://github.com/Effect-TS/effect/pull/2534)
++ [残り物を削除](https://github.com/Effect-TS/effect/pull/2536)
++ [イントロ動画を更新](https://github.com/Effect-TS/effect/pull/2549)
++ [コード例の言語にJSONCを使用](https://github.com/Effect-TS/effect/pull/2554)
++ [pnpmバージョンを更新](https://github.com/Effect-TS/effect/pull/2574)
+
+## コミュニティ
+
+先週、私たちは[Discordサーバー](https://discord.gg/effect-ts)に80人以上の新しいEffectersを迎え入れました！Effectコミュニティに参加してくれてありがとうございます。皆さんと一緒にいられることを楽しみにしています！
+
+フランス語を話すメンバーの皆さんにお知らせします。最初の[Effect Paris Meetup](https://www.meetup.com/effect-paris/events/300307442/)が、[Evryg](https://www.evryg.com)主催で**2024年4月23日火曜日の午後7時**に開催されます。イベントを開催してくれたEvrygチーム、特に[Jean-Baptiste Musso](https://twitter.com/jbmusso)と[Antoine Coulon](https://twitter.com/c9antoine)に感謝します！
+
+### コンテンツ更新
+
+Effect 3.0のリリースと[Effectful Technologies](https://www.effectful.co)の導入は、私たちのコミュニティ内で波及的な興奮を引き起こし、長年のパートナーやコミュニティメンバーがこの発表に対する熱意を分かち合う準備が整いました。
+
+[Amplify Partners](https://www.amplifypartners.com)がEffectful Technologiesのシードラウンドをリードしました。特に[Lenny Pruss](https://twitter.com/lennypruss)と[Renee Shah](https://twitter.com/reneeshah123)には貴重なサポートをいただき、感謝しています。これからのプログラミングの未来を一緒に形作ることを楽しみにしています！
+
+<Tweet id="1780267488300970296" />
+
+[Jean-Baptiste Musso](https://twitter.com/jbmusso)はEvrygの共同創設者で、彼のチームはすでに2年間Effectを製品環境で使用しています：
+
+<Tweet id="1780255106916651116" />
+
+[Attila Večerek](https://twitter.com/attilavecerek)、[Zendesk](www.zendesk.com)のテックリード兼スタッフエンジニアも6ヶ月間Effectを製品環境で使用しています：
+
+<Tweet id="1780843170864972069" />
+
+[Vercel](vercel.com)の可観測性関連ツールのテックリード[Tobias Lins](https://twitter.com/linstobias)：
+
+<Tweet id="1780292758843916763" />
+
+[Type Driven](https://type-driven.com/)の創設者[David Peter](https://twitter.com/daviddotpeter)：
+
+<Tweet id="1781319935647498533" />
+
+[Parcy](https://www.parcy.co)のCTO[Federico Biccheddu](https://twitter.com/Fredrik_Kedduh)：
+
+<Tweet id="1780235240889299236" />
+
+[Sift, Mock, CASA node.js](https://paulgray.net/)著者[Paul Gray](https://twitter.com/PaulGrizzay)：
+
+<Tweet id="1780761229981573582" />
+
+[StoryBlok](https://stockstory.org/)のソフトウェアエンジニアで、プラハのチェコ工科大学の教師[Petr Huřťák](https://twitter.com/PetrHurtak)：
+
+<Tweet id="1780699475557965964" />
+
+その後、Effectの著者[Michael Arnaldi](https://twitter.com/MichaelArnaldi)は2024年5月6日-7日に開催される[LambdaConf 2024](https://www.lambdaconf.us)で講演を行います。お近くの方は立ち寄ってぜひ挨拶してください！
+
+<Tweet id="1779419386882752952" />
+
+今週[Milad Vafaeifard](https://twitter.com/signlanguagete1)は、Effectの使用方法に関する貴重な学びのヒントを共有しました。以下のビデオでは、ローカルコンパイラ内のリポジトリの可読性を向上させる方法を示しています：
+
+<Tweet id="1779123150329942225" />
+
+## 終わりに
+
+今週はこれで以上です。コミュニティの重要な一員でいてくれてありがとう。新しいフォーマットを微調整する際に、あなたのフィードバックが非常に重要です。お気軽にご意見をお寄せいただければ、コミュニティのニーズに合わせて最善を尽くします。
+
+_エフェクトコミュニティチーム_

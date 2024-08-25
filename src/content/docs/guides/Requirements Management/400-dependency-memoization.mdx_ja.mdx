@@ -1,0 +1,190 @@
+---
+title: レイヤーのメモ化
+excerpt: Effectにおけるレイヤーのメモ化の力を理解しましょう。レイヤーを一度効率的に作成し、依存関係グラフで再利用することで性能を最適化する方法を発見します。グローバルおよびローカルのメモ化戦略を探索し、Effectアプリケーションで正確に制御するためにレイヤーを手動でメモ化する方法を学びましょう。
+bottomNavigation: pagination
+---
+
+レイヤーのメモ化により、レイヤーは一度作成され、依存関係グラフ内で複数回使用されることが可能になります。例えば、同じレイヤーを二回使用する場合は次のようになります。
+
+```ts
+Layer.merge(Layer.provide(b, a), Layer.provide(c, a));
+```
+
+この場合、`a`レイヤーは一度だけ割り当てられます。
+
+:::caution
+レイヤーは **参照の等価性** を使用してメモ化されます。そのため、例えば `f()` のような関数を呼び出して作成されたレイヤーがある場合、その `f` を _一度だけ_ 呼び出し、結果のレイヤーを再利用する必要があります。常に同じインスタンスを使用するためです。
+
+:::
+
+## グローバルに提供する際のメモ化
+
+Effect アプリケーションの重要な特徴の一つは、レイヤーがデフォルトで共有されるということです。つまり、同じレイヤーが二回使用され、かつそのレイヤーがグローバルに提供される場合、レイヤーは一度だけ割り当てられます。依存関係グラフ内のすべてのレイヤーは、そのレイヤーに依存するレイヤー間で共有される一つのインスタンスです。
+
+例えば、サービス `A`、`B`、および `C` の 3 つがあると仮定します。`B` と `C` の実装は `A` サービスに依存しています：
+
+```ts twoslash
+import { Effect, Context, Layer } from "effect";
+
+class A extends Context.Tag("A")<A, { readonly a: number }>() {}
+
+class B extends Context.Tag("B")<B, { readonly b: string }>() {}
+
+class C extends Context.Tag("C")<C, { readonly c: boolean }>() {}
+
+const a = Layer.effect(
+  A,
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+);
+
+const b = Layer.effect(
+  B,
+  Effect.gen(function* () {
+    const { a } = yield* A;
+    return { b: String(a) };
+  })
+);
+
+const c = Layer.effect(
+  C,
+  Effect.gen(function* () {
+    const { a } = yield* A;
+    return { c: a > 0 };
+  })
+);
+
+const program = Effect.gen(function* () {
+  yield* B;
+  yield* C;
+});
+
+const runnable = Effect.provide(
+  program,
+  Layer.merge(Layer.provide(b, a), Layer.provide(c, a))
+);
+
+Effect.runPromise(runnable);
+/*
+出力:
+timestamp=... level=INFO fiber=#2 message=initialized
+*/
+```
+
+`b` および `c` の両方のレイヤーが `a` レイヤーを要求していますが、`a` レイヤーは一度だけインスタンス化されます。これは `b` と `c` の両方で共有されます。
+
+## 新しいバージョンの取得
+
+モジュールを共有したくない場合は、`Layer.fresh` を使用して新しい非共有バージョンを作成するべきです。
+
+```ts twoslash
+import { Effect, Context, Layer } from "effect";
+
+class A extends Context.Tag("A")<A, { readonly a: number }>() {}
+
+class B extends Context.Tag("B")<B, { readonly b: string }>() {}
+
+class C extends Context.Tag("C")<C, { readonly c: boolean }>() {}
+
+const a = Layer.effect(
+  A,
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+);
+
+const b = Layer.effect(
+  B,
+  Effect.gen(function* () {
+    const { a } = yield* A;
+    return { b: String(a) };
+  })
+);
+
+const c = Layer.effect(
+  C,
+  Effect.gen(function* () {
+    const { a } = yield* A;
+    return { c: a > 0 };
+  })
+);
+
+const program = Effect.gen(function* () {
+  yield* B;
+  yield* C;
+});
+
+// ---cut---
+const runnable = Effect.provide(
+  program,
+  Layer.merge(
+    Layer.provide(b, Layer.fresh(a)),
+    Layer.provide(c, Layer.fresh(a))
+  )
+);
+
+Effect.runPromise(runnable);
+/*
+出力:
+timestamp=... level=INFO fiber=#2 message=initialized
+timestamp=... level=INFO fiber=#3 message=initialized
+*/
+```
+
+## ローカルに提供する際はメモ化なし
+
+レイヤーをグローバルに提供するのではなく、ローカルに提供した場合、そのレイヤーはデフォルトでメモ化をサポートしません。
+
+以下の例では、`a` レイヤーをローカルに二回提供しましたが、Effect は `a` レイヤーの構築をメモ化しません。そのため、二回初期化されます：
+
+```ts twoslash
+import { Effect, Context, Layer } from "effect";
+
+class A extends Context.Tag("A")<A, { readonly a: number }>() {}
+
+const a = Layer.effect(
+  A,
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+);
+
+const program = Effect.gen(function* () {
+  yield* Effect.provide(A, a);
+  yield* Effect.provide(A, a);
+});
+
+Effect.runPromise(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message=initialized
+timestamp=... level=INFO fiber=#0 message=initialized
+*/
+```
+
+## 手動によるメモ化
+
+`Layer.memoize` 演算子を使用して `a` レイヤーを手動でメモ化することができます。これはスコープ付きのエフェクトを返し、そのエフェクトが評価されると、このレイヤーの遅延計算された結果を返します：
+
+```ts twoslash
+import { Effect, Context, Layer } from "effect";
+
+class A extends Context.Tag("A")<A, { readonly a: number }>() {}
+
+const a = Layer.effect(
+  A,
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+);
+
+const program = Effect.scoped(
+  Layer.memoize(a).pipe(
+    Effect.andThen((memoized) =>
+      Effect.gen(function* () {
+        yield* Effect.provide(A, memoized);
+        yield* Effect.provide(A, memoized);
+      })
+    )
+  )
+);
+
+Effect.runPromise(program);
+/*
+出力:
+timestamp=... level=INFO fiber=#0 message=initialized
+*/
+```

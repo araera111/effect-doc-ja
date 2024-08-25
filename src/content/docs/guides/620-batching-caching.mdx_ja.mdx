@@ -1,0 +1,740 @@
+---
+title: Batching
+excerpt: Effectは開発者が複雑な同期および非同期のプログラムを容易に作成できるように設計された強力なTypeScriptライブラリです。
+bottomNavigation: pagination
+sidebar:
+  order: 10
+---
+
+## API 統合の古典的アプローチ
+
+一般的なアプリケーション開発では、外部 API、データベース、その他のデータソースとやり取りする際に、リクエストを行い、その結果や失敗を適切に処理する関数を定義することがよくあります。
+
+### シンプルなモデル設定
+
+ここでは、データの構造と可能なエラーを概要する基本的なモデルを示します。
+
+```twoslash include Model
+export interface User {
+  readonly _tag: "User"
+  readonly id: number
+  readonly name: string
+  readonly email: string
+}
+
+export class GetUserError {
+  readonly _tag = "GetUserError"
+}
+
+export interface Todo {
+  readonly _tag: "Todo"
+  readonly id: number
+  readonly message: string
+  readonly ownerId: number
+}
+
+export class GetTodosError {
+  readonly _tag = "GetTodosError"
+}
+
+export class SendEmailError {
+  readonly _tag = "SendEmailError"
+}
+```
+
+```ts filename="Model.ts" twoslash
+// @include: Model
+```
+
+:::tip
+実際のシナリオでは、識別子にプリミティブを直接使用するのではなく、より正確なタイプを使用することを検討するかもしれません（[ブランド付きタイプ](style/branded-types)を参照）。さらに、エラーにもっと詳細な情報を含めることを検討するかもしれません。
+
+:::
+
+### API 関数の定義
+
+外部 API とやり取りし、TODO の取得、ユーザー詳細の取得、メールの送信などの一般的な操作を処理する関数を定義してみましょう。
+
+```twoslash include API
+import { Effect } from "effect"
+import * as Model from "./Model"
+
+// 外部APIからTODOのリストを取得します
+export const getTodos = Effect.tryPromise({
+  try: () =>
+    fetch("https://api.example.demo/todos").then(
+      (res) => res.json() as Promise<Array<Model.Todo>>
+    ),
+  catch: () => new Model.GetTodosError()
+})
+
+// 外部APIからIDを使用してユーザーを取得します
+export const getUserById = (id: number) =>
+  Effect.tryPromise({
+    try: () =>
+      fetch(`https://api.example.demo/getUserById?id=${id}`).then(
+        (res) => res.json() as Promise<Model.User>
+      ),
+    catch: () => new Model.GetUserError()
+  })
+
+// 外部APIを通じてメールを送信します
+export const sendEmail = (address: string, text: string) =>
+  Effect.tryPromise({
+    try: () =>
+      fetch("https://api.example.demo/sendEmail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ address, text })
+      }).then((res) => res.json() as Promise<void>),
+    catch: () => new Model.SendEmailError()
+  })
+
+// ユーザーの詳細を取得してからユーザーにメールを送信します
+export const sendEmailToUser = (id: number, message: string) =>
+  getUserById(id).pipe(
+    Effect.andThen((user) => sendEmail(user.email, message))
+  )
+
+// TODOの所有者に通知をし、メールを送信します
+export const notifyOwner = (todo: Model.Todo) =>
+  getUserById(todo.ownerId).pipe(
+    Effect.andThen((user) =>
+      sendEmailToUser(user.id, `hey ${user.name} you got a todo!`)
+    )
+  )
+```
+
+```ts filename="API.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// ---cut---
+// @include: API
+```
+
+:::tip
+実際のシナリオでは、API が常に期待されるデータを返すと信頼しないほうが良いかもしれません。このためには、`@effect/schema`や`zod`などの代替手段を検討できます。
+
+:::
+
+このアプローチはシンプルで読みやすいですが、最も効率的でない可能性があります。同じ所有者を持つ多くの TODO がある場合、繰り返し API コールを行うことは、ネットワークオーバーヘッドを大幅に増加させ、アプリケーションの遅延を引き起こす可能性があります。
+
+### API 関数の使用
+
+これらの関数は明解で理解しやすいですが、その使用は最も効率的ではないかもしれません。例えば、TODO の所有者を通知する際は、繰り返し API コールが発生し、最適化できる可能性があります。
+
+```ts filename="index.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: index.ts
+// ---cut---
+import { Effect } from "effect";
+import * as API from "./API";
+
+// TODOのオペレーションを調整し、所有者に通知します
+const program = Effect.gen(function* () {
+  const todos = yield* API.getTodos;
+  yield* Effect.forEach(todos, (todo) => API.notifyOwner(todo), {
+    concurrency: "unbounded",
+  });
+});
+```
+
+この実装は、メールを送信するために各 TODO に対して所有者の詳細を取得する API コールを実行します。同じ所有者を持つ複数の TODO がある場合、冗長な API コールが発生します。
+
+### バッチコールによる効率の改善
+
+最適化を図るため、バックエンドがサポートしている場合はバッチ API コールを実装することを検討してください。これにより、複数の操作を単一のリクエストにグループ化し、HTTP リクエストの数を減少させ、パフォーマンスを向上させ、負荷を軽減できます。
+
+**次のステップ：**
+
+可能な限りバッチ処理を使用するよう API との相互作用をリファクタリングします。これにより、サーバーの負荷が軽減されるだけでなく、データの処理も効率化され、コードが効率的でクリーンのまま保たれます。
+
+## バッチ処理
+
+バッチで API コールを行うことで、HTTP リクエストの数を削減し、アプリケーションのパフォーマンスを大幅に向上させることができます。
+
+ここでは、`getUserById`と`sendEmail`をバッチ処理できると仮定しましょう。つまり、単一の HTTP コールで複数のリクエストを送信でき、API リクエストの数を減らし、パフォーマンスを向上させることができます。
+
+**バッチ処理のステップバイステップガイド**
+
+1. **リクエストの構造化：** リクエストを構造化データモデルに変換することから始めます。これには、入力パラメータ、期待される出力、可能なエラーを詳細に記述することが含まれます。このようにリクエストを構造化することにより、データの効率的な管理が可能になるだけでなく、異なるリクエストを比較して同じ入力パラメータを参照しているかどうかを理解するのにも役立ちます。
+
+2. **リゾルバの定義：** リゾルバは、複数のリクエストを同時に処理するために設計されています。リクエストを比較（同じ入力パラメータを参照していることを確認）する能力を活用することで、リゾルバは複数のリクエストを一度に実行し、バッチ処理の効果を最大限に引き出すことができます。
+
+3. **クエリの作成：** 最後に、これらのバッチリゾルバを利用して操作を行うクエリを定義します。このステップでは、構造化されたリクエストとそれに対応するリゾルバをアプリケーションの機能コンポーネントとして結びつけます。
+
+**重要な考慮事項**
+
+リクエストは比較可能な方法でモデリングされる必要があります。これにより、同一のリクエストを特定してバッチ処理できるように、比較の実装（[Equals.equals](../other/trait/equal)のようなメソッドを使用）を行うことが重要です。
+
+### リクエストの宣言
+
+データソースが処理できるリクエストのタイプに対して構造化されたモデルを定義することから始めましょう。データソースがサポートするかもしれない`Request`という概念を使用してモデルを設計します。
+
+`Request<Value, Error>`は、タイプ`Value`の値に対するリクエストを表す構造で、`Error`タイプのエラーで失敗する可能性があります。
+
+```twoslash include Requests
+import { Request } from "effect"
+import * as Model from "./Model"
+
+// 複数のTodoアイテムを取得するリクエストを定義します。このリクエストはGetTodosErrorで失敗する可能性があります。
+export interface GetTodos
+  extends Request.Request<Array<Model.Todo>, Model.GetTodosError> {
+  readonly _tag: "GetTodos"
+}
+
+// GetTodosリクエスト用のタグ付きコンストラクタを作成します。
+export const GetTodos = Request.tagged<GetTodos>("GetTodos")
+
+// IDを使用してユーザーを取得するリクエストを定義します。このリクエストはGetUserErrorで失敗する可能性があります。
+export interface GetUserById
+  extends Request.Request<Model.User, Model.GetUserError> {
+  readonly _tag: "GetUserById"
+  readonly id: number
+}
+
+// GetUserByIdリクエスト用のタグ付きコンストラクタを作成します。
+export const GetUserById = Request.tagged<GetUserById>("GetUserById")
+
+// メールを送信するリクエストを定義します。このリクエストはSendEmailErrorで失敗する可能性があります。
+export interface SendEmail
+  extends Request.Request<void, Model.SendEmailError> {
+  readonly _tag: "SendEmail"
+  readonly address: string
+  readonly text: string
+}
+
+// SendEmailリクエスト用のタグ付きコンストラクタを作成します。
+export const SendEmail = Request.tagged<SendEmail>("SendEmail")
+
+// 簡単に管理できるようにすべてのリクエストをユニオン型にまとめます。
+export type ApiRequest = GetTodos | GetUserById | SendEmail
+```
+
+```ts filename="Requests.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: Requests.ts
+// ---cut---
+// @include: Requests
+```
+
+個々のリクエストは、特定のデータ構造を持った要求を示すために、一般的な`Request`タイプから拡張されています。これにより、それぞれのリクエストは特有のデータ要件と特定のエラータイプを持つことが保証されます。
+
+タグ付きコンストラクタ`Request.tagged`を使用することで、アプリケーション全体で認識可能で管理可能なリクエストオブジェクトを簡単にインスタンス化できます。
+
+### リゾルバの宣言
+
+リクエストを定義した後、次のステップは`RequestResolver`を使用して Effect がこれらのリクエストを解決する方法を構成することです。`RequestResolver<A, R>`は環境`R`を必要とし、タイプ`A`のリクエストを実行できるものです。
+
+このセクションでは、各リクエストタイプの個別リゾルバを作成します。リゾルバの粒度は異なる場合がありますが、通常は対応する API コールのバッチ処理能力に基づいて分割されます。
+
+```twoslash include Resolvers
+import { Effect, RequestResolver, Request } from "effect"
+import * as API from "./API"
+import * as Model from "./Model"
+import * as Requests from "./Requests"
+
+// GetTodosはバッチ処理できないと仮定し、標準的なリゾルバを作成します。
+export const GetTodosResolver = RequestResolver.fromEffect(
+  (request: Requests.GetTodos) => API.getTodos
+)
+
+// GetUserByIdはバッチ処理できると仮定し、バッチリゾルバを作成します。
+export const GetUserByIdResolver = RequestResolver.makeBatched(
+  (requests: ReadonlyArray<Requests.GetUserById>) =>
+    Effect.tryPromise({
+      try: () =>
+        fetch("https://api.example.demo/getUserByIdBatch", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            users: requests.map(({ id }) => ({ id }))
+          })
+        }).then((res) => res.json()) as Promise<Array<Model.User>>,
+      catch: () => new Model.GetUserError()
+    }).pipe(
+      Effect.andThen((users) =>
+        Effect.forEach(requests, (request, index) =>
+          Request.completeEffect(request, Effect.succeed(users[index]))
+        )
+      ),
+      Effect.catchAll((error) =>
+        Effect.forEach(requests, (request) =>
+          Request.completeEffect(request, Effect.fail(error))
+        )
+      )
+    )
+)
+
+// SendEmailはバッチ処理できると仮定し、バッチリゾルバを作成します。
+export const SendEmailResolver = RequestResolver.makeBatched(
+  (requests: ReadonlyArray<Requests.SendEmail>) =>
+    Effect.tryPromise({
+      try: () =>
+        fetch("https://api.example.demo/sendEmailBatch", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            emails: requests.map(({ address, text }) => ({ address, text }))
+          })
+        }).then((res) => res.json() as Promise<void>),
+      catch: () => new Model.SendEmailError()
+    }).pipe(
+      Effect.andThen(
+        Effect.forEach(requests, (request) =>
+          Request.completeEffect(request, Effect.void)
+        )
+      ),
+      Effect.catchAll((error) =>
+        Effect.forEach(requests, (request) =>
+          Request.completeEffect(request, Effect.fail(error))
+        )
+      )
+    )
+)
+```
+
+```ts filename="Resolvers.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// ---cut---
+// @include: Resolvers
+```
+
+:::info
+リゾルバは他のすべての`Effect`と同様にコンテキストにアクセスすることができ、リゾルバを作成する方法は多種多様です。さらに詳しい情報は、[RequestResolver](https://effect-ts.github.io/effect/effect/RequestResolver.ts.html)モジュールのリファレンス文書を参照してください。
+
+:::
+
+この構成では：
+
+- **GetTodosResolver**は複数の Todo アイテムを取得する処理を担当します。バッチ処理ができないと仮定し、標準のリゾルバで設定されています。
+- **GetUserByIdResolver**と**SendEmailResolver**はバッチリゾルバとして設定されています。これにより、これらのリクエストがバッチで処理できることでパフォーマンスが向上し、API コールの数が減少します。
+
+### クエリの定義
+
+リゾルバを設定したので、すべてのパーツを結びつけてクエリを定義する準備が整いました。このステップにより、アプリケーション内でデータ操作を効果的に行うことができます。
+
+```twoslash include Queries
+import { Effect } from "effect"
+import * as Model from "./Model"
+import * as Requests from "./Requests"
+import * as Resolvers from "./Resolvers"
+
+// すべてのTodoアイテムを取得するクエリを定義します
+export const getTodos: Effect.Effect<
+  Array<Model.Todo>,
+  Model.GetTodosError
+> = Effect.request(Requests.GetTodos({}), Resolvers.GetTodosResolver)
+
+// IDを使用してユーザーを取得するクエリを定義します
+export const getUserById = (id: number) =>
+  Effect.request(
+    Requests.GetUserById({ id }),
+    Resolvers.GetUserByIdResolver
+  )
+
+// 特定のアドレスにメールを送信するクエリを定義します
+export const sendEmail = (address: string, text: string) =>
+  Effect.request(
+    Requests.SendEmail({ address, text }),
+    Resolvers.SendEmailResolver
+  )
+
+// getUserByIdとsendEmailを組み合わせて特定のユーザーにメールを送信します
+export const sendEmailToUser = (id: number, message: string) =>
+  getUserById(id).pipe(
+    Effect.andThen((user) => sendEmail(user.email, message))
+  )
+
+// getUserByIdを使用してTODOの所有者を取得し、メール通知を送信します
+export const notifyOwner = (todo: Model.Todo) =>
+  getUserById(todo.ownerId).pipe(
+    Effect.andThen((user) =>
+      sendEmailToUser(user.id, `hey ${user.name} you got a todo!`)
+    )
+  )
+```
+
+```ts filename="Queries.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// @include: Resolvers
+
+// @filename: Queries.ts
+// ---cut---
+// @include: Queries
+```
+
+`Effect.request`関数を使用することで、リゾルバとリクエストモデルを効果的に統合します。このアプローチにより、各クエリが最適に解決され、適切なリゾルバを使用できるようになります。
+
+以前の例とコード構造は似ていますが、リゾルバを使用することで、リクエストの処理方法が最適化され、不要な API コールが削減され、効率が大幅に向上します。
+
+```ts filename="index.ts" {7} twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// @include: Resolvers
+
+// @filename: Queries.ts
+// @include: Queries
+
+// @filename: index.ts
+// ---cut---
+import { Effect } from "effect";
+import * as Queries from "./Queries";
+
+const program = Effect.gen(function* () {
+  const todos = yield* Queries.getTodos;
+  yield* Effect.forEach(todos, (todo) => Queries.notifyOwner(todo), {
+    batching: true,
+  });
+});
+```
+
+この最終セットアップでは、このプログラムは TODO の数に関係なく、API に対して**3**つのクエリのみを実行します。従来のアプローチでは、**1 + 2n**クエリが実行される可能性があり、ここで**n**は TODO の数です。これは特にデータインタラクションの量が多いアプリケーションにとって、効率の大幅な改善を表しています。
+
+### バッチ処理の無効化
+
+バッチ処理は、`Effect.withRequestBatching`ユーティリティを使用して以下のようにローカルで無効化できます。
+
+```ts filename="index.ts" {9} twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// @include: Resolvers
+
+// @filename: Queries.ts
+// @include: Queries
+
+// @filename: index.ts
+// ---cut---
+import { Effect } from "effect";
+import * as Queries from "./Queries";
+
+const program = Effect.gen(function* () {
+  const todos = yield* Queries.getTodos;
+  yield* Effect.forEach(todos, (todo) => Queries.notifyOwner(todo), {
+    concurrency: "unbounded",
+  });
+}).pipe(Effect.withRequestBatching(false));
+```
+
+### コンテキストを持つリゾルバ
+
+複雑なアプリケーションでは、リゾルバがリクエストを効果的に処理するために、共有サービスや設定にアクセスする必要がある場合がよくあります。しかし、バッチリクエストの処理能力を維持しながら必要なコンテキストを提供するのは困難です。ここでは、リゾルバにコンテキストを管理する方法を探ります。
+
+リクエストリゾルバを作成する際には、コンテキストを慎重に管理することが重要です。リゾルバがバッチ処理に適合しないように過剰なコンテキストを提供することや、リゾルバにさまざまなサービスを提供することを避けるため、`Effect.request`で使用されるリゾルバのコンテキストは明示的に`never`に設定されます。これにより、開発者はリゾルバ内でコンテキストがどのようにアクセスされ、使用されるかを明確に定義する必要があります。
+
+以下の例では、リゾルバが API コールを実行するために使用できる HTTP サービスを設定しています。
+
+```twoslash include ResolversWithContext
+import { Effect, Context, RequestResolver } from "effect"
+import * as Model from "./Model"
+import * as Requests from "./Requests"
+
+export class HttpService extends Context.Tag("HttpService")<
+  HttpService,
+  { fetch: typeof fetch }
+>() {}
+
+export const GetTodosResolver =
+  // 以前と同様に通常のリゾルバを作成します
+  RequestResolver.fromEffect((request: Requests.GetTodos) =>
+    Effect.andThen(HttpService, (http) =>
+      Effect.tryPromise({
+        try: () =>
+          http
+            .fetch("https://api.example.demo/todos")
+            .then((res) => res.json() as Promise<Array<Model.Todo>>),
+        catch: () => new Model.GetTodosError()
+      })
+    )
+  ).pipe(
+    // リゾルバがアクセスできるタグをリストします
+    RequestResolver.contextFromServices(HttpService)
+  )
+```
+
+```ts filename="ResolversWithContext.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: ResolversWithContext.ts
+// ---cut---
+// @include: ResolversWithContext
+```
+
+ここで、`GetTodosResolver`のタイプはもはや`RequestResolver`ではなく、次のようになります：
+
+```ts
+Effect<RequestResolver<GetTodos, never>, never, HttpService>;
+```
+
+これは、`HttpService`にアクセスし、使用準備が整った最小限のコンテキストを持つ組み込みリゾルバを返す`Effect`です。
+
+このような`Effect`が得られた後、クエリの定義内で直接利用できます。
+
+```ts filename="QueriesWithContext.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: ResolversWithContext.ts
+// @include: ResolversWithContext
+
+// @filename: QueriesWithContext.ts
+// ---cut---
+import { Effect } from "effect";
+import * as Model from "./Model";
+import * as Requests from "./Requests";
+import * as ResolversWithContext from "./ResolversWithContext";
+
+export const getTodos = Effect.request(
+  Requests.GetTodos({}),
+  ResolversWithContext.GetTodosResolver
+);
+```
+
+この Effect が正しく`HttpService`の提供を要求しているのがわかります。
+
+別の方法として、アクションを生成する際にコンテキストを直接アクセスまたはクローズオーバーしてリゾルバを作成することもできます。
+
+例えば：
+
+```ts filename="QueriesFromLayers.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: ResolversWithContext.ts
+// @include: ResolversWithContext
+
+// @filename: QueriesFromLayers.ts
+// ---cut---
+import { Effect, Context, Layer, RequestResolver } from "effect";
+import * as API from "./API";
+import * as Model from "./Model";
+import * as Requests from "./Requests";
+import * as ResolversWithContext from "./ResolversWithContext";
+
+export class TodosService extends Context.Tag("TodosService")<
+  TodosService,
+  {
+    getTodos: Effect.Effect<Array<Model.Todo>, Model.GetTodosError>;
+  }
+>() {}
+
+export const TodosServiceLive = Layer.effect(
+  TodosService,
+  Effect.gen(function* () {
+    const http = yield* ResolversWithContext.HttpService;
+    const resolver = RequestResolver.fromEffect((request: Requests.GetTodos) =>
+      Effect.tryPromise<Array<Model.Todo>, Model.GetTodosError>({
+        try: () =>
+          http
+            .fetch("https://api.example.demo/todos")
+            .then((res) => res.json()),
+        catch: () => new Model.GetTodosError(),
+      })
+    );
+    return {
+      getTodos: Effect.request(Requests.GetTodos({}), resolver),
+    };
+  })
+);
+
+export const getTodos: Effect.Effect<
+  Array<Model.Todo>,
+  Model.GetTodosError,
+  TodosService
+> = Effect.andThen(TodosService, (service) => service.getTodos);
+```
+
+この方法は、サービスを結びつけるための自然なプリミティブであるため、ほとんどのケースには最適です。
+
+## キャッシング
+
+リクエストのバッチ処理を大幅に最適化した一方で、アプリケーションの効率を向上させる別の領域があります。それはキャッシングです。キャッシングがない場合、最適化されたバッチ処理であっても、同じリクエストが複数回実行されることになり、不必要なデータ取得を引き起こします。
+
+Effect ライブラリでは、キャッシングは組み込みユーティリティを通じて管理され、リクエストが一時的に保存され、変更されていないデータを再取得する必要がなくなります。この機能は、特に頻繁に類似のリクエストを行うアプリケーションでは、サーバーとネットワークの負荷を削減するために重要です。
+
+`getUserById`クエリにキャッシングを実装する方法は以下の通りです。
+
+```ts {9} filename="Queries.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// @include: Resolvers
+
+// @filename: Queries.ts
+// ---cut---
+import { Effect } from "effect";
+import * as Requests from "./Requests";
+import * as Resolvers from "./Resolvers";
+
+export const getUserById = (id: number) =>
+  Effect.request(
+    Requests.GetUserById({ id }),
+    Resolvers.GetUserByIdResolver
+  ).pipe(Effect.withRequestCaching(true));
+```
+
+## 最終プログラム
+
+すべてが正しく接続されていると仮定すると：
+
+```ts filename="index.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// @include: Resolvers
+
+// @filename: Queries.ts
+// @include: Queries
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Schedule } from "effect";
+import * as Queries from "./Queries";
+
+const program = Effect.gen(function* () {
+  const todos = yield* Queries.getTodos;
+  yield* Effect.forEach(todos, (todo) => Queries.notifyOwner(todo), {
+    concurrency: "unbounded",
+  });
+}).pipe(Effect.repeat(Schedule.fixed("10 seconds")));
+```
+
+このプログラムでは、`getTodos`操作が各ユーザーの TODO を取得します。その後、`Effect.forEach`関数を使用して、所有者に通知を送信し、その完了を待たずに並行して処理します。
+
+`repeat`関数は、すべてのオペレーションチェーンに適用され、プログラムが固定スケジュールで 10 秒ごとに繰り返されることを保証します。これは、TODO を取得し、通知を送信するプロセス全体が 10 秒間隔で繰り返されることを意味します。
+
+プログラムはキャッシングメカニズムを組み込んでおり、これにより同じ`GetUserById`操作が 1 分間に 1 回以上実行されることがありません。デフォルトのキャッシング動作は、プログラムの実行を最適化し、ユーザーデータの不必要なリクエストを削減するのに役立ちます。
+
+さらに、プログラムはメールをバッチ処理するように設計されており、効率的な処理とリソースの適切な利用を実現しています。
+
+## リクエストキャッシングのカスタマイズ
+
+実際のアプリケーションでは、効果的なキャッシング戦略が冗長なデータ取得を減らすことにより、パフォーマンスを大幅に向上させることができます。Effect ライブラリは、アプリケーションの特定の部分またはグローバルに適用できる柔軟なキャッシングメカニズムを提供します。
+
+アプリケーションの異なる部分がユニークなキャッシング要件を持つシナリオがあり得ます。いくつかはローカルキャッシュから利益を得るかもしれませんが、他のものはグローバルキャッシュの設定が必要な場合があります。それでは、特定のニーズに合わせてカスタムキャッシュを設定する方法を探ります。
+
+### カスタムキャッシュの作成
+
+カスタムキャッシュを作成し、アプリケーションの一部に適用する方法は以下の通りです。この例では、特定のパラメータ（キャパシティと TTL（生存時間））でリクエストをキャッシュするタスクを 10 秒ごとに繰り返すキャッシュを設定します。
+
+```ts filename="index.ts" twoslash
+// @filename: Model.ts
+// @include: Model
+
+// @filename: API.ts
+// @include: API
+
+// @filename: Requests.ts
+// @include: Requests
+
+// @filename: Resolvers.ts
+// @include: Resolvers
+
+// @filename: Queries.ts
+// @include: Queries
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Schedule, Layer, Request } from "effect";
+import * as Queries from "./Queries";
+
+const program = Effect.gen(function* () {
+  const todos = yield* Queries.getTodos;
+  yield* Effect.forEach(todos, (todo) => Queries.notifyOwner(todo), {
+    concurrency: "unbounded",
+  });
+}).pipe(
+  Effect.repeat(Schedule.fixed("10 seconds")),
+  Effect.provide(
+    Layer.setRequestCache(
+      Request.makeCache({ capacity: 256, timeToLive: "60 minutes" })
+    )
+  )
+);
+```
+
+### キャッシュの直接適用
+
+`Request.makeCache`を使用してキャッシュを構築し、それを特定のプログラムに直接適用することもできます。この方法では、指定されたプログラムから発生するすべてのリクエストがカスタムキャッシュを通じて管理されることが保証されます。キャッシングが有効な場合に限ります。

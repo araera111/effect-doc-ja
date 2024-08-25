@@ -1,0 +1,366 @@
+---
+title: Effect 3.0
+excerpt: TypeScriptによるプロダクショングレードのソフトウェアとEffect
+date: 2024-04-16
+authors:
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+---
+
+## お知らせ
+
+Effect がついに安定しました！
+
+<YouTube url="https://www.youtube.com/embed/ViSiXfBKElQ?si=65O07HfOc3qFzqAI" />
+
+5 年間の作業と 3 年以上のプロダクション使用を経て、Effect 3.0、Effect エコシステムのコアの最初の安定版をリリースできることを嬉しく思います。
+
+3.0 からは、主要パッケージ`effect`はセマンティックバージョニングに従います：
+
+1. メジャーリリースには破壊的変更が含まれます。
+2. マイナーリリースには新機能と新モジュールが含まれます。
+3. パッチリリースにはバグ修正が含まれます。
+
+近い将来、新しいメジャーリリースを期待していません。API の改善がかなり数が増え、大きなフィードバック期間を経た後に新しいメジャーをリリースします。
+
+## クイックスタート
+
+Effect は、すべてのランタイムとプロジェクトで動作する TypeScript ライブラリです。使用を開始するには、次のコマンドを実行できます：
+
+```bash
+npm install effect
+```
+
+その後、[ドキュメント](https://effect.website/docs/quickstart)のクイックスタートガイドに従ってください。
+
+完全に動作する Effect ネイティブアプリを見たい場合は、[デモ CLI アプリ](https://github.com/IMax153/effect-openai)をご用意しています。こちらは、[Gitpod](https://gitpod.io/)で直接開くか、ローカル（お好みで）で使用することができます。OpenAI API と統合するためには、OpenAI API キーを提供する必要があります。このデモアプリでは、ファイルのセットから埋め込みを使用してモデルをトレーニングし、その後、トレーニングされたモデルに質問をすることができます。
+
+このアプリは、ウィーンで行われた[Advanced Workshop](https://github.com/IMax153/advanced-effect-workshop)でも使用され、[Maxwell Brown](https://twitter.com/imax153)が指導しました。ワークショップの資料を基にフォローを始めていただければ、録画が近日中に公開される予定です。これには、[Beginner/Intermediate Workshop](https://github.com/ethanniser/effect-workshop)を行った[Ethan Niser](https://twitter.com/ethanniser)のセッションも含まれます。
+
+カンファレンスの様子をちょっと覗いてみたい方には、Johannes Schickling による当日のオープニング基調講演を公開しました。彼がどのようにして TypeScript でプロダクショングレードのソフトウェアを Effect を使って書くのかを語っています：
+
+<YouTube url="https://www.youtube.com/embed/PxIBWjiv3og?si=JoRFl-wtBxE1aHzA" />
+
+## 問題
+
+TypeScript は迅速にビジネスアプリケーションを書くための事実上の標準となっています。JavaScript ランタイムの進化により、フロントエンドとバックエンドの両方でアプリケーションコードの 90％（またはそれ以上）を TypeScript で記述することが非常に一般的になっています。
+
+<Tweet id="1765083019973714292" />
+
+しかし、私たちが知って愛している JavaScript（および TypeScript）は、これを目的に作られたものではありません。もともとは、いくつかのシンプルな UI タスクを自動化するためのスクリプト言語として始まりました。
+
+TypeScript を使用してプロダクショングレードのソフトウェアを開発する際に、私たちはいくつかの機能が欠けていると感じます。具体的には以下のような点です：
+
+### エラーマネジメント
+
+非常に厄介です。TS を使用していても、`unknown`エラータイプに対処しなければならず、ハンドリングロジックが推測ゲームになってしまいます。
+
+### 依存性注入
+
+完全に欠けています。そのため、コードのテストが難しく、テストがモジュールのモンキーパッチに依存することになります。
+
+### データモデリング
+
+挑戦的で、主に安全ではありません。TypeScript の型はランタイムには存在せず、プログラムの境界（データが入ってくる場所と出て行く場所）を適切に確認しなければ、私たちは嘘に依存しています。一見は良さそうに見えても、いつ爆発するかわからない状態です。
+
+### 割り込み
+
+後付けで言語に追加されています。AbortSignal を手動で渡すのは、コードを悪夢のようにします。
+
+### トレーシングとメトリックス
+
+存在しません。`opentelemetry`などのライブラリを使用すると、コードの表現性に妥協しなければならず、ノイズの多い try-catch 文で全てをラップしてしまい、コードの可読性を損なうことになります。
+
+### ロギング
+
+通常、`console.log`への数回のカスタムコールとして実装されており、異なる重要度レベルを考慮していません。たとえ`console.info`（やそれに似たもの）を使っていたとしても、プログラムの現在のログレベルを設定するためのグローバルスイッチはありません。
+
+### JS サーベイの現状
+
+最新の[State of JS](https://2022.stateofjs.com/)サーベイで JavaScript の[痛点](https://2022.stateofjs.com/en-US/opinions/#top_js_pain_points)について質問したところ、以下のような回答が得られました：
+
+![痛点](https://i.imgur.com/7MSgUnL.png)
+
+そして[何が不足していると感じるか](https://2022.stateofjs.com/en-US/opinions/#top_currently_missing_from_js)という質問には、以下の様に答えられました：
+
+![JSに不足しているもの](https://i.imgur.com/uqJutUl.png)
+
+要するに、TypeScript にはプロダクショングレードのソフトウェアの問題を解決する強力な標準ライブラリが存在しません。結果として、私たちは数千の小さな npm パッケージに頼ることになり、それがうまく組み合わさることはなく、コードがとても扱いにくくなってしまいます（それでも動くには動きますが）。
+
+## 解決策
+
+そこで Effect が登場します！初日からプロダクショングレードのソフトウェアを念頭に置いて作られた Effect は、TypeScript のパズルの Missing Piece です。Effect は私たちが愛し使うことになるべき標準ライブラリを目指しています。
+言い換えれば、TypeScript がスケールする JavaScript であるなら、Effect はスケールする TypeScript を目指して作られました。
+
+Effect では、これまでに言及したすべての機能が後付けではなくネイティブにサポートされています。
+
+HTTP 呼び出しの単一例を分析し、Effect 以前と以後のコードを見てみましょう。
+
+### 標準の TypeScript コード
+
+```ts
+interface Todo {
+  readonly id: number;
+  readonly userId: number;
+  readonly title: string;
+  readonly completed: boolean;
+}
+
+const getTodo = async (id: number): Promise<Todo> => {
+  const response = await fetch(`/todos/${id}`);
+  const todo = await response.json();
+  return todo;
+};
+```
+
+API から返された todo が必ず`Todo`インターフェースと一致すると仮定することの誤りを超えても、上記のコードはいくつかの他のあまり明らかでない理由でも安全ではありません。たとえば、このメソッドを呼び出すことで、どの理由で失敗するか全くわからないのです。
+
+この要件を追加すると、コードは次のようになります：
+
+```ts
+async function getTodo(
+  id: number
+): Promise<
+  | { ok: true; todo: Todo }
+  | { ok: false; error: "InvalidJson" | "RequestFailed" }
+> {
+  try {
+    const response = await fetch(`/todos/${id}`);
+    if (!response.ok) throw new Error("Not OK!");
+    try {
+      const todo = await response.json();
+      return { ok: true, todo };
+    } catch (jsonError) {
+      return { ok: false, error: "InvalidJson" };
+    }
+  } catch (error) {
+    return { ok: false, error: "RequestFailed" };
+  }
+}
+```
+
+十分な内容だとしましょう。これでも実際の要求の残りを表しているわけではありません。段階的に説明することなく、現実的な機能セットには以下も含まれます：
+
+- API 呼び出しは指数的バックオフポリシーを使用して再試行され、すでに問題のあるバックエンドに悪影響を与えないようにする。
+- コードはテレメトリーのためにインスツルメントされている必要があり、接続されたテレメトリーのバックエンド（Tempo や Jaeger、Honeycomb、Datadog など）が何が失敗し、いつ失敗し、なぜ失敗するか、そして各ステップがどれくらい時間がかかったかを正確に示すことができるようにする。
+- コードは割り込み（優雅なシャットダウンとも呼ばれます）に対応する必要があります。レスポンスがもはや必要なくなったとき、リクエストを中断できるようにしたいです。
+
+最終的な結果は次のようになります：
+
+```ts
+const tracer = Otel.trace.getTracer("todos");
+
+function getTodo(
+  id: number,
+  {
+    retries = 3,
+    retryBaseDelay = 1000,
+    signal,
+  }: {
+    retries?: number;
+    retryBaseDelay?: number;
+    signal?: AbortSignal;
+  }
+): Promise<
+  | { ok: true; todo: Todo }
+  | {
+      ok: false;
+      error: "InvalidJson" | "RequestFailed" | "Timeout";
+    }
+> {
+  return tracer.startActiveSpan(
+    "getTodo",
+    { attributes: { id } },
+    async (span) => {
+      try {
+        const result = await execute(0);
+        if (result.ok) {
+          span.setStatus({ code: Otel.SpanStatusCode.OK });
+        } else {
+          span.setStatus({
+            code: Otel.SpanStatusCode.ERROR,
+            message: result.error,
+          });
+        }
+        return result;
+      } finally {
+        span.end();
+      }
+    }
+  );
+
+  async function execute(attempt: number): Promise<
+    | { ok: true; todo: Todo }
+    | {
+        ok: false;
+        error: "InvalidJson" | "RequestFailed" | "Timeout";
+      }
+  > {
+    try {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 1000);
+      signal?.addEventListener("abort", () => controller.abort());
+      const response = await fetch(`/todos/${id}`, {
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error("Not OK!");
+      try {
+        const todo = await response.json();
+        return { ok: true, todo };
+      } catch (jsonError) {
+        if (attempt < retries) {
+          throw jsonError; // 再試行へジャンプ
+        }
+        return { ok: false, error: "InvalidJson" };
+      }
+    } catch (error) {
+      if ((error as Error).name === "AbortError") {
+        return { ok: false, error: "Timeout" };
+      } else if (attempt < retries) {
+        const delayMs = retryBaseDelay * 2 ** attempt;
+        return new Promise((resolve) =>
+          setTimeout(() => resolve(execute(attempt + 1)), delayMs)
+        );
+      }
+      return { ok: false, error: "RequestFailed" };
+    }
+  }
+}
+```
+
+ここで、私はすべての人に対して、このコードを見て、それが仕様通りに動作するか、または何か変更を加えることに自信が持てるかどうかを問いたいです。また、データ検証の問題もまだ解決していません。そのため、Zod（または似たもの）への依存関係を追加し、バリデーションステップを追加するかもしれません（それに続く型付きエラーが必要です）。
+
+### Effect のコード
+
+Effect を使用することで、上記の混乱がわずか 25 行の非常に宣言的なコードになります（インポートとフォーマットを含む）：
+
+```ts
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+  HttpClientError,
+} from "@effect/platform";
+import type { Cause } from "effect";
+import { Effect, Schedule } from "effect";
+
+export const getTodo = (
+  id: number
+): Effect.Effect<
+  unknown,
+  HttpClientError.HttpClientError | Cause.TimeoutException,
+  never
+> =>
+  HttpClientRequest.get(`/todos/${id}`).pipe(
+    HttpClient.fetchOk,
+    HttpClientResponse.json,
+    Effect.timeout("1 second"),
+    Effect.retry(
+      Schedule.exponential(1000).pipe(Schedule.compose(Schedule.recurs(3)))
+    ),
+    Effect.withSpan("getTodo", { attributes: { id } })
+  );
+```
+
+各部分を独自のコードブロックに分解し、型推論を可能にすると、さらに読みやすく理解しやすくなります：
+
+```ts
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+} from "@effect/platform";
+import { Effect, Schedule } from "effect";
+
+const retryPolicy = Schedule.exponential(1000).pipe(
+  Schedule.compose(Schedule.recurs(3))
+);
+
+const httpCall = (id: number) =>
+  HttpClientRequest.get(`/todos/${id}`).pipe(
+    HttpClient.fetchOk,
+    HttpClientResponse.json
+  );
+
+export const getTodo = (id: number) =>
+  httpCall(id).pipe(
+    Effect.timeout("1 second"),
+    Effect.retry(retryPolicy),
+    Effect.withSpan("getTodo", { attributes: { id } })
+  );
+```
+
+この例では、コンポジションの力を真に実感できます。Effect の各ブロックは特定の事柄（スケジュール定義や HTTP クライアントなど）に配慮しており、それを行う方法で単一の部分が組み合わさっています。
+
+コードの最後の問題は、境界での型チェックです。これを考慮に入れると、完全な例のコードは次のようになります：
+
+```ts
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+} from "@effect/platform";
+import { Effect, Schedule } from "effect";
+import { Schema } from "@effect/schema";
+
+const retryPolicy = Schedule.exponential(1000).pipe(
+  Schedule.compose(Schedule.recurs(3))
+);
+
+const httpCall = (id: number) =>
+  HttpClientRequest.get(`/todos/${id}`).pipe(
+    HttpClient.fetchOk,
+    HttpClientResponse.json
+  );
+
+class Todo extends Schema.Class<Todo>("Todo")({
+  id: Schema.Number,
+  userId: Schema.Number,
+  title: Schema.String,
+  completed: Schema.Boolean,
+}) {}
+
+export const getTodo = (id: number) =>
+  httpCall(id).pipe(
+    Effect.timeout("1 second"),
+    Effect.retry(retryPolicy),
+    Effect.flatMap(Schema.decodeUnknown(Todo)),
+    Effect.withSpan("getTodo", { attributes: { id } })
+  );
+```
+
+## 未来
+
+コアの`effect`ライブラリは現在安定していますが、`@effect/platform`や`@effect/schema`などのエコシステムの他の部分はまだ安定していません。エコシステムライブラリを安定させることが最優先事項であり、同時に多数のドキュメントや例を追加する予定です。
+
+その後、高度な抽象レベルを維持し、プロダクショングレードの TypeScript の開発において難題を解決するために、引き続きイテレーションを行う計画です。
+
+近い将来の次の目標は、[Effect Cluster](https://github.com/Effect-TS/cluster)を構築することです。これは、次の機能を可能にする最初の JavaScript ソリューションです。
+
+- 分散インスタンスのクラスタリング
+- 名前によるプロセスのアドレス指定
+- アクターとエンティティ
+- クラスターシングルトンのスケジューリング
+- 永続的なビジネスワークフローの実行
+
+ビジネスワークフローの現在のソリューションは、多くの場合、特定のやり方を押し付け、すべての問題がそのソリューションに適合すると見なしていますが、Effect Cluster は、ユーザーが抱えている問題に合わせたワークフローを書くことができるホリスティックなフレームワークを提供します。たとえば、次のようなものをサポートします：
+
+- 明示的なイベントソーシング/アクターモデル、JVM の Akka/Pekko のような、リアルタイム/multiplayer のようなコードに最適です。これにより、システムをエンティティの集合としてモデル化できます。
+- 暗黙的なイベントソーシング/再試行プログラム、Temporal のように、異なるシステムにまたがる短命のトランザクションに最適です。たとえば、データベースに書き込み、確認メールを送信する登録手続きや、支払い提供者と調整する必要がある支払いなどです。
+- 明示的な状態遷移、ハイフリケンシーシナリオに最適です。状態優先で内省を必要とする、たとえば、特定のポジションのリスクを常に再評価し、評価に基づいて決定を下す取引システムなどです。
+
+## 会社
+
+1 年前、Effect をできるだけ使いやすく、機能完全にすることを目的として、私たちは以下のことを行いました。
+
+- [Effectful Technologies Inc](https://effectful.co/)を設立しました。
+- [Amplify Partners](https://www.amplifypartners.com/)主導の 227 万 5000 ドルのシードラウンドを調達し、初期導入者が参加しました。
+- 素晴らしい創業チームを採用しました。
+
+自由なオープンソースソフトウェアを扱う VC 支援の企業として、特に最近、私たちは OSS とは何か、OSS でないものは何かを明確にする責任を認識しています。
+
+そこで非常に明確にしたいのは、**MIT ライセンスの下でリリースされるすべてのものは MIT ライセンスのままであり続けます**。私たちは CLA（貢献者ライセンス契約）を必要としません。Effect 組織は完全にコミュニティによって管理されています。
+
+収益を上げるために、Effectful Technologies は独自の Effect-powered 製品やサービスを開発・提供し、ユーザーが必要に応じて利用できるようにします。

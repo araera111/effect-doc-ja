@@ -1,0 +1,35 @@
+---
+title: ストリームのスケジューリング
+navTitle: スケジューリング
+excerpt: Stream.scheduleを使用して、ストリーム要素の送出間に特定の時間間隔を導入します。スケジューリングコンビネータを利用して、ストリームのタイミングを正確に制御するための構造化された一時停止を作成する方法を学びます。
+bottomNavigation: pagination
+---
+
+## schedule
+
+ストリームを扱う際、各ストリーム要素の送出の間に特定の時間間隔を導入する必要がある場合があります。これを実現するためには、`Stream.schedule`コンビネータを使用します。
+
+```ts twoslash
+import { Stream, Schedule, Console, Effect } from "effect"
+
+const stream = Stream.make(1, 2, 3, 4, 5).pipe(
+  Stream.schedule(Schedule.spaced("1 second")),
+  Stream.tap(Console.log)
+)
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log)
+/*
+出力:
+1
+2
+3
+4
+5
+{
+  _id: "Chunk",
+  values: [ 1, 2, 3, 4, 5 ]
+}
+*/
+```
+
+この例では、`Schedule.spaced("1 second")`スケジュールを使用して、ストリーム内の各送出の間に1秒の間隔を導入しています。

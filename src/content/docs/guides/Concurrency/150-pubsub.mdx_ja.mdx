@@ -1,0 +1,178 @@
+---
+title: PubSub
+excerpt: Effectを使った強力な非同期メッセージハブである`PubSub`の世界に飛び込み、パブリッシャーとサブスクライバー間のシームレスなコミュニケーションを促進します。基本的な操作を学び、さまざまなタイプのPubSubを探求し、それらの最適な使用シナリオを発見しましょう。また、複数の値をパブリッシュすることから、サイズの確認、優雅なシャットダウンまで、PubSubの多目的なオペレーターを理解します。PubSubならではのユニークな特性や、さまざまなシナリオにおけるキューとの同等性についての洞察を得ることで、あなたの非同期ワークフローを強化してください。
+bottomNavigation: pagination
+---
+
+このガイドでは、非同期メッセージハブである`PubSub`の概念を探ります。これにより、パブリッシャーはメッセージをPubSubに送信でき、サブスクライバーはこれらのメッセージを受信できます。
+
+[Queue](queue)とは異なり、Queueでは1つの値が**1人**のテイカーによって取られるのに対し、PubSubではパブリッシュされた各値が**すべて**のサブスクライバーに受信されます。
+
+Queueが値を**配布**する問題に対する最適なソリューションを表すのに対し、`PubSub`はそれらを**ブロードキャスト**する問題に対する最適なソリューションを表しています。
+
+## 基本的な操作
+
+`PubSub`の基本的な操作は、`PubSub.publish`と`PubSub.subscribe`です。
+
+- `publish`操作は、タイプ`A`のメッセージをPubSubに送信します。これは、メッセージが正常にパブリッシュされたかどうかを示すエフェクトを返します。
+- `subscribe`操作は、PubSubにサブスクライブするためのスコープ付きエフェクトを返します。スコープが閉じると自動的にサブスクリプションが解除されます。スコープ内では、PubSubにパブリッシュされたメッセージをデキューするための`Dequeue`にアクセスできます。
+
+PubSubの使い方を理解するために、以下の例を見てみましょう：
+
+```ts twoslash
+import { Effect, PubSub, Queue, Console } from "effect"
+
+const program = PubSub.bounded<string>(2).pipe(
+  Effect.andThen((pubsub) =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const dequeue1 = yield* PubSub.subscribe(pubsub)
+        const dequeue2 = yield* PubSub.subscribe(pubsub)
+        yield* PubSub.publish(pubsub, "Hello from a PubSub!")
+        yield* Queue.take(dequeue1).pipe(Effect.andThen(Console.log))
+        yield* Queue.take(dequeue2).pipe(Effect.andThen(Console.log))
+      })
+    )
+  )
+)
+
+Effect.runPromise(program)
+/*
+出力:
+Hello from a PubSub!
+Hello from a PubSub!
+*/
+```
+
+サブスクライバーは、サブスクライブしている間にだけPubSubにパブリッシュされたメッセージを受信することに注意することが重要です。特定のメッセージがサブスクライバーに届くようにするためには、メッセージをパブリッシュする前にサブスクリプションを確立していることを確認してください。
+
+## PubSubの作成
+
+PubSubモジュールが提供するさまざまなコンストラクターを使用してPubSubを作成できます。
+
+### 制限付きPubSub
+
+制限付きPubSubは、容量がいっぱいのときにパブリッシャーにバックプレッシャーを適用します。つまり、PubSubが満杯の場合、パブリッシャーはブロックされます。
+
+```ts twoslash
+import { PubSub } from "effect"
+
+const boundedPubSub = PubSub.bounded<string>(2)
+```
+
+バックプレッシャーにより、すべてのサブスクライバーはサブスクライブしている間、すべてのメッセージを受信することが保証されます。ただし、サブスクライバーが遅い場合、メッセージの配信が遅くなる可能性があります。
+
+### ドロップ型PubSub
+
+ドロップ型PubSubは、満杯の場合に値を単純に破棄します。PubSub.publish関数は、PubSubが満杯のときに`false`を返します。
+
+```ts twoslash
+import { PubSub } from "effect"
+
+const droppingPubSub = PubSub.dropping<string>(2)
+```
+
+ドロップ型PubSubでは、パブリッシャーは新しい値を公開し続けることができますが、サブスクライバーがすべてのメッセージを受信できる保証はありません。
+
+### スライディング型PubSub
+
+スライディング型PubSubは、満杯のときに最も古い値を破棄し、パブリッシュを常に即座に成功させます。
+
+```ts twoslash
+import { PubSub } from "effect"
+
+const slidingPubSub = PubSub.sliding<string>(2)
+```
+
+スライディング型PubSubは、遅いサブスクライバーの影響を受けずにメッセージの配信レートを確保します。ただし、遅いサブスクライバーが一部のメッセージを見逃すリスクは依然として存在します。
+
+### 無制限PubSub
+
+無制限PubSubは決して満杯にはならず、パブリッシュは常に即座に成功します。
+
+```ts twoslash
+import { PubSub } from "effect"
+
+const unboundedPubSub = PubSub.unbounded<string>()
+```
+
+無制限PubSubでは、すべてのサブスクライバーがすべてのメッセージを受信でき、メッセージ配信が遅れることはありません。ただし、メッセージが消費されるよりも早くパブリッシュされる場合、無制限PubSubは無限に成長する可能性があります。
+
+一般的に、特定のユースケースがない限り、制限付き、ドロップ型、またはスライディング型PubSubを使用することが推奨されます。
+
+## PubSubのオペレーター
+
+PubSubは、キューに利用できるオペレーションに類似したさまざまな操作をサポートしています。
+
+### 複数の値をパブリッシュ
+
+`PubSub.publishAll`オペレーターを使用して、一度に複数の値をPubSubにパブリッシュできます。
+
+```ts twoslash
+import { Effect, PubSub, Queue, Console } from "effect"
+
+const program = PubSub.bounded<string>(2).pipe(
+  Effect.andThen((pubsub) =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const dequeue = yield* PubSub.subscribe(pubsub)
+        yield* PubSub.publishAll(pubsub, ["Message 1", "Message 2"])
+        yield* Queue.takeAll(dequeue).pipe(Effect.andThen(Console.log))
+      })
+    )
+  )
+)
+
+Effect.runPromise(program)
+/*
+出力:
+{
+  _id: "Chunk",
+  values: [ "Message 1", "Message 2" ]
+}
+*/
+```
+
+### サイズの確認
+
+`PubSub.capacity`と`PubSub.size`を使用して、PubSubの容量と現在のサイズを確認できます。
+
+```ts twoslash
+import { Effect, PubSub, Console } from "effect"
+
+const program = PubSub.bounded<number>(2).pipe(
+  Effect.tap((pubsub) => Console.log(`capacity: ${PubSub.capacity(pubsub)}`)),
+  Effect.tap((pubsub) =>
+    PubSub.size(pubsub).pipe(
+      Effect.andThen((size) => Console.log(`size: ${size}`))
+    )
+  )
+)
+
+Effect.runPromise(program)
+/*
+出力:
+capacity: 2
+size: 0
+*/
+```
+
+`capacity`はPubSub作成時に設定され、その後変更されないため`number`を返します。一方、`size`はPubSub内のメッセージ数が時間とともに変わるため、現在のサイズを決定するエフェクトを返します。
+
+### PubSubのシャットダウン
+
+`PubSub.shutdown`を使用してPubSubをシャットダウンし、`PubSub.isShutdown`でシャットダウンされたかどうかを確認し、`PubSub.awaitShutdown`でそのシャットダウンを待機できます。PubSubをシャットダウンすると、関連するすべてのキューもシャットダウンされ、シャットダウンシグナルの適切な伝播が保証されます。
+
+## PubSubをエンキューとして使用
+
+ご覧のとおり、`PubSub`上のオペレーターは、`PubSub.publish`と`PubSub.subscribe`が`Queue.offer`と`Queue.take`に置き換えられることを除いて、[Queue](queue)上のオペレーターと同一です。したがって、`Queue`の使い方がわかれば、`PubSub`の使い方も既にわかっていることになります。
+
+実際には、`PubSub`は書き込み専用の`Queue`として見ることができます：
+
+```ts
+interface PubSub<A> extends Queue.Enqueue<A> {}
+```
+
+ここで、`Enqueue`タイプは、エンキューのみ可能なキューを表します。キューにエンキューすることは、PubSubに値をパブリッシュし、キューをシャットダウンするようなアクションもPubSubをシャットダウンします。
+
+この多用途性により、書き込みのみの`Queue`を使用している場所のすべてで`PubSub`を使用できます。

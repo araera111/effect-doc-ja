@@ -1,0 +1,355 @@
+---
+title: ブランド型
+excerpt: Brand モジュールを使用して TypeScript におけるブランド型の概念を探ります。「data-last」と「data-first」バリアントを理解し、ランタイムバリデーションを伴う (refined) ブランド型と、チェックなし (nominal) ブランド型の作成方法を学びます。ブランド型を使用してコードの型安全性を強化する方法を発見しましょう。
+bottomNavigation: pagination
+---
+
+このガイドでは、TypeScript における **ブランド型** の概念を探求し、Brand モジュールを使ってそれらを作成し、操作する方法を学びます。  
+ブランド型は、値が間違ったコンテキストで使用されるのを防ぐために追加された型タグを持つ TypeScript の型です。  
+これにより、既存の基盤型に基づいて異なる特性を持つ型を作成し、型安全性とより良いコードの整理を可能にします。
+
+## TypeScript の構造的型付けの問題
+
+TypeScript の型システムは構造的型付けであり、2 つの型はそのメンバーが互換性がある場合に互換と見なされます。  
+これは、同じ基盤型の値が異なる概念を表す場合でも、互換的に使用される状況が生じる可能性があります。
+
+次の型を考えてみましょう：
+
+```ts twoslash
+type UserId = number;
+
+type ProductId = number;
+```
+
+ここで、`UserId` と `ProductId` はともに `number` を基にしており、構造的には同一です。  
+TypeScript はこれらを互換的に扱うため、アプリケーションで混乱を招く可能性があります。
+
+例えば：
+
+```ts twoslash
+type UserId = number;
+
+type ProductId = number;
+
+const getUserById = (id: UserId) => {
+  // ユーザーを取得するためのロジック
+};
+
+const getProductById = (id: ProductId) => {
+  // 商品を取得するためのロジック
+};
+
+const id: UserId = 1;
+
+getProductById(id); // 型エラーは発生しないが、これは誤った使用
+```
+
+上記の例では、`UserId` を `getProductById` に渡すことは理想的には型エラーを発生させるべきですが、構造的互換性のために発生しません。
+
+## ブランド型が役立つ理由
+
+ブランド型を使用すると、一意な型タグを追加することで、同じ基盤型から異なる型を作成し、コンパイル時に適切な使用を強制することができます。
+
+ブランディングは、型レベルで異なる型を区別するための記号的識別子を追加することによって達成されます。  
+この方法により、ランタイムの特性を変更することなく、型を明確に保つことができます。
+
+まず、`BrandTypeId` シンボルを紹介しましょう：
+
+```ts twoslash
+const BrandTypeId: unique symbol = Symbol.for("effect/Brand");
+
+type ProductId = number & {
+  readonly [BrandTypeId]: {
+    readonly ProductId: "ProductId"; // ProductId のための一意な識別子
+  };
+};
+```
+
+このアプローチは、`number` 型に一意な識別子をブランドとして割り当て、`ProductId` を他の数値型と効果的に区別します。  
+シンボルを使用することで、ブランディングフィールドが `number` 型の既存のプロパティと衝突しないことが保証されます。
+
+これで `UserId` を `ProductId` として使用しようとすると、エラーが発生します：
+
+```ts twoslash
+// @errors: 2345
+const BrandTypeId: unique symbol = Symbol.for("effect/Brand");
+
+type ProductId = number & {
+  readonly [BrandTypeId]: {
+    readonly ProductId: "ProductId";
+  };
+};
+// ---cut---
+const getProductById = (id: ProductId) => {
+  // 商品を取得するためのロジック
+};
+
+type UserId = number;
+
+const id: UserId = 1;
+
+getProductById(id);
+```
+
+エラーメッセージは、`number` を `ProductId` の代わりに使用することはできないと明示しています。
+
+TypeScript は、ブランドフィールドが欠如しているため、`ProductId` を受け取る関数に `number` のインスタンスを渡すことを許可しません。
+
+もし `UserId` も独自のブランドを持っていたらどうなるでしょう？
+
+```ts twoslash
+// @errors: 2345
+const BrandTypeId: unique symbol = Symbol.for("effect/Brand");
+
+type ProductId = number & {
+  readonly [BrandTypeId]: {
+    readonly ProductId: "ProductId"; // ProductId のための一意な識別子
+  };
+};
+
+const getProductById = (id: ProductId) => {
+  // 商品を取得するためのロジック
+};
+
+type UserId = number & {
+  readonly [BrandTypeId]: {
+    readonly UserId: "UserId"; // UserId のための一意な識別子
+  };
+};
+
+declare const id: UserId;
+
+getProductById(id);
+```
+
+エラーは、両方の型がブランディング戦略を利用しているにもかかわらず、ブランドフィールドに関連付けられた異なる値 (`"ProductId"` と `"UserId"`) が相互互換でないことを示しています。
+
+## ブランド型の一般化
+
+ブランド型の多様性と再利用性を向上させるため、標準化されたアプローチを使用して一般化できます：
+
+```ts twoslash
+const BrandTypeId: unique symbol = Symbol.for("effect/Brand");
+
+// 一意な識別子を用いたジェネリックブランドインターフェースを作成
+interface Brand<in out ID extends string | symbol> {
+  readonly [BrandTypeId]: {
+    readonly [id in ID]: ID;
+  };
+}
+
+// 一意な識別子でブランディングされた ProductId 型を定義
+type ProductId = number & Brand<"ProductId">;
+
+// 同様にブランディングされた UserId 型を定義
+type UserId = number & Brand<"UserId">;
+```
+
+この設計により、任意の型を一意な識別子、すなわち文字列またはシンボルを使用してブランド化できます。
+
+次のように、Brand モジュールから容易に利用できる `Brand` インターフェースを使うことができます。これにより、自分で実装を作成する必要がなくなります：
+
+```ts
+import { Brand } from "effect";
+
+// 一意な識別子でブランディングされた ProductId 型を定義
+type ProductId = number & Brand.Brand<"ProductId">;
+
+// 同様にブランディングされた UserId 型を定義
+type UserId = number & Brand.Brand<"UserId">;
+```
+
+しかし、これらの型のインスタンスを直接作成しようとするとエラーが発生します。なぜなら、型システムがブランド構造を期待しているからです：
+
+```ts twoslash
+// @errors: 2322
+const BrandTypeId: unique symbol = Symbol.for("effect/Brand");
+
+interface Brand<in out K extends string | symbol> {
+  readonly [BrandTypeId]: {
+    readonly [k in K]: K;
+  };
+}
+
+type ProductId = number & Brand<"ProductId">;
+// ---cut---
+const id: ProductId = 1;
+```
+
+`ProductId` 型の値を直接割り当てることなく作成する方法が必要です。ここで Brand モジュールが役立ちます。
+
+## ブランド型の構築
+
+Brand モジュールは、ブランド型を構築するための 2 つのコア関数を提供します：`nominal` と `refined`。
+
+### nominal
+
+`nominal` 関数は、ランタイムのバリデーションを必要としないブランド型を定義するために設計されています。  
+基盤型にタイプタグを追加するだけで、同じ型の値でも意味が異なるものを区別できます。  
+名目ブランディング型は、明確性とコードの整理目的で異なる型を作成するだけでよい場合に便利です。
+
+```ts twoslash
+import { Brand } from "effect";
+
+type UserId = number & Brand.Brand<"UserId">;
+
+// UserId 用のコンストラクタ
+const UserId = Brand.nominal<UserId>();
+
+const getUserById = (id: UserId) => {
+  // ユーザーを取得するためのロジック
+};
+
+type ProductId = number & Brand.Brand<"ProductId">;
+
+// ProductId 用のコンストラクタ
+const ProductId = Brand.nominal<ProductId>();
+
+const getProductById = (id: ProductId) => {
+  // 商品を取得するためのロジック
+};
+```
+
+非 `ProductId` 値を割り当てようとすると、コンパイル時エラーが発生します：
+
+```ts twoslash
+// @errors: 2345
+import { Brand } from "effect";
+
+type UserId = number & Brand.Brand<"UserId">;
+
+const UserId = Brand.nominal<UserId>();
+
+const getUserById = (id: UserId) => {
+  // ユーザーを取得するためのロジック
+};
+
+type ProductId = number & Brand.Brand<"ProductId">;
+
+const ProductId = Brand.nominal<ProductId>();
+
+const getProductById = (id: ProductId) => {
+  // 商品を取得するためのロジック
+};
+// ---cut---
+// 正しい使用
+getProductById(ProductId(1));
+
+// 誤り、エラーが発生します
+getProductById(1);
+
+// また誤り、エラーが発生します
+getProductById(UserId(1));
+```
+
+### refined
+
+`refined` 関数は、データバリデーションを伴ったブランド型を作成するための機能です。  
+入力データの有効性を特定の基準に照らしてチェックするために、リファインメント述語を必要とします。
+
+入力データが基準を満たさない場合、関数は `Brand.error` を使用して `BrandErrors` データ型を生成します。  
+これにより、バリデーションが失敗した理由に関する詳細情報が提供されます。
+
+```ts twoslash
+import { Brand } from "effect";
+
+// 整数値を表すためのブランド型 'Int' を定義
+type Int = number & Brand.Brand<"Int">;
+
+// 整数値を強制するために 'refined' を使用してコンストラクタを定義
+const Int = Brand.refined<Int>(
+  // 値が整数であるかどうかの検証
+  (n) => Number.isInteger(n),
+  // 検証が失敗した場合のエラーを提供
+  (n) => Brand.error(`Expected ${n} to be an integer`)
+);
+```
+
+`Int` コンストラクタの使用例：
+
+```ts twoslash
+import { Brand } from "effect";
+
+type Int = number & Brand.Brand<"Int">;
+
+const Int = Brand.refined<Int>(
+  (n) => Number.isInteger(n), // 値が整数であるかどうかのチェック
+  (n) => Brand.error(`Expected ${n} to be an integer`) // 値が整数でない場合のエラーメッセージ
+);
+
+// ---cut---
+// 有効な Int 値を作成
+const x: Int = Int(3);
+console.log(x); // 出力: 3
+
+// 無効な値で Int を作成しようとするとエラーが発生
+const y: Int = Int(3.14); // throws [ { message: 'Expected 3.14 to be an integer' } ]
+```
+
+非 `Int` 値を割り当てようとすると、コンパイル時エラーが発生します：
+
+```ts twoslash
+// @errors: 2322
+import { Brand } from "effect";
+
+type Int = number & Brand.Brand<"Int">;
+
+const Int = Brand.refined<Int>(
+  (n) => Number.isInteger(n),
+  (n) => Brand.error(`Expected ${n} to be an integer`)
+);
+
+// ---cut---
+// 正しい使用
+const good: Int = Int(3);
+
+// 誤り、エラーが発生します
+const bad1: Int = 3;
+
+// また誤り、エラーが発生します
+const bad2: Int = 3.14;
+```
+
+## ブランド型の組み合わせ
+
+場合によっては、複数のブランド型を組み合わせる必要があるかもしれません。  
+Brand モジュールは、これを容易にするための `all` API を提供しています：
+
+```ts twoslash
+import { Brand } from "effect";
+
+type Int = number & Brand.Brand<"Int">;
+
+const Int = Brand.refined<Int>(
+  (n) => Number.isInteger(n),
+  (n) => Brand.error(`Expected ${n} to be an integer`)
+);
+
+type Positive = number & Brand.Brand<"Positive">;
+
+const Positive = Brand.refined<Positive>(
+  (n) => n > 0,
+  (n) => Brand.error(`Expected ${n} to be positive`)
+);
+
+// Int と Positive のコンストラクタを組み合わせて新しいブランドコンストラクタ PositiveInt を作成
+const PositiveInt = Brand.all(Int, Positive);
+
+// PositiveInt コンストラクタからブランド型を抽出
+type PositiveInt = Brand.Brand.FromConstructor<typeof PositiveInt>;
+
+// 使用例
+
+// 有効な正の整数
+const good: PositiveInt = PositiveInt(10);
+
+// throws [ { message: 'Expected -5 to be positive' } ]
+const bad1: PositiveInt = PositiveInt(-5);
+
+// throws [ { message: 'Expected 3.14 to be an integer' } ]
+const bad2: PositiveInt = PositiveInt(3.14);
+```
+
+```
+
+```

@@ -1,0 +1,155 @@
+---
+title: Effect 3.6 (リリース)
+excerpt: 新機能と変更点を強調したリリース記事
+date: 2024-07-30
+authors:
+  - name: Tim Smart
+    description: 創業エンジニア
+    avatar: https://pbs.twimg.com/profile_images/3642301555/77cc6dab66dc94fdd77e503fd6d1c1cf_400x400.jpeg
+    twitter: https://twitter.com/tim_smart
+---
+
+Effect 3.6がリリースされました！このリリースには多くの新機能と改善が含まれています。新しい内容の概要は以下の通りです：
+
+## DateTime モジュール
+
+`DateTime`モジュールは、時間を扱うための機能、タイムゾーンやサマータイムのサポートを提供します。
+
+主なデータ型は2つあります：`DateTime.Utc`と`DateTime.Zoned`です。
+
+`DateTime.Utc`は協定世界時間 (UTC) における時間を表し、`DateTime.Zoned`はUTCのタイムスタンプとタイムゾーンの両方を含みます。
+
+また、文脈的にタイムゾーンを設定するための`CurrentTimeZone`サービスも用意されています。
+
+```ts
+import { DateTime, Effect } from "effect"
+
+Effect.gen(function* () {
+  // 現在のタイムゾーンにおける現在の時間を取得
+  const now = yield* DateTime.nowInCurrentZone
+
+  // 数学関数が含まれています
+  const tomorrow = DateTime.add(now, { days: 1 })
+
+  // 別のタイムゾーンに変換
+  // `DateTime`のUTC部分は保持され、タイムゾーンのみが変更されます
+  const sydneyTime = tomorrow.pipe(
+    DateTime.unsafeSetZoneNamed("Australia/Sydney"),
+  )
+}).pipe(DateTime.withCurrentZoneNamed("America/New_York"))
+```
+
+## Stream.asyncPush API
+
+`Stream.asyncPush`は、外部のプッシュベースのリソースから`Stream`を作成するために使用できます。
+
+バッファサイズや戦略をカスタマイズするためには、第二引数に`bufferSize`と`strategy`を含むオブジェクトを渡します。
+
+```ts
+import { Effect, Stream } from "effect";
+
+Stream.asyncPush<string>(
+  (emit) =>
+    Effect.acquireRelease(
+      Effect.gen(function* () {
+        yield* Effect.log("サブスクリプション中");
+        return setInterval(() => emit.single("tick"), 1000);
+      }),
+      (handle) =>
+        Effect.gen(function* () {
+          yield* Effect.log("サブスクリプション解除中");
+          clearInterval(handle);
+        }),
+    ),
+  { bufferSize: 16, strategy: "dropping" },
+);
+```
+
+## Struct.keys API
+
+構造体の型付けされたキーにアクセスするためには、`Struct.keys`関数を使用します。
+
+```ts
+import { Struct } from "effect"
+
+const symbol: unique symbol = Symbol()
+
+const value = {
+  a: 1,
+  b: 2,
+  [symbol]: 3
+}
+
+const keys: Array<"a" | "b"> = Struct.keys(value)
+```
+
+## @effect/sql-kysely パッケージ
+
+`@effect/sql-kysely`パッケージは、`kysely`クエリビルダーAPIとの`@effect/sql`統合を提供します。
+
+```ts
+// 自分の`Database`型でタグを作成
+class KyselyDB extends Context.Tag("KyselyDB")<KyselyDB, Kysely<Database>>() {}
+
+Effect.gen(function*(_) {
+  // サービスにアクセスしてクエリを実行
+  const db = yield* KyselyDB
+
+  yield* db.schema
+    .createTable("users")
+    .addColumn("id", "integer", (c) => c.primaryKey().autoIncrement())
+    .addColumn("userName", "text", (c) => c.notNull())
+
+  const inserted = yield* db.insertInto("users").values({ userName: "Alice" }).returningAll()
+  const selected = yield* db.selectFrom("users").selectAll()
+  const updated = yield* db.updateTable("users").set({ userName: "Bob" }).returningAll()
+  const deleted = yield* db.deleteFrom("users").returningAll()
+})
+```
+
+## Random.choice API
+
+このAPIを使用すると、`Iterable`からランダムにアイテムを選択できます。
+
+`Iterable`が「NonEmpty」でない場合、Effectは`Cause.NoSuchElementException`で失敗する可能性があります。
+
+```ts
+import { Random } from "effect"
+
+Effect.gen(function* () {
+  const randomItem = yield* Random.choice([1, 2, 3])
+  console.log(randomItem)
+})
+```
+
+## Effect.tap の onlyEffect オプション
+
+`Effect.tap`の`onlyEffect`オプションを`true`に設定すると、副作用がEffectの利用のみを確実にします。
+
+これは、プログラムに厳密さを追加したい場合に便利です。
+
+## Predicate.tuple/struct のためのリファインメントサポート
+
+リファインメントを`Predicate.tuple`および`Predicate.struct`と共に使用して、結果の型を絞り込むことができるようになりました。
+
+```ts
+import { Predicate } from "effect"
+
+const isTrue = (u: unknown): u is true => u === true
+
+// 型を { isTrue: true } に絞り込みます
+Predicate.struct({ isTrue })
+```
+
+## Stream フック API
+
+`Stream`モジュールに新しいライフタイムフックAPIが追加されました：
+
+- `Stream.onStart` - ストリームが開始されるときにエフェクトを実行
+- `Stream.onEnd` - ストリームがエラーなしで終了するときにエフェクトを実行
+
+## その他の変更
+
+他にもいくつかの小さな変更が行われました。全ての変更を見るにはCHANGELOGを確認してください：[CHANGELOG](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)。
+
+最新の更新に従ったり、あらゆる細かい点について議論したりするために、ぜひ私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に参加してください！

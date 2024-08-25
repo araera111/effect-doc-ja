@@ -1,0 +1,198 @@
+---
+title: 繰り返し
+excerpt: repeatやrepeatOrElseの関数を用いて、Effect駆動のソフトウェア開発における繰り返しの重要性を発見しよう。特定の条件に基づいて効果を複数回実行できる繰り返しポリシーを探求します。繰り返しアクションの効果的な処理のための`repeat`および`repeatOrElse`の構文と例を学び、エラーに対してのオプションのフォールバック戦略も含めます。
+bottomNavigation: pagination
+---
+
+繰り返しは、ソフトウェア開発における Effect の操作において一般的な要件です。特定の繰り返しポリシーに従って、効果を複数回実行することを可能にします。
+
+## repeat
+
+`Effect.repeat`関数は、指定されたスケジュールに従って、または最初の失敗まで、与えられた効果を繰り返す新しい Effect を返します。
+
+:::caution
+スケジュールされた繰り返しは初回の実行に加算されるため、
+`Effect.repeat(action, Schedule.once)`は最初に`action`を 1 回実行し、
+それが成功した場合、追加で 1 回繰り返します。
+
+:::
+
+**成功の例**
+
+```ts twoslash
+import { Effect, Schedule, Console } from "effect";
+
+const action = Console.log("success");
+
+const policy = Schedule.addDelay(Schedule.recurs(2), () => "100 millis");
+
+const program = Effect.repeat(action, policy);
+
+Effect.runPromise(program).then((n) => console.log(`repetitions: ${n}`));
+/*
+出力:
+success
+success
+success
+repetitions: 2
+*/
+```
+
+**失敗の例**
+
+```ts twoslash
+import { Effect, Schedule } from "effect";
+
+let count = 0;
+
+// 可能な失敗をシミュレートする非同期のEffectを定義します
+const action = Effect.async<string, string>((resume) => {
+  if (count > 1) {
+    console.log("failure");
+    resume(Effect.fail("うわっ！"));
+  } else {
+    count++;
+    console.log("success");
+    resume(Effect.succeed("やった！"));
+  }
+});
+
+const policy = Schedule.addDelay(Schedule.recurs(2), () => "100 millis");
+
+const program = Effect.repeat(action, policy);
+
+Effect.runPromiseExit(program).then(console.log);
+/*
+出力:
+success
+success
+failure
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: 'うわっ！' }
+}
+*/
+```
+
+### 最初の発生をスキップする
+
+最初の発生をスキップしたい場合は、`Effect.schedule`を使用できます：
+
+```ts twoslash
+import { Effect, Schedule, Console } from "effect";
+
+const action = Console.log("success");
+
+const policy = Schedule.addDelay(Schedule.recurs(2), () => "100 millis");
+
+const program = Effect.schedule(action, policy);
+
+Effect.runPromise(program).then((n) => console.log(`repetitions: ${n}`));
+/*
+出力:
+success
+success
+repetitions: 2
+*/
+```
+
+## repeatN
+
+`repeatN`関数は、指定された効果を指定した回数だけ繰り返す新しい Effect を返します。繰り返しは初回の実行に加算されるため、`Effect.repeatN(action, 1)`は最初に`action`を 1 回実行し、その後成功した場合に追加で 1 回繰り返します。
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const action = Console.log("success");
+
+const program = Effect.repeatN(action, 2);
+
+Effect.runPromise(program);
+/*
+出力:
+success
+success
+success
+*/
+```
+
+## repeatOrElse
+
+`repeatOrElse`関数は、指定されたスケジュールに従って効果を繰り返す新しい Effect を返します。失敗が発生した場合、失敗値とスケジュールの出力が指定されたハンドラに渡されます。スケジュールされた繰り返しは初回の実行に加算されるため、`Effect.repeat(action, Schedule.once)`は最初に`action`を 1 回実行し、その後成功した場合に追加で 1 回繰り返します。
+
+```ts twoslash
+import { Effect, Schedule } from "effect";
+
+let count = 0;
+
+// 可能な失敗をシミュレートする非同期のEffectを定義します
+const action = Effect.async<string, string>((resume) => {
+  if (count > 1) {
+    console.log("failure");
+    resume(Effect.fail("うわっ！"));
+  } else {
+    count++;
+    console.log("success");
+    resume(Effect.succeed("やった！"));
+  }
+});
+
+const policy = Schedule.addDelay(
+  Schedule.recurs(2), // 最大2回繰り返す
+  () => "100 millis" // 繰り返しの間に100ミリ秒の遅延を追加
+);
+
+const program = Effect.repeatOrElse(action, policy, () =>
+  Effect.sync(() => {
+    console.log("orElse");
+    return count - 1;
+  })
+);
+
+Effect.runPromise(program).then((n) => console.log(`repetitions: ${n}`));
+/*
+出力:
+success
+success
+failure
+orElse
+repetitions: 1
+*/
+```
+
+## 条件に基づいて繰り返し
+
+条件を使用して Effect の繰り返しを制御することができます。`while`または`until`オプションを使用し、ランタイムの結果に基づいて動的に制御することが可能です。
+
+```ts twoslash
+import { Effect } from "effect";
+
+let count = 0;
+
+// 各呼び出し時に異なる結果をシミュレートするEffectを定義します
+const action = Effect.sync(() => {
+  console.log(`Action called ${++count} 回`);
+  return count;
+});
+
+// 特定の条件が満たされるまでアクションを繰り返します
+const program = Effect.repeat(action, { until: (n) => n === 3 });
+
+Effect.runFork(program);
+/*
+出力:
+Action called 1 回
+Action called 2 回
+Action called 3 回
+*/
+```
+
+:::info
+エラーに基づいて条件を設定するには、[Effect.retry](../error-management/retrying#retrying-based-on-a-condition)の使用を検討してください。
+
+:::
+
+```
+
+```

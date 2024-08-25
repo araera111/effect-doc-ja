@@ -1,0 +1,132 @@
+---
+title: 今週のEffect - 2024-06-07
+excerpt: Effect 3.3 リリース。'@effect/schema による型安全なREST APIの構築' by Anna DevMiner。
+date: 2024-06-07
+authors:
+  - name: Davide Scognamiglio
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: Mirela Prifti
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: Michael Arnaldi
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-05-31
+  - this-week-in-effect-2024-06-14
+---
+
+こんにちは、Effecters！
+
+今週の Effect (**TWIE**) に戻ってきてくれてありがとうございます。こちらでは、Effect コミュニティとエコシステムの最新の進展についてお知らせします。
+
+Effect は、開発者が複雑な同期および非同期プログラムを作成するのを助けるために設計された強力な TypeScript ライブラリです。Effect の特徴の一つは、構造化された並行性を利用して、非同期キャンセルや安全なリソース管理などの機能を提供していることです。これにより、堅牢でスケーラブル、かつ効率的なプログラムを簡単に構築できます。
+
+Effect を始めるために、以下のクイックスタートガイドとドキュメントをご覧ください。
+
+- [Effect クイックスタートガイド](/docs/quickstart)
+- [Effect ドキュメント](/docs/introduction)
+
+私たちは、あなたが Effect の旅を存分に楽しむための情報を見つけやすくしたいと考えています。この場所では、Discord のディスカッションや注目すべき投稿、YouTube コンテンツ、技術的な進展など、先週の重要な出来事を紹介します。
+
+**最近の主な更新**
+
+- Effect は[Effect 3.0 のリリース](https://effect.website/blog/effect-3.0)により API が安定しました。
+- [Effect 3.3](https://effect.website/blog/effect-3.3)がリリースされました。
+- Discord のコミュニティが**2950 人以上**になりました！
+- [Effect YouTube チャンネル](https://www.youtube.com/@effect-ts)で毎週新しい Effect Days の講演を公開しています。
+
+## 技術
+
+先週に発生したすべての技術的変更についてはこちらです（3.3 のリリースに含まれる変更はリストされていません）。
+
+### Effect Core
+
+- [Equal が Date を値として考慮することを確認](https://github.com/Effect-TS/effect/pull/2894) (バグ修正)
+- [Context.Tag.Identifier 内の id 抽出を修正](https://github.com/Effect-TS/effect/pull/2914) (バグ修正)
+- [PrettyError から toJSON を削除し、メッセージ生成を修正](https://github.com/Effect-TS/effect/pull/2912) (バグ修正)
+- [performance.timeOrigin の使用を削除](https://github.com/Effect-TS/effect/pull/2921) (バグ修正)
+- [Config.Wrap 内で文字列キーを持つオブジェクトのみをラップ](https://github.com/Effect-TS/effect/pull/2923) (バグ修正)
+- [README: プルリクエストガイドラインを更新](https://github.com/Effect-TS/effect/pull/2935) (ドキュメント更新)
+- [Predicate.implies のドキュメントを追加](https://github.com/Effect-TS/effect/pull/2937) (ドキュメント更新)
+- [Redacted: JSDoc を追加](https://github.com/Effect-TS/effect/pull/2944) (ドキュメント更新)
+- [Either.liftPredicate を追加](https://github.com/Effect-TS/effect/pull/2919) (機能, 次のマイナー)
+- [getEquivalence 関数内の不要な===比較を削除](https://github.com/Effect-TS/effect/pull/2948) (リファクタリング)
+- [Chunk.reverse が NonEmpty ステータスを保持することを確認](https://github.com/Effect-TS/effect/pull/2950) (バグ修正)
+- [Chunk モジュールに lastNonEmpty 関数を追加](https://github.com/Effect-TS/effect/pull/2951) (バグ修正, 次のマイナー)
+
+### Effect RPC
+
+- [rpc クライアントが Stream リクエストを正しく検出することを確認](https://github.com/Effect-TS/effect/pull/2934) (バグ修正)
+
+### Effect Platform
+
+- [@effect/platform 内で baseUrl をよりディフェンシブにする](https://github.com/Effect-TS/effect/pull/2903) (リファクタリング)
+- [ユーザー提供の http アプリを実行した後にプレレスポンスハンドラーがチェックされることを確認](https://github.com/Effect-TS/effect/pull/2931) (バグ修正)
+
+### Effect CLI
+
+- [cli の stdout への印刷を修正](https://github.com/Effect-TS/effect/pull/2920) (バグ修正)
+
+### Effect SQL
+
+- [@effect/sql-drizzle 統合パッケージを追加](https://github.com/Effect-TS/effect/pull/2860) (機能)
+- [@effect/sql の依存関係を更新](https://github.com/Effect-TS/effect/pull/2932) (改善)
+
+### Effect Schema
+
+- [Schema.Class における等価性の処理に関するドキュメントを追加](https://github.com/Effect-TS/effect/pull/2893) (ドキュメント更新)
+- [encodedBoundSchema API を追加](https://github.com/Effect-TS/effect/pull/2897) (機能)
+- [スキーマファイル内の@since バージョンを 0.67.0 に更新](https://github.com/Effect-TS/effect/pull/2899) (改善)
+- [Schema: プロパティシグネチャスキーマを公開](https://github.com/Effect-TS/effect/pull/2892) (改善)
+- [Schema.TemplateLiteral および TemplateLiteral API インターフェースに文字列リテラルのサポートを追加](https://github.com/Effect-TS/effect/pull/2901) (機能)
+- [EncodedBoundSchema: 配列の安定フィルターを保持](https://github.com/Effect-TS/effect/pull/2902)
+- [rename に対するユニオンのサポートを追加](https://github.com/Effect-TS/effect/pull/2905) (改善)
+- [TemplateLiteral: "number" span に関するバグを修正](https://github.com/Effect-TS/effect/pull/2908) (バグ修正)
+- [Schema: コンストラクタの引数を整列](https://github.com/Effect-TS/effect/pull/2915) (リファクタリング)
+- [Schema.TemplateLiteral に AST.Literal のサポートを追加](https://github.com/Effect-TS/effect/pull/2916) (機能)
+- [ParseOptions に propertyOrder オプションを追加し、出力中のキーの順序を制御](https://github.com/Effect-TS/effect/pull/2926) (機能)
+- [PropertyOrder: 欠落したオプションの値を追加しない](https://github.com/Effect-TS/effect/pull/2930) (バグ修正)
+- [Schema: Redacted のドキュメントを追加](https://github.com/Effect-TS/effect/pull/2939) (ドキュメント更新)
+- [Schema: Redacted since タグを修正](https://github.com/Effect-TS/effect/pull/2941) (バグ修正)
+- [Docs(Schema): README 内のプロパティのリネーミングに関する例を追加](https://github.com/Effect-TS/effect/pull/2945) (ドキュメント更新)
+
+### 一般的な雑務
+
+- [flake.nix の更新と簡素化](https://github.com/Effect-TS/effect/pull/2895)
+
+## コミュニティのハイライト
+
+先週、私たちは 50 人以上の新しい Effecters を私たちの[Discord コミュニティ](https://discord.gg/effect-ts)に迎えました - あなたが参加してくれて嬉しいです！
+
+- Effect は[X](https://x.com/EffectTS_)で**6000 人のフォロワー**というマイルストーンに到達しました。コミュニティの皆さんに、継続的なサポートと信頼に感謝いたします。
+
+- [Maxwell Brown](https://x.com/imax153)、長期にわたる Effect-core のコントリビューターであり、Effect Days Advanced Workshop の講師が、[Effectful Technologies](https://x.com/EffectfulTech)チームに参加しました。彼を迎えることができて嬉しく思い、今後の活躍を期待しています！
+
+  <Tweet id="1798382592867389513" />
+
+- [inato](https://x.com/inatohealth)チームが、[fp-ts から Effect への移行プロセス](https://dev.to/laurerc/how-we-migrated-our-codebase-from-fp-ts-to-effect-5bbk)についての洞察を共有し、わずか 2 ヶ月でこの目標に到達した方法を紹介しました。この素晴らしい成果を達成したチームにおめでとうございます。
+
+  <Tweet id="1798030308350259614" />
+
+- 優れた若手 Effect 教育者であり、ウィーンでの Effect Days Workshop の講師である[Ethan Niser](https://x.com/ethanniser)が卒業し、彼の卒業式の様子を共有しました。彼のさらなる素晴らしい業績を見られることを嬉しく思い、彼が私たちのコミュニティの一員であることを光栄に思います。
+
+  <Tweet id="1798595614206230902" />
+
+- [Evryg](https://www.evryg.com)チームが第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)の日程を発表しました：**6 月 25 日火曜日午後 7:00**。現在、講演の応募を受け付けています—[あなたの講演を今すぐ提出してください](https://github.com/evryg-org/effect-paris/issues/new?template=talk.yml)! お知らせとして、ミートアップはフランス語で行われます。
+  <Tweet id="1793661086291710258" />
+
+### コンテンツの更新
+
+- 月曜日に、Effect Days Conference からの新しい講演を公開しました。'@effect/schema による型安全な REST API の構築' by [Anna DevMiner](https://x.com/TheDevMinerTV)。彼女のプレゼンテーションでは、型安全な REST API の重要性が語られ、Zod と@effect/schema を使った解決策が示されています。
+  <YouTube url="https://www.youtube.com/embed/TUQbLqmO0_M?si=-AVcGsFt1kp6bsfX" />
+
+## 終わりに
+
+今週はこれで以上です。私たちのコミュニティの重要な一員でいてくださってありがとうございます。このフォーマットを微調整する際に、あなたのフィードバックは非常に重要です。あなたの意見を自由に共有してください。私たちはコミュニティのニーズに応じて最善を尽くします。
+
+_Effect コミュニティチーム_

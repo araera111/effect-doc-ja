@@ -1,0 +1,91 @@
+---
+title: SynchronizedRef
+excerpt: Effectの中の`SynchronizedRef`の力を発見し、共有状態の原子的で効果的な更新を可能にする可変参照を学びましょう。`Ref`の基盤の上に構築された`SynchronizedRef`は、共有状態を変更するために効果的な操作を実行できるユニークな`updateEffect`関数を導入します。並行更新やAPIリクエストと状態更新を伴う実世界のシナリオを示す実用的な例まで掘り下げ、`SynchronizedRef`の独特な機能を体験しましょう。このEffectプログラミングの高度な機能によって、同時状態管理の理解を深めましょう。
+bottomNavigation: pagination
+---
+
+`SynchronizedRef<A>`は、型`A`の値への**可変参照**として機能します。これを使用することで、**不変**データを保存し、**原子的かつ効果的に**更新を行うことができます。
+
+:::info
+`SynchronizedRef`のほとんどの操作は、`Ref`の操作に似ています。
+もし`Ref`にまだ慣れていない場合は、最初に
+[Ref の概念](ref)を読むことをお勧めします。
+
+:::
+
+`SynchronizedRef`の独特な機能は`updateEffect`です。この関数は**効果的な操作**を受け取り、それを実行して共有状態を変更します。これが`SynchronizedRef`を`Ref`と区別する重要な機能です。
+
+```ts twoslash
+import { Effect, SynchronizedRef } from "effect";
+
+const program = Effect.gen(function* () {
+  const ref = yield* SynchronizedRef.make("current");
+  // 効果的な更新操作をシミュレート
+  const updateEffect = Effect.succeed("update");
+  yield* SynchronizedRef.updateEffect(ref, () => updateEffect);
+  const value = yield* SynchronizedRef.get(ref);
+  return value;
+});
+
+Effect.runPromise(program).then(console.log);
+/*
+出力:
+update
+*/
+```
+
+実世界のアプリケーションでは、エフェクト（例えば、データベースのクエリなど）を実行し、その後に共有状態を更新する必要があるシナリオが存在します。これが`SynchronizedRef`の強みで、アクターモデルの方式で共有状態を更新することを可能にします。私たちは共有の可変状態を持っていますが、各異なるコマンドやメッセージに対して、エフェクトを実行し状態を更新したいのです。
+
+すべての更新に対して効果的なプログラムを渡すことができます。全ての更新は並行して行われますが、その結果は異なる時間に状態に影響を与えるように順序付けられ、最終的には一貫した状態となります。
+
+以下の例では、各ユーザーの`getAge`リクエストを送信し、それに応じて状態を更新します：
+
+```ts twoslash
+import { Effect, SynchronizedRef } from "effect";
+
+// APIをシミュレート
+const getAge = (userId: number) => Effect.succeed({ userId, age: userId * 10 });
+
+const users = [1, 2, 3, 4];
+
+const meanAge = Effect.gen(function* () {
+  const ref = yield* SynchronizedRef.make(0);
+
+  const log = <R, E, A>(label: string, effect: Effect.Effect<A, E, R>) =>
+    Effect.gen(function* () {
+      const value = yield* SynchronizedRef.get(ref);
+      yield* Effect.log(`${label} get: ${value}`);
+      return yield* effect;
+    });
+
+  const task = (id: number) =>
+    log(
+      `task ${id}`,
+      SynchronizedRef.updateEffect(ref, (sumOfAges) =>
+        Effect.gen(function* () {
+          const user = yield* getAge(id);
+          return sumOfAges + user.age;
+        })
+      )
+    );
+
+  yield* task(1).pipe(
+    Effect.zip(task(2), { concurrent: true }),
+    Effect.zip(task(3), { concurrent: true }),
+    Effect.zip(task(4), { concurrent: true })
+  );
+
+  const value = yield* SynchronizedRef.get(ref);
+  return value / users.length;
+});
+
+Effect.runPromise(meanAge).then(console.log);
+/*
+出力:
+... fiber=#1 message="task 4 get: 0"
+... fiber=#2 message="task 3 get: 40"
+... fiber=#3 message="task 1 get: 70"
+... fiber=#4 message="task 2 get: 80"
+25
+*/
+```

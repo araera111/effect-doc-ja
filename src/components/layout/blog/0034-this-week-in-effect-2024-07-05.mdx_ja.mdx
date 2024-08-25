@@ -1,0 +1,139 @@
+---
+title: 今週のEffect - 2024-07-05
+excerpt: Effectに関する技術的アップデート。トマシュ・ホラーチェクによる「Effect, The Missing TypeScript Standard Library」。
+date: 2024-07-05
+authors:
+  - name: ダビデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: マイケル・アルナルディ
+    description: 最高経営責任者
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - this-week-in-effect-2024-06-28
+  - this-week-in-effect-2024-07-12
+---
+
+こんにちは、Effect の皆さん！
+
+「今週の Effect（**TWIE**）」へようこそ。これは、Effect コミュニティとエコシステムの最新の進展をお知らせするための週次アップデートです。
+
+Effect は、開発者が複雑な同期および非同期プログラムを作成するのを支援するために設計された強力な TypeScript ライブラリです。Effect の特徴的な点は、構造化された並行処理を活用して、非同期キャンセルや安全なリソース管理などの機能を提供することです。これにより、堅牢でスケーラブル、効率的なプログラムをより容易に構築できます。
+
+Effect を始めるには、以下のクイックスタートガイドとドキュメントを参照してください。
+
+- [Effect クイックスタートガイド](/docs/quickstart)
+- [Effect ドキュメント](/docs/introduction)
+
+私たちは、あなたが Effect の旅を存分に楽しみ、コミュニティに積極的に参加できるよう、必要な情報を見つけやすくしたいと考えています！このブログポストシリーズでは、前週の重要な出来事、ディスコードの議論、注目すべき投稿、YouTube コンテンツ、技術的な進展などがわかる情報を提供します。
+
+**最近の主要なアップデート**
+
+- Effect は、[Effect 3.0 リリース](https://effect.website/blog/effect-3.0)により API が安定しました。
+- [Effect 3.4](https://effect.website/blog/effect-3.3)がリリースされました。
+- 私たちの[Discord コミュニティ](https://discord.gg/effect-ts)は 3160 人以上のメンバーに達しました！
+- Effect Days 2024 のすべてのトークが[Effect YouTube チャンネル](https://www.youtube.com/@effect-ts)に公開されました。
+
+## テクノロジー
+
+先週に発生したすべての技術的変更については以下をご覧ください。
+
+### Effect Core
+
+- [Micro: Effect モジュールに合わせて名前を変更](https://github.com/Effect-TS/effect/pull/3096) (リファクタリング)
+- [Match.tag および Match.tagStartsWith 関数の外部ハンドラーの黙示的使用をサポート](https://github.com/Effect-TS/effect/pull/3121) (リファクタリング, バグ修正)
+- [Channel.withSpan のために Channel.acquireUseRelease を使用](https://github.com/Effect-TS/effect/pull/3134) (リファクタリング)
+- [PubSub.publishAll が購読者がいない場合にサイズを増加しないことを保証](https://github.com/Effect-TS/effect/pull/3161) (バグ修正)
+- [Stream.filterMapEffectOption 関数を追加](https://github.com/Effect-TS/effect/pull/3023) (機能)
+- [Stream: mergeLeft と mergeRight の引数名を self/that から left/right に変更して明確化](https://github.com/Effect-TS/effect/pull/3160) (リファクタリング, 次のマイナー)
+- [Stream.mergeWith でファイバーが中断されることを保証](https://github.com/Effect-TS/effect/pull/3175) (バグ修正)
+- [Stream の実行ファイバーが中断を試みる前に終了できるようにする](https://github.com/Effect-TS/effect/pull/3176) (バグ修正)
+
+### Effect Platform
+
+- [HttpClient.followRedirects API を追加](https://github.com/Effect-TS/effect/pull/3123) (機能)
+- [HTTP リクエストスキーマ API で undefined をサポート](https://github.com/Effect-TS/effect/pull/3136) (機能)
+
+### Effect Experimental
+
+- [DevTool のエラーをデバッグレベルでログに記録](https://github.com/Effect-TS/effect/pull/3138) (バグ修正)
+- [PersistedCache モジュールを/experimental に追加](https://github.com/Effect-TS/effect/pull/3149) (機能)
+- [Redis 永続化から console.log を削除](https://github.com/Effect-TS/effect/pull/3150) (バグ修正)
+- [/experimental の Persistence で PrimaryKey の要件を削除](https://github.com/Effect-TS/effect/pull/3158) (改善)
+
+### Effect Schema
+
+- [JSONSchema.make を修正し、Schema.String, Schema.Number, Schema.Boolean などのスキーマタイプで title および description フィールドを選択的に無視](https://github.com/Effect-TS/effect/pull/3117) (リファクタリング)
+- [Union、Suspend および Refinement を extend の第二引数としてサポート](https://github.com/Effect-TS/effect/pull/3125) (機能)
+- [ReadonlyMapFromRecord および MapFromRecord を追加](https://github.com/Effect-TS/effect/pull/3130) (機能)
+- [README: TypeScript からのより良いエラーメッセージを得るために strict: true オプションの使用を推奨](https://github.com/Effect-TS/effect/pull/3132) (ドキュメント更新)
+- [均質タプル（空でない配列など）のために JSON Schema の出力を最適化](https://github.com/Effect-TS/effect/pull/3139) (改善)
+- [Record パラメータにおける Refinements のための JSON Schema サポートを強化](https://github.com/Effect-TS/effect/pull/3143) (改善)
+- [ターゲットスキーマを定義するために Schema.typeSchema を使用する変換の例を追加](https://github.com/Effect-TS/effect/pull/3145) (ドキュメント更新)
+- [PersistedCache モジュールを/experimental に追加](https://github.com/Effect-TS/effect/pull/3149) (機能)
+- [テストで ajv の警告を抑制](https://github.com/Effect-TS/effect/pull/3151) (バグ修正)
+- [Struct インターフェースに pick および omit メンバーを追加](https://github.com/Effect-TS/effect/pull/3163) (機能)
+- [filterEffect API を追加](https://github.com/Effect-TS/effect/pull/3166) (機能)
+- [Serializable のドキュメントを追加](https://github.com/Effect-TS/effect/pull/3148) (ドキュメント更新)
+- [README: FAQ セクションを追加](https://github.com/Effect-TS/effect/pull/3178) (ドキュメント更新)
+
+### Effect CLI
+
+- [全てのコマンドに--log-level の組み込みオプションを追加](https://github.com/Effect-TS/effect/pull/3107) (機能)
+- [CLI の--wizard モードにパスベースのオプションをサポートする Prompt.file を追加](https://github.com/Effect-TS/effect/pull/3153) (リファクタリング, 機能, 最適化)
+- [ファイルセレクターのプロンプトが親ディレクトリをたどれるようにする](https://github.com/Effect-TS/effect/pull/3167) (バグ修正)
+
+### Effect Vitest
+
+- [vitest をリファクタリング](https://github.com/Effect-TS/effect/pull/3122) (リファクタリング)
+
+### Effect Typeclass
+
+- [Effect と Micro の基本インスタンスを追加](https://github.com/Effect-TS/effect/pull/3169) (機能)
+- [内部: プロダクト実装を簡素化](https://github.com/Effect-TS/effect/pull/3177) (改善)
+
+## コミュニティのハイライト
+
+先週、新たに 50 人以上の Effecters が私たちの[Discord コミュニティ](https://discord.gg/effect-ts)に参加しました - みなさんを歓迎できることにとても興奮しています！
+
+- [アレッサンドロ・マクラウィン](https://dev.to/almaclaine)は最近、[dev.to](https://dev.to/)に Effect に関する投稿を始めました。彼は、Effect での[Option との match の使用方法](https://dev.to/almaclaine/using-match-with-option-in-effect-1ho9)を説明する記事を書きました。
+
+- [イーサン・ナイザー](https://x.com/ethanniser)、Effect の教育者でウィーンでの Effect Days ワークショップのインストラクターは、Effect が非常に役立つ使い方を共有しました。詳細は下記の投稿をご覧ください。
+
+  <Tweet id="1808266920615202848" />
+
+- [クリスチャン・シュレーテ](https://x.com/grizzly_codes)、[Park-UI](https://park-ui.com/)の創設者は、Effect を使用してアプリケーションの CLI を再構築しており、そのポジティブなフィードバックを X（Twitter）で共有しました。
+
+  <Tweet id="1808215848164704625" />
+
+- [マクスウェル・ブラウン](https://x.com/imax153)は、次の Effect/CLI のバージョンで、パスベースのコマンドラインオプションにファイルピッカープロンプトが追加されることを前もって見せてくれました。
+  <Tweet id="1808625323853930923" />
+
+### コンテンツアップデート
+
+- [マイケル・アルナルディ](https://x.com/MichaelArnaldi)、Effect の創設者が、Effect に関する特別エピソードの[JavaScript Jabber](https://x.com/JSJabber)ポッドキャストに参加しました。
+
+  <Tweet id="1807814969368691172" />
+
+- [トマシュ・ホラーチェク](https://x.com/heracek)、[Ciklum](https://www.ciklum.com/)の主幹技術リードは、Effect に関する講演を行いました。そこで、信頼性が高く、再利用可能で、保守可能なアプリケーションを作成する際の Effect の利点、基本的な Effect アプリケーションを作成し、そのコア機能を実装する方法を示しました。
+
+  <YouTube url="https://www.youtube.com/embed/Mikn2MXPaNg?si=GLxrE0wre1kpLoKc" />
+
+- [マッティア・マンザティ](https://twitter.com/MattiaManzati)の[Effect RPC との Effect Cluster Integration](https://www.youtube.com/watch?v=8WanmCpq_Mw&t=3s)に関するシリーズの最新エピソードが、[Effect YouTube チャンネル](https://www.youtube.com/@effect-ts)で利用可能になりました。
+
+  <YouTube url="https://www.youtube.com/embed/_TB2gpOSrDo?si=_gnnoazAk5uwOF05" />
+
+- [ディロン・マルロイ](https://twitter.com/dillon_mulroy)、[Vercel](https://vercel.com)のソフトウェアエンジニアは、TypeScript と EffectTS を使った[ツイッチオーバーレイを構築する](https://www.twitch.tv/dmmulroy/videos)シリーズで再び Twitch でライブ配信しました。
+  <TwitchPlayerNonInteractive video="2188943846" />
+
+## 終わりの言葉
+
+今週は以上です。私たちのコミュニティの重要な一員でいてくださり、ありがとうございます。皆さまのフィードバックは大変貴重ですので、このフォーマットを微調整する際にお寄せいただけると幸いです。ご意見を自由にお寄せください。コミュニティのニーズに合わせて最大限調整いたします。
+
+_Effect コミュニティチーム_

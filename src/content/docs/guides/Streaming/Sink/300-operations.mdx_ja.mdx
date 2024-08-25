@@ -1,0 +1,92 @@
+---
+title: Sink Operations
+excerpt: Sinkの動作を変換またはフィルタリングするための操作を探ります。`Sink.mapInput`を使用して異なる入力タイプに適応させる方法を学びます。`Sink.dimap`を活用して、入力と出力タイプの完全な変換が可能になります。特定の条件に基づいて要素を選択的に処理するために、`Sink.filterInput`を利用します。
+bottomNavigation: pagination
+---
+
+前のセクションでは、Sink の作成と使用方法を学びました。今回は、Sink の動作を変換またはフィルタリングするために行えるいくつかの操作を探ります。
+
+## 入力の変更
+
+場合によっては、特定のタイプの入力で完璧に動作する Sink があるのに、異なるタイプで使用したいことがあります。このとき、`Sink.mapInput`が便利です。`Sink.map`が関数の出力を変更するのに対し、`Sink.mapInput`は入力を変更します。これにより、Sink を別の入力で動作させることができます。
+
+例えば、数値の合計を計算する`Sink.sum`があるとしましょう。しかし、あなたのストリームには数値ではなく文字列が含まれています。`mapInput`を使用して、文字列を数値に変換し、`Sink.sum`をストリームに対応させることができます：
+
+```ts twoslash
+import { Stream, Sink, Effect } from "effect";
+
+const numericSum = Sink.sum;
+
+const stringSum = numericSum.pipe(
+  Sink.mapInput((s: string) => Number.parseFloat(s))
+);
+
+Effect.runPromise(
+  Stream.make("1", "2", "3", "4", "5").pipe(Stream.run(stringSum))
+).then(console.log);
+/*
+出力:
+15
+*/
+```
+
+## 入力と出力の両方を変換する
+
+Sink の入力と出力の両方を変更する必要がある場合、`Sink.dimap`を使用できます。これは、両方のタイプを変換できる`mapInput`の拡張版です。これは、入力と出力タイプ間で完全な変換を行う必要があるときに便利です：
+
+```ts twoslash
+import { Stream, Sink, Effect } from "effect";
+
+// 入力を整数に変換し、計算を行い、再度文字列に変換する
+const sumSink = Sink.sum.pipe(
+  Sink.dimap({
+    onInput: (s: string) => Number.parseFloat(s),
+    onDone: (n) => String(n),
+  })
+);
+
+Effect.runPromise(
+  Stream.make("1", "2", "3", "4", "5").pipe(Stream.run(sumSink))
+).then(console.log);
+/*
+出力:
+15 <-- 文字列として
+*/
+```
+
+## 入力のフィルタリング
+
+Sink は、`Sink.filterInput`を使用して受信する要素をフィルタリングする方法を提供します。これにより、特定の条件を満たす要素のみを収集または処理することができます。以下の例では、三つの要素のチャンクで収集し、負の数値をフィルタリングしています：
+
+```ts twoslash
+import { Stream, Sink, Effect } from "effect";
+
+const stream = Stream.make(1, -2, 0, 1, 3, -3, 4, 2, 0, 1, -3, 1, 1, 6).pipe(
+  Stream.transduce(
+    Sink.collectAllN<number>(3).pipe(Sink.filterInput((n) => n > 0))
+  )
+);
+
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
+/*
+出力:
+{
+  _id: "Chunk",
+  values: [
+    {
+      _id: "Chunk",
+      values: [ 1, 1, 3 ]
+    }, {
+      _id: "Chunk",
+      values: [ 4, 2, 1 ]
+    }, {
+      _id: "Chunk",
+      values: [ 1, 1, 6 ]
+    }, {
+      _id: "Chunk",
+      values: []
+    }
+  ]
+}
+*/
+```

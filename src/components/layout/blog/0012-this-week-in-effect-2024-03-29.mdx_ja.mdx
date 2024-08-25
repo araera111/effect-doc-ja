@@ -1,0 +1,126 @@
+---
+title: 今週のEffect - 2024-03-29
+excerpt: Effectに関する技術的な更新、初のカンファレンストークのリリース、手話での「Effect」のサイン方法、そしてイベントのお知らせ。
+date: 2024-03-29
+authors:
+  - name: ダビデ・スコニャミリョ
+    description: プロジェクトマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1329959878476111875/evHG8VX6_400x400.jpg
+    twitter: https://twitter.com/DadeSkoTV
+  - name: ミレラ・プリフティ
+    description: コミュニティマネージャー
+    avatar: https://pbs.twimg.com/profile_images/1728403785024770048/frKphayT_400x400.jpg
+    twitter: https://twitter.com/mirepri4
+  - name: ミハエル・アルナルディ
+    description: 最高経営責任者（CEO）
+    avatar: https://pbs.twimg.com/profile_images/1232338149340319751/Ln9nNWyk_400x400.jpg
+    twitter: https://twitter.com/MichaelArnaldi
+relatedPosts:
+  - 今週のEffect - 2024-03-22
+  - 今週のEffect - 2024-04-05
+---
+
+import { YouTube, Tweet } from "astro-embed";
+
+こんにちは、Effect の皆さん！
+
+**今週の Effect**（**TWIE**）へようこそ！これは、私たちのコミュニティや Effect エコシステム内で起こっているすべてのことを追跡するのに役立つ、毎週の更新です。
+
+初めての方へ、Effect は開発者が複雑な同期および非同期プログラムを作成するのを助けるために設計された強力な TypeScript ライブラリです。Effect が他のライブラリと異なる重要な特徴のひとつは、構造化された同時実行性を活用して非同期キャンセルや安全なリソース管理などの機能を提供することで、堅牢でスケーラブルかつ効率的なプログラムの構築を容易にする点です。
+
+始めるために、以下に Effect のクイックスタートガイドとドキュメントを掲載しています。これらは Effect の旅の第一歩となるでしょう。楽しんでください！
+
+[Effect クイックスタートガイド](/docs/quickstart)
+
+[Effect ドキュメント](/docs/introduction)
+
+## TWIE の概要
+
+TWIE が初めての方へ、こちらが TWIE の目的とその内容についての簡単な説明です。
+
+私たちは、Effect を採用する人々が増え、コミュニティが急成長しているのを見ることに喜びを感じています。一方で、Effect エコシステムで起こっているすべてを把握するのが簡単ではないことも理解しています：
+
+- 数日前、私たちの Discord サーバーのメンバー数が**2130 人以上**に達し、エンゲージメントは過去最高に達しています。
+- 2024 年 2 月 23 日にウィーンで初めての**[Effect Days Conference](/events/effect-days)**を開催しました。コミュニティと直接繋がる素晴らしい体験でした。ウィーンに参加できなかった方も、興味深いアップデートやコンテンツが続々と届く予定ですので、お楽しみに！
+- Effect に関連するプロジェクトはすべて**重要な更新**を受けており、GitHub でも多くのアクティビティが見られます！
+
+私たちは、あなたが Effect の旅を最大限に楽しみ、コミュニティに積極的に関与できる情報を見つけやすくすることを目指しています。
+
+**これが TWIE を作った理由です** – 先週の Effect に関する重要なイベントをコミュニティ（Discord の議論、X の投稿、YouTube のコンテンツなど）や技術的な観点からお知らせする毎週の更新です。
+
+さて、本題に戻りましょう！
+
+## 技術
+
+以下は、先週に発生したすべての変更のリストです。
+
+### Effect Core
+
+- [Duration.subtract API を追加](https://github.com/Effect-TS/effect/pull/2402) (機能)
+- [BigInt.fromString と BigInt.fromNumber を追加](https://github.com/Effect-TS/effect/pull/2399) (機能)
+- [駐車中の要求の中断を修正](https://github.com/Effect-TS/effect/pull/2404) (バグ修正)
+- [残存要求の forEach 中断時に exit を収集](https://github.com/Effect-TS/effect/pull/2416) (バグ修正)
+- [Config の duration を追加](https://github.com/Effect-TS/effect/pull/2407) (機能)
+
+### Effect Vitest
+
+- [ヘルパーの署名を修正](https://github.com/Effect-TS/effect/pull/2394) (バグ修正)
+
+### Effect Printer
+
+- [プリンタから Render モジュールを削除](https://github.com/Effect-TS/effect/pull/2378) (バグ修正、機能)
+
+### Effect Experimental
+
+- [TimeToLive がゼロのアイテムを永続化しないよう修正](https://github.com/Effect-TS/effect/pull/2421) (バグ修正)
+
+### Effect Platform
+
+- [/platform http に Cookies モジュールを追加](https://github.com/Effect-TS/effect/pull/2387) (機能)
+- [/platform schema APIs で Schema ParseOptions を公開](https://github.com/Effect-TS/effect/pull/2400) (機能)
+- [Http.response.toWeb に set-cookie ヘッダを追加](https://github.com/Effect-TS/effect/pull/2403) (機能)
+- [Readme: HTTP Client セクションを追加](https://github.com/Effect-TS/effect/pull/2405) (ドキュメント更新)
+- [@effect/platform-node に undici http client を追加](https://github.com/Effect-TS/effect/pull/2410) (機能)
+- [/platform の壊れたインポートを修正](https://github.com/Effect-TS/effect/pull/2411) (バグ修正)
+- [/platform ClientRequest を Effect を実装するように修正](https://github.com/Effect-TS/effect/pull/2413) (機能)
+
+### Effect Schema
+
+- [Schema.extend のネストされたユニオンを修正](https://github.com/Effect-TS/effect/pull/2396) (バグ修正)
+- [Extend がサブユニオンをネスト解除すべき](https://github.com/Effect-TS/effect/pull/2398) (バグ修正)
+- [BigInt Schemas 向けに BigInt.fromString と BigInt.fromNumber を使用](https://github.com/Effect-TS/effect/pull/2409) (リファクタリング)
+- [Schema の readme を更新](https://github.com/Effect-TS/effect/pull/2422) (ドキュメント更新)
+- [Readme: 再帰的スキーマ定義を簡素化するためのパターンを追加](https://github.com/Effect-TS/effect/pull/2420) (ドキュメント更新)
+- [Readme: メッセージのガイドラインを追加](https://github.com/Effect-TS/effect/pull/2423) (ドキュメント更新)
+- [無効なオプションを除外するためにオプショナルな署名を修正](https://github.com/Effect-TS/effect/pull/2424) (バグ修正)
+- [AST モジュールから null をエクスポート](https://github.com/Effect-TS/effect/pull/2428) (リファクタリング)
+- [ts 5.4 のビルドエラーを修正](https://github.com/Effect-TS/effect/pull/2439) (バグ修正)
+
+## コミュニティ
+
+先週、私たちの[Discord サーバー](https://discord.gg/effect-ts)に 75 人以上の新しい Effecters が参加しました！新しいメンバーの皆さん、Effect コミュニティにようこそ！私たちはあなたをお迎えできてとても嬉しいです！
+
+### コンテンツ更新
+
+過去数週間、たくさんの方からのリクエストがあり、ついにその時が来ました！
+
+Effect Days Conference でのスピーカーによる講演のリリースを開始しました。最初にご紹介するのは、[ヨハネス・シックリン](https://twitter.com/schickling)の素晴らしいオープニング基調講演です！
+このビデオは YouTube で素早く大きな注目を集めたので、見逃した方のためにここでも再共有します：
+
+<YouTube id="PxIBWjiv3og" />
+
+これはほんの始まりです！ さらなる必見のコンテンツのために、私たちの[YouTube](https://www.youtube.com/@effect-ts)と[X](https://twitter.com/EffectTS_)をフォローしてお待ちください。
+
+次に、私たちのコミュニティメンバーであるミラッドが、手話での['Effect'のサイン](https://www.youtube.com/watch?v=4FZqme-z8SQ&ab_channel=SignLanguageTech)を示すビデオを作成しました。ミラッドの継続的なサポートに心から感謝します！もしあなたも'Effect'のサインをお持ちでしたら、ぜひ共有してください。また、ミラッドの投稿にコメントを残すことも歓迎です。
+
+<Tweet id="1772209392928137337" />
+
+フランス語を話す方へのリマインダーですが、初の[Effect Paris Meetup](https://www.meetup.com/fr-FR/effect-paris/)が 4 月に行われます！イベントの開催にあたり、[Evryg](https://www.evryg.com)のチームや[ジャン=バティスト・ミュッソ](https://twitter.com/jbmusso)、[アントワーヌ・クーロン](https://twitter.com/c9antoine)に感謝します。
+
+<Tweet id="1764621821184262629" />
+
+## 閉会の言葉
+
+今週は以上です。私たちのコミュニティの重要な一員でいてくださってありがとうございます。新しいフォーマットを調整する中で、皆様のフィードバックを大切にしています。お気軽に意見をお聞かせください。コミュニティのニーズに合わせるよう努めます。
+
+_Effect コミュニティチーム_

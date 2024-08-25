@@ -1,0 +1,651 @@
+---
+title: スコープ
+excerpt: Effectライブラリを用いた大規模アプリケーション開発におけるリソース管理の重要性を探ります。`Scope`データ型などの堅牢な構造について学び、Effectがどのようにリソース管理を簡素化し、安全性を確保するかを発見します。
+bottomNavigation: pagination
+sidebar:
+  order: 2
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+長寿命のアプリケーションを開発する文脈において、リソース管理は重要な役割を果たします。大規模アプリケーションを構築する際には、効果的なリソース管理が不可欠です。アプリケーションがリソース効率的であり、リソースリークを引き起こさないことが重要です。
+
+未処理のソケット接続、データベース接続、またはファイルディスクリプタなどのリソースリークは、Web アプリケーションにおいて許容されません。Effect は、この懸念に対処するための堅牢な構造を提供します。
+
+リソースを安全に管理するアプリケーションを作成するには、リソースを開くたびに、それを閉じるメカニズムを持っていることを確認する必要があります。これは、リソースを完全に使用する場合でも、使用中に例外が発生した場合でも適用されます。
+
+次のセクションでは、Effect がどのようにリソース管理を簡素化し、アプリケーションのリソースの安全性を確保するかを詳しく解説します。
+
+## Scope
+
+`Scope`データ型は、Effect においてリソースを安全かつ合成的に管理するための基本的な構成要素です。
+
+簡単に言うと、スコープは 1 つ以上のリソースのライフタイムを表しています。スコープが閉じられると、そのスコープに関連付けられたリソースはリリースされることが保証されます。
+
+`Scope`データ型を使用すると、次の操作が可能です。
+
+- **ファイナライザの追加**：これは、リソースを解放することを表します。
+- **スコープの閉鎖**：すべての取得されたリソースを解放し、追加されたファイナライザを実行します。
+
+この概念をよりよく理解するために、どのように機能するかを示す例を見ていきましょう。
+通常の Effect の使用では、スコープの管理のためにこれらの低レベル API を直接操作することは少ないです。
+
+```ts twoslash
+import { Scope, Effect, Console, Exit } from "effect";
+
+const program =
+  // 新しいスコープを作成
+  Scope.make().pipe(
+    // ファイナライザ1を追加
+    Effect.tap((scope) =>
+      Scope.addFinalizer(scope, Console.log("ファイナライザ 1"))
+    ),
+    // ファイナライザ2を追加
+    Effect.tap((scope) =>
+      Scope.addFinalizer(scope, Console.log("ファイナライザ 2"))
+    ),
+    // スコープを閉じる
+    Effect.andThen((scope) =>
+      Scope.close(scope, Exit.succeed("スコープは正常に閉じられました"))
+    )
+  );
+
+Effect.runPromise(program);
+/*
+出力:
+ファイナライザ 2 <-- ファイナライザは追加された逆順で閉じられます
+ファイナライザ 1
+*/
+```
+
+デフォルトでは、`Scope`が閉じられると、そのスコープに追加されたすべてのファイナライザが、追加された逆の順序で実行されます。このアプローチは、リソースを取得した逆の順でリリースすることが、リソースが適切に閉じられることを保証するため、理にかなっています。
+
+たとえば、ネットワーク接続を開いた後、リモートサーバー上のファイルにアクセスする場合、ネットワーク接続を閉じる前にファイルを閉じる必要があります。この順序は、リモートサーバーとインタラクションを維持するために重要です。
+
+## addFinalizer
+
+次に、`Effect.addFinalizer`関数について見ていきましょう。これは、`Effect`の値のスコープにファイナライザを追加するための高レベル API を提供します。これらのファイナライザは、関連するスコープが閉じられたときに実行されることが保証されており、その動作はスコープが閉じられた際の`Exit`値に依存する場合があります。
+
+これをより理解するために、いくつかの例を見てみましょう。
+
+成功した場合の動作を観察してみましょう：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.addFinalizer((exit) =>
+    Console.log(`ファイナライザの後: ${exit._tag}`)
+  );
+  return 1;
+});
+
+const runnable = Effect.scoped(program);
+
+Effect.runPromise(runnable).then(console.log, console.error);
+/*
+出力:
+ファイナライザの後: Success
+1
+*/
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const program = Effect.addFinalizer((exit) =>
+  Console.log(`ファイナライザの後: ${exit._tag}`)
+).pipe(Effect.andThen(Effect.succeed(1)));
+
+const runnable = Effect.scoped(program);
+
+Effect.runPromise(runnable).then(console.log, console.error);
+/*
+出力:
+ファイナライザの後: Success
+1
+*/
+```
+
+</TabItem>
+</Tabs>
+
+ここでは、`Effect.addFinalizer`演算子がワークフローに必要なスコープをコンテキストに追加します。これは次のように示されます：
+
+```ts
+Effect<void, never, Scope>;
+```
+
+これは、ワークフローが実行するためにスコープを必要とし、このスコープを提供するために`Effect.scoped`演算子を使用することを示しています。これにより、新しいスコープが作成され、ワークフローに供給され、ワークフローが完了するとスコープが閉じられます。
+
+`Effect.scoped`演算子は、スコープをコンテキストから削除し、そのワークフローがもはやスコープに関連するリソースを必要としないことを示します。
+
+次に、失敗した場合の動作を見てみましょう：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.addFinalizer((exit) =>
+    Console.log(`ファイナライザの後: ${exit._tag}`)
+  );
+  return yield* Effect.fail("あちゃ！");
+});
+
+const runnable = Effect.scoped(program);
+
+Effect.runPromiseExit(runnable).then(console.log);
+/*
+出力:
+ファイナライザの後: Failure
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: 'あちゃ！' }
+}
+*/
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const program = Effect.addFinalizer((exit) =>
+  Console.log(`ファイナライザの後: ${exit._tag}`)
+).pipe(Effect.andThen(Effect.fail("あちゃ！")));
+
+const runnable = Effect.scoped(program);
+
+Effect.runPromiseExit(runnable).then(console.log);
+/*
+出力:
+ファイナライザの後: Failure
+{
+  id: 'Exit',
+  _tag: 'Failure',
+  cause: { _id: 'Cause', _tag: 'Fail', failure: 'あちゃ！' }
+}
+*/
+```
+
+</TabItem>
+</Tabs>
+
+最後に、介入が発生した場合の動作を見てみましょう：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const program = Effect.gen(function* () {
+  yield* Effect.addFinalizer((exit) =>
+    Console.log(`ファイナライザの後: ${exit._tag}`)
+  );
+  return yield* Effect.interrupt;
+});
+
+const runnable = Effect.scoped(program);
+
+Effect.runPromiseExit(runnable).then(console.log);
+/*
+出力:
+ファイナライザの後: Failure
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: {
+    _id: 'Cause',
+    _tag: 'Interrupt',
+    fiberId: {
+      _id: 'FiberId',
+      _tag: 'Runtime',
+      id: 0,
+      startTimeMillis: ...
+    }
+  }
+}
+*/
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const program = Effect.addFinalizer((exit) =>
+  Console.log(`ファイナライザの後: ${exit._tag}`)
+).pipe(Effect.andThen(Effect.interrupt));
+
+const runnable = Effect.scoped(program);
+
+Effect.runPromiseExit(runnable).then(console.log);
+/*
+出力:
+ファイナライザの後: Failure
+{
+  _id: 'Exit',
+  _tag: 'Failure',
+  cause: {
+    _id: 'Cause',
+    _tag: 'Interrupt',
+    fiberId: {
+      _id: 'FiberId',
+      _tag: 'Runtime',
+      id: 0,
+      startTimeMillis: ...
+    }
+  }
+}
+*/
+```
+
+</TabItem>
+</Tabs>
+
+## スコープの手動作成と閉鎖
+
+単一の操作内で複数のスコープ付きリソースを扱う際には、それぞれのスコープがどのように相互作用するかを理解することが重要です。デフォルトでは、これらのスコープは 1 つに統合されますが、スコープの閉鎖のタイミングをより細かく制御することもできます。
+
+まず、デフォルトでスコープがどのように統合されるかを見てみましょう。このコード例を見てください：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const task1 = Effect.gen(function* () {
+  console.log("タスク 1");
+  yield* Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ"));
+});
+
+const task2 = Effect.gen(function* () {
+  console.log("タスク 2");
+  yield* Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ"));
+});
+
+const program = Effect.gen(function* () {
+  // これらの2つのスコープは1つに統合されます
+  yield* task1;
+  yield* task2;
+});
+
+Effect.runPromise(program.pipe(Effect.scoped));
+/*
+出力:
+タスク 1
+タスク 2
+タスク 2の後のファイナライザ
+タスク 1の後のファイナライザ
+*/
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Effect, Console } from "effect";
+
+const task1 = Console.log("タスク 1").pipe(
+  Effect.tap(() =>
+    Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ"))
+  )
+);
+
+const task2 = Console.log("タスク 2").pipe(
+  Effect.tap(() =>
+    Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ"))
+  )
+);
+
+const program =
+  // これらの2つのスコープは1つに統合されます
+  Effect.all([task1, task2], { discard: true });
+
+Effect.runPromise(program.pipe(Effect.scoped));
+/*
+出力:
+タスク 1
+タスク 2
+タスク 2の後のファイナライザ
+タスク 1の後のファイナライザ
+*/
+```
+
+</TabItem>
+</Tabs>
+
+この場合、`task1`と`task2`のスコープは単一のスコープに統合され、プログラムが実行されると、特定の順序でタスクとそのファイナライザが出力されます。
+
+各スコープの閉鎖タイミングをより制御したい場合は、次の例のように手動で作成して閉じることができます：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+import { Console, Effect, Exit, Scope } from "effect";
+
+const task1 = Effect.gen(function* () {
+  console.log("タスク 1");
+  yield* Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ"));
+});
+
+const task2 = Effect.gen(function* () {
+  console.log("タスク 2");
+  yield* Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ"));
+});
+
+const program = Effect.gen(function* () {
+  const scope1 = yield* Scope.make();
+  const scope2 = yield* Scope.make();
+
+  // task1のスコープをscope1に拡張
+  yield* task1.pipe(Scope.extend(scope1));
+
+  // task2のスコープをscope2に拡張
+  yield* task2.pipe(Scope.extend(scope2));
+
+  // scope1とscope2を手動で閉じる
+  yield* Scope.close(scope1, Exit.void);
+  yield* Console.log("他の処理を実行");
+  yield* Scope.close(scope2, Exit.void);
+});
+
+Effect.runPromise(program);
+/*
+出力:
+タスク 1
+タスク 2
+タスク 1の後のファイナライザ
+他の処理を実行
+タスク 2の後のファイナライザ
+*/
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+import { Console, Effect, Exit, Scope } from "effect";
+
+const task1 = Console.log("タスク 1").pipe(
+  Effect.tap(() =>
+    Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ"))
+  )
+);
+
+const task2 = Console.log("タスク 2").pipe(
+  Effect.tap(() =>
+    Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ"))
+  )
+);
+
+const program = Effect.all([Scope.make(), Scope.make()]).pipe(
+  Effect.andThen(([scope1, scope2]) =>
+    Scope.extend(task1, scope1).pipe(
+      Effect.andThen(Scope.extend(task2, scope2)),
+      Effect.andThen(Scope.close(scope1, Exit.void)),
+      Effect.andThen(Console.log("他の処理を実行")),
+      Effect.andThen(Scope.close(scope2, Exit.void))
+    )
+  )
+);
+
+Effect.runPromise(program);
+/*
+出力:
+タスク 1
+タスク 2
+タスク 1の後のファイナライザ
+他の処理を実行
+タスク 2の後のファイナライザ
+*/
+```
+
+</TabItem>
+</Tabs>
+
+この例では、`scope1`と`scope2`という 2 つの別々のスコープを作成し、各タスクのスコープをそれぞれのスコープに拡張します。プログラムを実行すると、異なる順序でタスクとそのファイナライザが出力されます。
+
+:::info
+`Scope.extend`関数によって、スコープを必要とする`Effect`ワークフローを別のスコープに拡張し、ワークフローが実行された際にスコープを閉じることなく、スコープを拡張できます。これにより、スコープされた値をより大きなスコープに拡張することが可能になります。
+
+:::
+
+スコープが閉じられると、そのスコープ内のタスクがまだ完了していない場合に何が起こるか、気になるかもしれません。重要な点は、スコープの閉鎖がタスクを中断させるわけではないことです。タスクは引き続き実行され、ファイナライザは登録された際に即座に実行されます。`close`への呼び出しは、すでに登録されているファイナライザを待つだけです。
+
+したがって、ファイナライザはスコープが閉じられたときに実行されますが、必ずしもエフェクトの実行が完了したときに実行されるわけではありません。`Effect.scoped`を使用している場合、スコープは自動的に管理され、ファイナライザはそれに応じて実行されます。ただし、スコープを手動で管理すると、ファイナライザが実行されるタイミングを制御できます。
+
+## リソースの定義
+
+`Effect.acquireRelease(acquire, release)`のような演算子を使用してリソースを定義できます。これにより、`acquire`と`release`のワークフローからスコープされた値を作成することができます。
+
+すべての取得リリースには 3 つのアクションが必要です：
+
+- **リソースの取得**：リソースの取得を説明するエフェクト。たとえば、ファイルを開くことです。
+- **リソースの使用**：結果を生成するための実際のプロセスを説明するエフェクト。たとえば、ファイル内の行数をカウントすることです。
+- **リソースの解放**：リソースを解放またはクリーンアップするための最終ステップを説明するエフェクト。たとえば、ファイルを閉じることです。
+
+`Effect.acquireRelease`演算子は、`acquire`ワークフローを**中断不可で**実行します。
+これは重要です。なぜなら、リソース取得中に中断を許可すると、リソースが部分的に取得されているときに中断される可能性があるからです。
+
+`Effect.acquireRelease`演算子の保証は、`acquire`ワークフローが正常に実行を完了した場合、`release`ワークフローがスコープが閉じられたときに実行されることです。
+
+たとえば、シンプルなリソースを定義してみましょう：
+
+```twoslash include resource
+import { Effect } from "effect"
+
+// リソースのインターフェースを定義
+export interface MyResource {
+  readonly contents: string
+  readonly close: () => Promise<void>
+}
+
+// リソースを取得するシミュレーション
+const getMyResource = (): Promise<MyResource> =>
+  Promise.resolve({
+    contents: "lorem ipsum",
+    close: () =>
+      new Promise((resolve) => {
+        console.log("リソースは解放されました")
+        resolve()
+      })
+  })
+
+// エラーハンドリング付きでリソースの取得を定義
+export const acquire = Effect.tryPromise({
+  try: () =>
+    getMyResource().then((res) => {
+      console.log("リソースが取得されました")
+      return res
+    }),
+  catch: () => new Error("getMyResourceError")
+})
+
+// リソースの解放を定義
+export const release = (res: MyResource) => Effect.promise(() => res.close())
+
+export const resource = Effect.acquireRelease(acquire, release)
+```
+
+```ts filename="resource.ts" twoslash
+// @include: resource
+```
+
+`Effect.acquireRelease`演算子がワークフローに必要なスコープをコンテキストに追加したことに注意してください：
+
+```ts
+Effect<MyResource, Error, Scope>;
+```
+
+これは、ワークフローがスコープを必要とし、スコープが閉じられたときにリソースを閉じるファイナライザが追加されることを示しています。
+
+`Effect.andThen`や他の Effect 演算子を使用することで、リソースとともに作業を続けることができます。たとえば、次のようにコンテンツを読み取る方法があります：
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts twoslash
+// @filename: resource.ts
+// @include: resource
+
+// @filename: index.ts
+// ---cut---
+import { Effect } from "effect";
+import { resource } from "./resource";
+
+const program = Effect.gen(function* () {
+  const res = yield* resource;
+  console.log(`コンテンツ: ${res.contents}`);
+});
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts twoslash
+// @filename: resource.ts
+// @include: resource
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Console } from "effect";
+import { resource } from "./resource";
+
+const program = resource.pipe(
+  Effect.andThen((res) => Console.log(`コンテンツ: ${res.contents}`))
+);
+```
+
+</TabItem>
+</Tabs>
+
+リソースの作業が完了したら、`Effect.scoped`演算子を使用してスコープを閉じることができます。これにより、新しいスコープが作成され、ワークフローに提供され、ワークフローが終了するとスコープが閉じられます。
+
+<Tabs items={["Effect.genを使用", "pipeを使用"]}>
+<TabItem
+  label="Effect.genを使用"
+      >
+
+```ts
+// @filename: resource.ts
+// @include: resource
+
+// @filename: index.ts
+// ---cut---
+import { Effect } from "effect";
+import { resource } from "./resource";
+
+const program = Effect.scoped(
+  Effect.gen(function* () {
+    const res = yield* resource;
+    console.log(`コンテンツ: ${res.contents}`);
+  })
+);
+```
+
+</TabItem>
+<TabItem
+  label="pipeを使用"
+      >
+
+```ts
+// @filename: resource.ts
+// @include: resource
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Console } from "effect";
+import { resource } from "./resource";
+
+const program = Effect.scoped(
+  resource.pipe(
+    Effect.andThen((res) => Console.log(`コンテンツ: ${res.contents}`))
+  )
+);
+```
+
+</TabItem>
+</Tabs>
+
+`Effect.scoped`演算子は、コンテキストからスコープを削除し、このワークフローによって使用されるリソースがもはやスコープを必要としないことを示します。
+
+これで、実行する準備が整ったワークフローができました：
+
+```ts
+Effect.runPromise(program);
+/*
+リソースが取得されました
+コンテンツ: lorem ipsum
+リソースは解放されました
+*/
+```
+
+## acquireUseRelease
+
+`Effect.acquireUseRelease(acquire, use, release)`関数は、リソース管理を簡素化するために、リソースのスコープを自動的に処理する特化版の`Effect.acquireRelease`関数です。
+
+主な違いは、`acquireUseRelease`がリソースのスコープを管理するために手動で`Effect.scoped`を呼び出す必要を排除する点です。これにより、`acquire`ステップで作成されたリソースの使用が完了したときに、いつ実行すべきかを自動的に判断するための知識が得られます。これは、取得したリソースで動作する関数を表す`use`引数を提供することで達成されます。その結果、`acquireUseRelease`は、リリースステップを実行するタイミングを自動的に決定できます。
+
+以下の例では、`acquireUseRelease`の使用方法を示します：
+
+```ts twoslash
+// @filename: resource.ts
+// @include: resource
+
+// @filename: index.ts
+// ---cut---
+import { Effect, Console } from "effect";
+import { MyResource, acquire, release } from "./resource";
+
+const use = (res: MyResource) => Console.log(`コンテンツ: ${res.contents}`);
+
+const program = Effect.acquireUseRelease(acquire, use, release);
+
+Effect.runPromise(program);
+/*
+出力:
+リソースが取得されました
+コンテンツ: lorem ipsum
+リソースは解放されました
+*/
+```
