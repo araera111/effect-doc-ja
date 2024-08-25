@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Glow } from "../layout/glow";
 
 const tweets = [
