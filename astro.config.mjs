@@ -14,6 +14,13 @@ export default defineConfig({
     starlight({
       title: "Effect日本語版ドキュメント",
       favicon: "/icon.png",
+      locales: {
+        root: {
+          label: "日本語",
+          lang: "ja",
+        },
+      },
+      defaultLocale: "ja",
       social: {
         github: "https://github.com/withastro/starlight",
       },
