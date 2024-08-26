@@ -14,7 +14,7 @@ const die = Effect.dieMessage("バン！");
 
 const program = Effect.all([fail, die]).pipe(
   Effect.andThen(die),
-  Effect.asVoid
+  Effect.asVoid,
 );
 
 Effect.runPromiseExit(program).then(console.log);
@@ -41,7 +41,7 @@ const fail = Effect.fail("ああ、困った！");
 const die = Effect.dieMessage("バン！");
 
 const program = Effect.all([fail, die], { concurrency: "unbounded" }).pipe(
-  Effect.asVoid
+  Effect.asVoid,
 );
 
 Effect.runPromiseExit(program).then(console.log);

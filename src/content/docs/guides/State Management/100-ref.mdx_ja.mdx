@@ -99,10 +99,10 @@ const program = Counter.make.pipe(
       Effect.andThen(counter.inc),
       Effect.andThen(counter.get),
       Effect.andThen((value) =>
-        Console.log(`このカウンターの値は${value}です。`)
-      )
-    )
-  )
+        Console.log(`このカウンターの値は${value}です。`),
+      ),
+    ),
+  ),
 );
 
 Effect.runPromise(program);
@@ -150,7 +150,7 @@ const program = Effect.gen(function* () {
   yield* logCounter("タスク 1", counter.inc).pipe(
     Effect.zip(logCounter("タスク 2", counter.inc), { concurrent: true }),
     Effect.zip(logCounter("タスク 3", counter.dec), { concurrent: true }),
-    Effect.zip(logCounter("タスク 4", counter.inc), { concurrent: true })
+    Effect.zip(logCounter("タスク 4", counter.inc), { concurrent: true }),
   );
   const value = yield* counter.get;
   yield* Effect.log(`このカウンターの値は${value}です。`);
@@ -185,11 +185,11 @@ const program = Counter.make.pipe(
   Effect.andThen((counter) => {
     const logCounter = <R, E, A>(
       label: string,
-      effect: Effect.Effect<A, E, R>
+      effect: Effect.Effect<A, E, R>,
     ) =>
       counter.get.pipe(
         Effect.andThen((value) => Effect.log(`${label} get: ${value}`)),
-        Effect.andThen(effect)
+        Effect.andThen(effect),
       );
 
     return logCounter("タスク 1", counter.inc).pipe(
@@ -198,10 +198,10 @@ const program = Counter.make.pipe(
       Effect.zip(logCounter("タスク 4", counter.inc), { concurrent: true }),
       Effect.andThen(counter.get),
       Effect.andThen((value) =>
-        Effect.log(`このカウンターの値は${value}です。`)
-      )
+        Effect.log(`このカウンターの値は${value}です。`),
+      ),
     );
-  })
+  }),
 );
 
 Effect.runPromise(program);
@@ -289,25 +289,25 @@ class MyState extends Context.Tag("MyState")<MyState, Ref.Ref<number>>() {}
 // サブプログラム 1: 状態値を2回インクリメント
 const subprogram1 = MyState.pipe(
   Effect.tap((state) => Ref.update(state, (n) => n + 1)),
-  Effect.andThen((state) => Ref.update(state, (n) => n + 1))
+  Effect.andThen((state) => Ref.update(state, (n) => n + 1)),
 );
 
 // サブプログラム 2: 状態値をデクリメントした後インクリメント
 const subprogram2 = MyState.pipe(
   Effect.tap((state) => Ref.update(state, (n) => n - 1)),
-  Effect.andThen((state) => Ref.update(state, (n) => n + 1))
+  Effect.andThen((state) => Ref.update(state, (n) => n + 1)),
 );
 
 // サブプログラム 3: 現在の状態の値を読み取り、ログに記録
 const subprogram3 = MyState.pipe(
   Effect.andThen((state) => Ref.get(state)),
-  Effect.andThen((value) => Console.log(`MyStateの値は${value}です。`))
+  Effect.andThen((value) => Console.log(`MyStateの値は${value}です。`)),
 );
 
 // サブプログラム 1、2、および 3 を組み合わせてメインプログラムを作成
 const program = subprogram1.pipe(
   Effect.andThen(subprogram2),
-  Effect.andThen(subprogram3)
+  Effect.andThen(subprogram3),
 );
 
 // 初期値0のRefインスタンスを作成
@@ -382,7 +382,7 @@ const getNames = Effect.gen(function* () {
   const ref = yield* Ref.make(Chunk.empty<string>());
   while (true) {
     const name = yield* ReadLine.readLine(
-      "名前を入力するか、終了するには`q`を入力してください: "
+      "名前を入力するか、終了するには`q`を入力してください: ",
     );
     if (name === "q") {
       break;
@@ -422,7 +422,7 @@ import * as ReadLine from "./ReadLine";
 const getNames = Ref.make(Chunk.empty<string>()).pipe(
   Effect.andThen((ref) =>
     ReadLine.readLine(
-      "名前を入力するか、終了するには`q`を入力してください: "
+      "名前を入力するか、終了するには`q`を入力してください: ",
     ).pipe(
       Effect.repeat({
         while: (name) => {
@@ -431,14 +431,14 @@ const getNames = Ref.make(Chunk.empty<string>()).pipe(
           } else {
             return ref.pipe(
               Ref.update((state) => Chunk.append(state, name)),
-              Effect.as(true)
+              Effect.as(true),
             );
           }
         },
       }),
-      Effect.andThen(Ref.get(ref))
-    )
-  )
+      Effect.andThen(Ref.get(ref)),
+    ),
+  ),
 );
 
 Effect.runPromise(getNames).then(console.log);
@@ -479,14 +479,14 @@ const getNames = Effect.gen(function* () {
     Effect.gen(function* () {
       while (true) {
         const name = yield* ReadLine.readLine(
-          "名前を入力するか、終了するには`q`を入力してください: "
+          "名前を入力するか、終了するには`q`を入力してください: ",
         );
         if (name === "q") {
           break;
         }
         yield* Ref.update(ref, (state) => Chunk.append(state, name));
       }
-    })
+    }),
   );
   const fiber2 = yield* Effect.fork(
     Effect.gen(function* () {
@@ -494,7 +494,7 @@ const getNames = Effect.gen(function* () {
         yield* Ref.update(ref, (state) => Chunk.append(state, name));
         yield* Effect.sleep("1秒");
       }
-    })
+    }),
   );
   yield* Fiber.join(fiber1);
   yield* Fiber.join(fiber2);
@@ -531,7 +531,7 @@ import * as ReadLine from "./ReadLine";
 const getNames = Ref.make(Chunk.empty<string>()).pipe(
   Effect.andThen((ref) => {
     const fiber1 = ReadLine.readLine(
-      "名前を入力するか、終了するには`q`を入力してください: "
+      "名前を入力するか、終了するには`q`を入力してください: ",
     ).pipe(
       Effect.repeat({
         while: (name) => {
@@ -540,12 +540,12 @@ const getNames = Ref.make(Chunk.empty<string>()).pipe(
           } else {
             return ref.pipe(
               Ref.update((state) => Chunk.append(state, name)),
-              Effect.as(true)
+              Effect.as(true),
             );
           }
         },
       }),
-      Effect.fork
+      Effect.fork,
     );
     const fiber2 = Effect.fork(
       Effect.forEach(
@@ -553,18 +553,18 @@ const getNames = Ref.make(Chunk.empty<string>()).pipe(
         (name) =>
           ref.pipe(
             Ref.update((state) => Chunk.append(state, name)),
-            Effect.andThen(Effect.sleep("1秒"))
+            Effect.andThen(Effect.sleep("1秒")),
           ),
-        { concurrency: "unbounded", discard: true }
-      )
+        { concurrency: "unbounded", discard: true },
+      ),
     );
     return Effect.all([fiber1, fiber2]).pipe(
       Effect.andThen(([f1, f2]) =>
-        Fiber.join(f1).pipe(Effect.andThen(Fiber.join(f2)))
+        Fiber.join(f1).pipe(Effect.andThen(Fiber.join(f2))),
       ),
-      Effect.andThen(Ref.get(ref))
+      Effect.andThen(Ref.get(ref)),
     );
-  })
+  }),
 );
 
 Effect.runPromise(getNames).then(console.log);

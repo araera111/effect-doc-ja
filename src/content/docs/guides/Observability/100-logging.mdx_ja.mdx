@@ -78,7 +78,7 @@ const program = Effect.log(
   "メッセージ1",
   "メッセージ2",
   Cause.die("ああ！"),
-  Cause.die("おっと！")
+  Cause.die("おっと！"),
 );
 
 Effect.runFork(program);
@@ -143,17 +143,17 @@ import { Effect, Logger, LogLevel } from "effect";
 
 const task1 = Effect.sleep("2 seconds").pipe(
   Effect.andThen(Effect.logDebug("task1 完了")),
-  Logger.withMinimumLogLevel(LogLevel.Debug)
+  Logger.withMinimumLogLevel(LogLevel.Debug),
 );
 
 const task2 = Effect.sleep("1 second").pipe(
-  Effect.andThen(Effect.logDebug("task2 完了"))
+  Effect.andThen(Effect.logDebug("task2 完了")),
 );
 
 const program = Effect.log("開始").pipe(
   Effect.andThen(task1),
   Effect.andThen(task2),
-  Effect.andThen(Effect.log("完了"))
+  Effect.andThen(Effect.log("完了")),
 );
 
 Effect.runFork(program);
@@ -210,7 +210,7 @@ import { Effect } from "effect";
 const program = Effect.logInfo("開始").pipe(
   Effect.andThen(Effect.sleep("2 seconds")),
   Effect.andThen(Effect.sleep("1 second")),
-  Effect.andThen(Effect.logInfo("完了"))
+  Effect.andThen(Effect.logInfo("完了")),
 );
 
 Effect.runFork(program);
@@ -268,7 +268,7 @@ import { Effect } from "effect";
 const task = Effect.fail("おっと！").pipe(Effect.as(2));
 
 const program = task.pipe(
-  Effect.catchAll((error) => Effect.logWarning(error).pipe(Effect.as(0)))
+  Effect.catchAll((error) => Effect.logWarning(error).pipe(Effect.as(0))),
 );
 
 Effect.runFork(program);
@@ -323,7 +323,7 @@ import { Effect } from "effect";
 const task = Effect.fail("おっと！").pipe(Effect.as(2));
 
 const program = task.pipe(
-  Effect.catchAll((error) => Effect.logError(error).pipe(Effect.as(0)))
+  Effect.catchAll((error) => Effect.logError(error).pipe(Effect.as(0))),
 );
 
 Effect.runFork(program);
@@ -378,7 +378,7 @@ import { Effect } from "effect";
 const task = Effect.fail("おっと！").pipe(Effect.as(2));
 
 const program = task.pipe(
-  Effect.catchAll((error) => Effect.logFatal(error).pipe(Effect.as(0)))
+  Effect.catchAll((error) => Effect.logFatal(error).pipe(Effect.as(0))),
 );
 
 Effect.runFork(program);
@@ -487,7 +487,7 @@ import { Effect } from "effect";
 
 const program = Effect.sleep("1 second").pipe(
   Effect.andThen(Effect.log("作業が完了しました！")),
-  Effect.withLogSpan("myspan")
+  Effect.withLogSpan("myspan"),
 );
 
 Effect.runFork(program);
@@ -574,7 +574,7 @@ const program = Effect.gen(function* () {
 });
 
 const customRuntime = ManagedRuntime.make(
-  Logger.minimumLogLevel(LogLevel.None)
+  Logger.minimumLogLevel(LogLevel.None),
 );
 
 customRuntime.runPromise(program);
@@ -611,7 +611,7 @@ const program = Effect.gen(function* () {
 // 構成からログレベルをレイヤーとしてロード
 const LogLevelLive = Config.logLevel("LOG_LEVEL").pipe(
   Effect.andThen((level) => Logger.minimumLogLevel(level)),
-  Layer.unwrapEffect
+  Layer.unwrapEffect,
 );
 
 // 読み込まれたログレベルでプログラムを構成
@@ -621,8 +621,8 @@ const configured = Effect.provide(program, LogLevelLive);
 const test = Effect.provide(
   configured,
   Layer.setConfigProvider(
-    ConfigProvider.fromMap(new Map([["LOG_LEVEL", LogLevel.Warning.label]]))
-  )
+    ConfigProvider.fromMap(new Map([["LOG_LEVEL", LogLevel.Warning.label]])),
+  ),
 );
 
 Effect.runFork(test);
@@ -686,17 +686,17 @@ export const program = Effect.gen(function* () {
 import { Effect } from "effect";
 
 const task1 = Effect.sleep("2 seconds").pipe(
-  Effect.andThen(Effect.logDebug("task1 完了"))
+  Effect.andThen(Effect.logDebug("task1 完了")),
 );
 
 const task2 = Effect.sleep("1 second").pipe(
-  Effect.andThen(Effect.logDebug("task2 完了"))
+  Effect.andThen(Effect.logDebug("task2 完了")),
 );
 
 export const program = Effect.log("開始").pipe(
   Effect.andThen(task1),
   Effect.andThen(task2),
-  Effect.andThen(Effect.log("完了"))
+  Effect.andThen(Effect.log("完了")),
 );
 ```
 
@@ -716,8 +716,8 @@ const layer = Logger.replace(Logger.defaultLogger, CustomLogger.logger);
 Effect.runFork(
   program.pipe(
     Logger.withMinimumLogLevel(LogLevel.Debug),
-    Effect.provide(layer)
-  )
+    Effect.provide(layer),
+  ),
 );
 ```
 
@@ -741,7 +741,7 @@ import { Effect, Logger } from "effect";
 
 const program = Effect.log("メッセージ1", "メッセージ2").pipe(
   Effect.annotateLogs({ key1: "value1", key2: "value2" }),
-  Effect.withLogSpan("myspan")
+  Effect.withLogSpan("myspan"),
 );
 
 Effect.runFork(program.pipe(Effect.provide(Logger.json)));
@@ -757,7 +757,7 @@ import { Effect, Logger } from "effect";
 
 const program = Effect.log("メッセージ1", "メッセージ2").pipe(
   Effect.annotateLogs({ key1: "value1", key2: "value2" }),
-  Effect.withLogSpan("myspan")
+  Effect.withLogSpan("myspan"),
 );
 
 Effect.runFork(program.pipe(Effect.provide(Logger.logFmt)));
@@ -773,7 +773,7 @@ import { Effect, Logger } from "effect";
 
 const program = Effect.log("メッセージ1", "メッセージ2").pipe(
   Effect.annotateLogs({ key1: "value1", key2: "value2" }),
-  Effect.withLogSpan("myspan")
+  Effect.withLogSpan("myspan"),
 );
 
 Effect.runFork(program.pipe(Effect.provide(Logger.structured)));
@@ -799,7 +799,7 @@ import { Effect, Logger } from "effect";
 
 const program = Effect.log("メッセージ1", "メッセージ2").pipe(
   Effect.annotateLogs({ key1: "value1", key2: "value2" }),
-  Effect.withLogSpan("myspan")
+  Effect.withLogSpan("myspan"),
 );
 
 Effect.runFork(program.pipe(Effect.provide(Logger.pretty)));

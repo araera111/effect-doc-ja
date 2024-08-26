@@ -133,7 +133,7 @@ import {
 
 const program = Effect.fail("ああ、いけない！").pipe(
   Effect.delay("100 millis"),
-  Effect.withSpan("myspan")
+  Effect.withSpan("myspan"),
 );
 
 const NodeSdkLive = NodeSdk.layer(() => ({
@@ -142,7 +142,7 @@ const NodeSdkLive = NodeSdk.layer(() => ({
 }));
 
 Effect.runPromiseExit(program.pipe(Effect.provide(NodeSdkLive))).then(
-  console.log
+  console.log,
 );
 /*
 出力例:
@@ -183,7 +183,7 @@ import {
 const program = Effect.void.pipe(
   Effect.delay("100 millis"),
   Effect.tap(() => Effect.annotateCurrentSpan("key", "value")),
-  Effect.withSpan("myspan")
+  Effect.withSpan("myspan"),
 );
 
 const NodeSdkLive = NodeSdk.layer(() => ({
@@ -225,7 +225,7 @@ import {
 
 const program = Effect.log("こんにちは").pipe(
   Effect.delay("100 millis"),
-  Effect.withSpan("myspan")
+  Effect.withSpan("myspan"),
 );
 
 const NodeSdkLive = NodeSdk.layer(() => ({
@@ -276,7 +276,7 @@ import {
 
 const child = Effect.void.pipe(
   Effect.delay("100 millis"),
-  Effect.withSpan("child")
+  Effect.withSpan("child"),
 );
 
 const parent = Effect.gen(function* () {
@@ -383,7 +383,7 @@ Docker を取得するには、次の手順に従います：
    const task = (
      name: string,
      delay: number,
-     children: ReadonlyArray<Effect.Effect<void>> = []
+     children: ReadonlyArray<Effect.Effect<void>> = [],
    ) =>
      Effect.gen(function* () {
        yield* Effect.log(name);
@@ -417,8 +417,8 @@ Docker を取得するには、次の手順に従います：
    Effect.runPromise(
      program.pipe(
        Effect.provide(NodeSdkLive),
-       Effect.catchAllCause(Effect.logError)
-     )
+       Effect.catchAllCause(Effect.logError),
+     ),
    );
    /*
    出力:

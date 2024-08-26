@@ -152,7 +152,7 @@ Effect.runPromise(timedOutEffect).then(console.log);
 
    const timedEffect = myEffect.pipe(
      Effect.uninterruptible,
-     Effect.timeout("1秒")
+     Effect.timeout("1秒"),
    );
 
    // タスクが完了した後にTimeoutExceptionが発生するため、出力されます
@@ -204,7 +204,7 @@ const longRunningTask = Effect.gen(function* () {
 const timedEffect = longRunningTask.pipe(
   Effect.uninterruptible,
   Effect.disconnect, // タイムアウトした場合でもタスクが独立して完了できる
-  Effect.timeout("1秒")
+  Effect.timeout("1秒"),
 );
 
 Effect.runPromiseExit(timedEffect).then(console.log);
@@ -246,7 +246,7 @@ const program = myEffect.pipe(
   Effect.timeoutFail({
     duration: "1秒",
     onTimeout: () => new MyTimeoutError(),
-  })
+  }),
 );
 
 Effect.runPromiseExit(program).then(console.log);
@@ -284,7 +284,7 @@ const program = myEffect.pipe(
   Effect.timeoutFailCause({
     duration: "1秒",
     onTimeout: () => Cause.die("タイムアウトしました!"),
-  })
+  }),
 );
 
 Effect.runPromiseExit(program).then(console.log);
@@ -321,7 +321,7 @@ const program = myEffect.pipe(
     onSuccess: (result): Either.Either<string, string> => Either.right(result),
     onTimeout: (): Either.Either<string, string> =>
       Either.left("タイムアウトしました!"),
-  })
+  }),
 );
 
 Effect.runPromise(program).then(console.log);

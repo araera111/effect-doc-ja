@@ -10,14 +10,14 @@ bottomNavigation: pagination
 ストリームを扱う際、各ストリーム要素の送出の間に特定の時間間隔を導入する必要がある場合があります。これを実現するためには、`Stream.schedule`コンビネータを使用します。
 
 ```ts twoslash
-import { Stream, Schedule, Console, Effect } from "effect"
+import { Stream, Schedule, Console, Effect } from "effect";
 
 const stream = Stream.make(1, 2, 3, 4, 5).pipe(
   Stream.schedule(Schedule.spaced("1 second")),
-  Stream.tap(Console.log)
-)
+  Stream.tap(Console.log),
+);
 
-Effect.runPromise(Stream.runCollect(stream)).then(console.log)
+Effect.runPromise(Stream.runCollect(stream)).then(console.log);
 /*
 出力:
 1

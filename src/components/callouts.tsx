@@ -49,7 +49,7 @@ export const Stub: React.FC = () => (
 
 const classes: Record<CalloutType, string> = {
   default: cn(
-    "bg-zinc-50 border-zinc-200 dark:bg-white/10 dark:border-white/20"
+    "bg-zinc-50 border-zinc-200 dark:bg-white/10 dark:border-white/20",
   ),
   error: cn("bg-red-500/10 border-red-500/20"),
   info: cn("bg-blue-500/10 border-blue-500/20"),
@@ -71,7 +71,7 @@ export const Callout = ({
     <div
       className={cn(
         "mt-6 flex rounded-xl border pl-5 pr-6 gap-x-4",
-        classes[type]
+        classes[type],
       )}
     >
       <div

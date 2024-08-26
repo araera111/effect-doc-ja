@@ -45,109 +45,125 @@ Effectを始めるためのクイックスタートガイドやドキュメン�
 先週に発生したすべての技術的変更を以下に示します。
 
 ### Effect Core
-+ [エラーベタッピングAPIのJSDocsを例と共に強化](https://github.com/Effect-TS/effect/pull/3054) (ドキュメントアップデート)
-+ [Microモジュールに欠けていたTypeLambdaを追加](https://github.com/Effect-TS/effect/pull/3056) (機能)
-+ [Microモジュールで集中化されたdo-notationコードを再利用](https://github.com/Effect-TS/effect/pull/3062) (リファクタリング)
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [Micro.catchIfのシグネチャをEffect.catchIfと整合させる](https://github.com/Effect-TS/effect/pull/3082) (リファクタリング)
-+ [Microモジュールの統合をサポート](https://github.com/Effect-TS/effect/pull/3078) (機能)
-+ [Micro.genにthis引数をサポート](https://github.com/Effect-TS/effect/pull/3065) (機能)
-+ [Micro.runForkで信号"abort"イベントハンドラーをクリーンアップ](https://github.com/Effect-TS/effect/pull/3067) (バグ修正)
-+ [Micro: zipWithを追加](https://github.com/Effect-TS/effect/pull/3085) (機能)
-+ [Micro: fromOptionを更新して失敗タイプをNoSuchElementExceptionに変更](https://github.com/Effect-TS/effect/pull/3083) (改善)
-+ [MicroからグローバルAbortControllerを削除](https://github.com/Effect-TS/effect/pull/3095) (バグ修正)
-+ [Match.withReturnTypeでのユニオン使用を修正](https://github.com/Effect-TS/effect/pull/3099) (バグ修正)
-+ [Feat: Config.Config.Successを追加](https://github.com/Effect-TS/effect/pull/3047) (機能, 次のマイナー)
+
+- [エラーベタッピングAPIのJSDocsを例と共に強化](https://github.com/Effect-TS/effect/pull/3054) (ドキュメントアップデート)
+- [Microモジュールに欠けていたTypeLambdaを追加](https://github.com/Effect-TS/effect/pull/3056) (機能)
+- [Microモジュールで集中化されたdo-notationコードを再利用](https://github.com/Effect-TS/effect/pull/3062) (リファクタリング)
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [Micro.catchIfのシグネチャをEffect.catchIfと整合させる](https://github.com/Effect-TS/effect/pull/3082) (リファクタリング)
+- [Microモジュールの統合をサポート](https://github.com/Effect-TS/effect/pull/3078) (機能)
+- [Micro.genにthis引数をサポート](https://github.com/Effect-TS/effect/pull/3065) (機能)
+- [Micro.runForkで信号"abort"イベントハンドラーをクリーンアップ](https://github.com/Effect-TS/effect/pull/3067) (バグ修正)
+- [Micro: zipWithを追加](https://github.com/Effect-TS/effect/pull/3085) (機能)
+- [Micro: fromOptionを更新して失敗タイプをNoSuchElementExceptionに変更](https://github.com/Effect-TS/effect/pull/3083) (改善)
+- [MicroからグローバルAbortControllerを削除](https://github.com/Effect-TS/effect/pull/3095) (バグ修正)
+- [Match.withReturnTypeでのユニオン使用を修正](https://github.com/Effect-TS/effect/pull/3099) (バグ修正)
+- [Feat: Config.Config.Successを追加](https://github.com/Effect-TS/effect/pull/3047) (機能, 次のマイナー)
 
 ### Effect Platform
-+ [HttpMiddleware.corsを追加](https://github.com/Effect-TS/effect/pull/3051) (機能)
-+ [UrlParams入力でプリミティブ型を強制](https://github.com/Effect-TS/effect/pull/3053) (改善)
-+ [HttpRouterを作成するためのレイヤーベースのAPIを追加](https://github.com/Effect-TS/effect/pull/3059) (機能)
-+ [Platform README: マイナーなフォーマット変更](https://github.com/Effect-TS/effect/pull/3061) (ドキュメントアップデート)
-+ [HttpRouter.Tag.unwrap APIを追加](https://github.com/Effect-TS/effect/pull/3064) (機能)
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
-+ [HttpServerRespondableトレイトを追加](https://github.com/Effect-TS/effect/pull/3088) (機能)
-+ [HttpClientResponse.matchStatus* APIを追加](https://github.com/Effect-TS/effect/pull/3089) (機能)
-+ [HttpServerRequest.toURL APIを追加](https://github.com/Effect-TS/effect/pull/3090) (機能)
-+ [HttpRouter.Defaultにいくつかの一般的なサービスを追加](https://github.com/Effect-TS/effect/pull/3091) (機能)
-+ [HttpRouter.ServiceにマウントAPIを追加](https://github.com/Effect-TS/effect/pull/3094) (機能)
-+ [UrlParams入力からundefinedをフィルタリング](https://github.com/Effect-TS/effect/pull/3102) (改善)
-+ [HttpServerError.RouteNotFoundからスタックを削除](https://github.com/Effect-TS/effect/pull/3104) (バグ修正)
-+ [HttpRouter.useにおけるHttpMiddlewareの割り当て可能性を修正](https://github.com/Effect-TS/effect/pull/3109) (バグ修正)
+
+- [HttpMiddleware.corsを追加](https://github.com/Effect-TS/effect/pull/3051) (機能)
+- [UrlParams入力でプリミティブ型を強制](https://github.com/Effect-TS/effect/pull/3053) (改善)
+- [HttpRouterを作成するためのレイヤーベースのAPIを追加](https://github.com/Effect-TS/effect/pull/3059) (機能)
+- [Platform README: マイナーなフォーマット変更](https://github.com/Effect-TS/effect/pull/3061) (ドキュメントアップデート)
+- [HttpRouter.Tag.unwrap APIを追加](https://github.com/Effect-TS/effect/pull/3064) (機能)
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
+- [HttpServerRespondableトレイトを追加](https://github.com/Effect-TS/effect/pull/3088) (機能)
+- [HttpClientResponse.matchStatus\* APIを追加](https://github.com/Effect-TS/effect/pull/3089) (機能)
+- [HttpServerRequest.toURL APIを追加](https://github.com/Effect-TS/effect/pull/3090) (機能)
+- [HttpRouter.Defaultにいくつかの一般的なサービスを追加](https://github.com/Effect-TS/effect/pull/3091) (機能)
+- [HttpRouter.ServiceにマウントAPIを追加](https://github.com/Effect-TS/effect/pull/3094) (機能)
+- [UrlParams入力からundefinedをフィルタリング](https://github.com/Effect-TS/effect/pull/3102) (改善)
+- [HttpServerError.RouteNotFoundからスタックを削除](https://github.com/Effect-TS/effect/pull/3104) (バグ修正)
+- [HttpRouter.useにおけるHttpMiddlewareの割り当て可能性を修正](https://github.com/Effect-TS/effect/pull/3109) (バグ修正)
 
 ### Effect Opentelemetry
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
 
 ### Effect Experimental
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
-+ [@effect/experimental dataLoaderのデッドロックを修正](https://github.com/Effect-TS/effect/pull/3110) (バグ修正)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
+- [@effect/experimental dataLoaderのデッドロックを修正](https://github.com/Effect-TS/effect/pull/3110) (バグ修正)
 
 ### Effect SQL
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
-+ [機能: cloudflareの@effect/sql-d1パッケージを追加](https://github.com/Effect-TS/effect/pull/3045) (機能, 次のマイナー)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
+- [機能: cloudflareの@effect/sql-d1パッケージを追加](https://github.com/Effect-TS/effect/pull/3045) (機能, 次のマイナー)
 
 ### Effect Cluster
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
 
 ### Effect Schema
-+ [クラスベースのAPIにmakeコンストラクタを追加](https://github.com/Effect-TS/effect/pull/3043) (機能)
-+ [overwrite = falseの際の合成エラーのエラーメッセージ表示を修正](https://github.com/Effect-TS/effect/pull/3046) (バグ修正)
-+ [スキーマ拡張の例をREADME.mdに追記](https://github.com/Effect-TS/effect/pull/3050) (ドキュメントアップデート)
-+ [クラ  スAPIのフィールド推論を確実に行うためにrefineインターフェースにrefineTypeIdのユニークシンボルを追加](https://github.com/Effect-TS/effect/pull/3070) (バグ修正)
-+ [0.67.22のパッチを元に戻し、他の配列フィルタに問題を引き起こすのを修正](https://github.com/Effect-TS/effect/pull/3074) (バグ修正)
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [特別ケースS.parseJsonで変換の"to"側をターゲットにしてJSONスキーマを生成](https://github.com/Effect-TS/effect/pull/3087) (機能)
-+ [extend APIを使用して二つのrefinementsを拡張したスキーマに対してJSONスキーマ注釈が保持されるように正しく生成](https://github.com/Effect-TS/effect/pull/3101) (改善)
+
+- [クラスベースのAPIにmakeコンストラクタを追加](https://github.com/Effect-TS/effect/pull/3043) (機能)
+- [overwrite = falseの際の合成エラーのエラーメッセージ表示を修正](https://github.com/Effect-TS/effect/pull/3046) (バグ修正)
+- [スキーマ拡張の例をREADME.mdに追記](https://github.com/Effect-TS/effect/pull/3050) (ドキュメントアップデート)
+- [クラ スAPIのフィールド推論を確実に行うためにrefineインターフェースにrefineTypeIdのユニークシンボルを追加](https://github.com/Effect-TS/effect/pull/3070) (バグ修正)
+- [0.67.22のパッチを元に戻し、他の配列フィルタに問題を引き起こすのを修正](https://github.com/Effect-TS/effect/pull/3074) (バグ修正)
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [特別ケースS.parseJsonで変換の"to"側をターゲットにしてJSONスキーマを生成](https://github.com/Effect-TS/effect/pull/3087) (機能)
+- [extend APIを使用して二つのrefinementsを拡張したスキーマに対してJSONスキーマ注釈が保持されるように正しく生成](https://github.com/Effect-TS/effect/pull/3101) (改善)
 
 ### Effect CLI
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
-+ [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
-+ [ヘルプドキュメントが常にCLI設定を尊重することを確認](https://github.com/Effect-TS/effect/pull/3106) (バグ修正)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+- [ドキュメント: アダプタの例を削除](https://github.com/Effect-TS/effect/pull/3041) (ドキュメントアップデート)
+- [ヘルプドキュメントが常にCLI設定を尊重することを確認](https://github.com/Effect-TS/effect/pull/3106) (バグ修正)
 
 ### Effect Printer
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
 
 ### Effect RPC
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
 
 ### Effect Typeclass
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
 
 ### Effect Vitest
-+ [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
+
+- [TypeScript 5.5にアップデート](https://github.com/Effect-TS/effect/pull/3079) (最適化)
 
 ### 一般的な雑務
-+ [CIとNixをNode.js v20.12.2に統一](https://github.com/Effect-TS/effect/pull/3076)
+
+- [CIとNixをNode.js v20.12.2に統一](https://github.com/Effect-TS/effect/pull/3076)
 
 ## コミュニティのハイライト
 
 先週、私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に50人以上の新しいEffectersを迎えました。皆さんをお迎えできてとても嬉しいです！
 
-+ [JSNation](https://x.com/thejsnation)がオープンソースアワードの受賞者を総括する投稿をしました。Effectが「最も興味深い技術の使用」という賞を受賞したことは、皆さんの支援のおかげです。
-<Tweet id="1805561129915060248" />
+- [JSNation](https://x.com/thejsnation)がオープンソースアワードの受賞者を総括する投稿をしました。Effectが「最も興味深い技術の使用」という賞を受賞したことは、皆さんの支援のおかげです。
 
-+ [マイケル・アルナルディ](https://x.com/MichaelArnaldi)がCloudflareオフィスで開催された[ロンドンNode.jsユーザーグループ](https://x.com/LNUGorg)に参加し、Effectボットの新機能「Dad Joke」を披露しました。
-<Tweet id="1806034606338052317" />
+  <Tweet id="1805561129915060248" />
 
-+ 今週、[Evryg](https://www.evryg.com)チームが第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)を成功裏に開催しました。多くの参加者と素晴らしい講演がありました。フランス語を話すEffectコミュニティの活動的な様子を見ることができ、とても嬉しく思います。今後のミートアップも楽しみです！
+- [マイケル・アルナルディ](https://x.com/MichaelArnaldi)がCloudflareオフィスで開催された[ロンドンNode.jsユーザーグループ](https://x.com/LNUGorg)に参加し、Effectボットの新機能「Dad Joke」を披露しました。
+
+  <Tweet id="1806034606338052317" />
+
+- 今週、[Evryg](https://www.evryg.com)チームが第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)を成功裏に開催しました。多くの参加者と素晴らしい講演がありました。フランス語を話すEffectコミュニティの活動的な様子を見ることができ、とても嬉しく思います。今後のミートアップも楽しみです！
 
 ![パリミートアップの写真](https://i.imgur.com/2yWmDlD.png)
 
-+ [ミラド・ヴァファイファード](https://x.com/miladvafaeifard)、[サインランゲージテック](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の創設者でありEffectの擁護者が、[JSConf Budapest](https://jsconfbp.com/)でEffectについての講演を行いました。私たちはそれを見るのが待ちきれません！
-<Tweet id="1806609820801249504" />
+- [ミラド・ヴァファイファード](https://x.com/miladvafaeifard)、[サインランゲージテック](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の創設者でありEffectの擁護者が、[JSConf Budapest](https://jsconfbp.com/)でEffectについての講演を行いました。私たちはそれを見るのが待ちきれません！
 
-+ [サンドロ・マグリオーネ](https://x.com/SandroMaglione)がEffectの主な利点の一つを思い出させてくれました：インストールするパッケージが少なく、メンテナンスする依存関係も少ないことです。
-<Tweet id="1804789139268616482" />
+  <Tweet id="1806609820801249504" />
+
+- [サンドロ・マグリオーネ](https://x.com/SandroMaglione)がEffectの主な利点の一つを思い出させてくれました：インストールするパッケージが少なく、メンテナンスする依存関係も少ないことです。
+  <Tweet id="1804789139268616482" />
 
 ### コンテンツのアップデート
 
-+ Effect Daysカンファレンスのエンディング基調講演が月曜日に公開されました。「Effect: The Origin Story」by [マイケル・アルナルディ](https://x.com/MichaelArnaldi)。この講演でマイケルは、オープンソースライブラリEffectの創造の旅と、それを取り巻く活気あるコミュニティについて振り返ります。TypeScriptと関数型プログラミングの概念を用いて開発されたEffectは、コミュニティの自然な成長と貢献により繁栄しています。
-<YouTube url="https://www.youtube.com/embed/7sJc3Z4mh1w?si=v-jQhWFdv4TdfBv0" />
+- Effect Daysカンファレンスのエンディング基調講演が月曜日に公開されました。「Effect: The Origin Story」by [マイケル・アルナルディ](https://x.com/MichaelArnaldi)。この講演でマイケルは、オープンソースライブラリEffectの創造の旅と、それを取り巻く活気あるコミュニティについて振り返ります。TypeScriptと関数型プログラミングの概念を用いて開発されたEffectは、コミュニティの自然な成長と貢献により繁栄しています。
+  <YouTube url="https://www.youtube.com/embed/7sJc3Z4mh1w?si=v-jQhWFdv4TdfBv0" />
 
 ## 終わりの言葉
 

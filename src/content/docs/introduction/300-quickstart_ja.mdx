@@ -243,7 +243,7 @@ function App() {
   // Effect<void>
   const task = useMemo(
     () => Effect.sync(() => setCount((current) => current + 1)),
-    [setCount]
+    [setCount],
   );
 
   const increment = useCallback(() => Effect.runSync(task), [task]);

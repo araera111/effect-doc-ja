@@ -142,7 +142,7 @@ import { JSONSchema, Schema } from "@effect/schema";
 const schema = Schema.parseJson(
   Schema.Struct({
     a: Schema.parseJson(Schema.NumberFromString), // JSON文字列から数値へのネストされた解析
-  })
+  }),
 );
 
 console.log(JSONSchema.make(schema));
@@ -170,7 +170,7 @@ import { JSONSchema, Schema } from "@effect/schema";
 const schema = Schema.parseJson(
   Schema.Struct({
     a: Schema.parseJson(Schema.NumberFromString), // JSON文字列から数値へのネストされた解析
-  })
+  }),
 );
 
 console.log(JSONSchema.make(schema));
@@ -209,9 +209,9 @@ async function validateUsername(username: string) {
 const ValidUsername = Schema.String.pipe(
   Schema.filterEffect((username) =>
     Effect.promise(() =>
-      validateUsername(username).then((valid) => valid || "無効なユーザー名")
-    )
-  )
+      validateUsername(username).then((valid) => valid || "無効なユーザー名"),
+    ),
+  ),
 ).annotations({ identifier: "ValidUsername" });
 
 Effect.runPromise(Schema.decodeUnknown(ValidUsername)("xxx")).then(console.log);
@@ -249,7 +249,7 @@ console.log(
     "1": "4",
     "2": "5",
     "3": "6",
-  })
+  }),
 ); // Map(3) { 1n => 4, 2n => 5, 3n => 6 }
 console.log(
   encode(
@@ -257,8 +257,8 @@ console.log(
       [1n, 4],
       [2n, 5],
       [3n, 6],
-    ])
-  )
+    ]),
+  ),
 ); // { '1': '4', '2': '5', '3': '6' }
 ```
 
@@ -356,7 +356,7 @@ const schema = Schema.Struct({
 
 const result = Schema.decodeUnknownEither(schema)(
   { a: {} },
-  { errors: "first" }
+  { errors: "first" },
 );
 if (Either.isLeft(result)) {
   console.log(result.left.message);
@@ -404,7 +404,7 @@ class Sample extends Schema.TaggedRequest<Sample>()(
   "Sample",
   Schema.String, // 失敗スキーマ
   Schema.Number, // 成功スキーマ
-  { id: Schema.String, foo: Schema.Number } // ペイロードスキーマ
+  { id: Schema.String, foo: Schema.Number }, // ペイロードスキーマ
 ) {}
 ```
 

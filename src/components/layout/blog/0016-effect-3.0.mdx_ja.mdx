@@ -121,7 +121,7 @@ API から返された todo が必ず`Todo`インターフェースと一致す�
 
 ```ts
 async function getTodo(
-  id: number
+  id: number,
 ): Promise<
   | { ok: true; todo: Todo }
   | { ok: false; error: "InvalidJson" | "RequestFailed" }
@@ -162,7 +162,7 @@ function getTodo(
     retries?: number;
     retryBaseDelay?: number;
     signal?: AbortSignal;
-  }
+  },
 ): Promise<
   | { ok: true; todo: Todo }
   | {
@@ -188,7 +188,7 @@ function getTodo(
       } finally {
         span.end();
       }
-    }
+    },
   );
 
   async function execute(attempt: number): Promise<
@@ -221,7 +221,7 @@ function getTodo(
       } else if (attempt < retries) {
         const delayMs = retryBaseDelay * 2 ** attempt;
         return new Promise((resolve) =>
-          setTimeout(() => resolve(execute(attempt + 1)), delayMs)
+          setTimeout(() => resolve(execute(attempt + 1)), delayMs),
         );
       }
       return { ok: false, error: "RequestFailed" };
@@ -247,7 +247,7 @@ import type { Cause } from "effect";
 import { Effect, Schedule } from "effect";
 
 export const getTodo = (
-  id: number
+  id: number,
 ): Effect.Effect<
   unknown,
   HttpClientError.HttpClientError | Cause.TimeoutException,
@@ -258,9 +258,9 @@ export const getTodo = (
     HttpClientResponse.json,
     Effect.timeout("1 second"),
     Effect.retry(
-      Schedule.exponential(1000).pipe(Schedule.compose(Schedule.recurs(3)))
+      Schedule.exponential(1000).pipe(Schedule.compose(Schedule.recurs(3))),
     ),
-    Effect.withSpan("getTodo", { attributes: { id } })
+    Effect.withSpan("getTodo", { attributes: { id } }),
   );
 ```
 
@@ -275,20 +275,20 @@ import {
 import { Effect, Schedule } from "effect";
 
 const retryPolicy = Schedule.exponential(1000).pipe(
-  Schedule.compose(Schedule.recurs(3))
+  Schedule.compose(Schedule.recurs(3)),
 );
 
 const httpCall = (id: number) =>
   HttpClientRequest.get(`/todos/${id}`).pipe(
     HttpClient.fetchOk,
-    HttpClientResponse.json
+    HttpClientResponse.json,
   );
 
 export const getTodo = (id: number) =>
   httpCall(id).pipe(
     Effect.timeout("1 second"),
     Effect.retry(retryPolicy),
-    Effect.withSpan("getTodo", { attributes: { id } })
+    Effect.withSpan("getTodo", { attributes: { id } }),
   );
 ```
 
@@ -306,13 +306,13 @@ import { Effect, Schedule } from "effect";
 import { Schema } from "@effect/schema";
 
 const retryPolicy = Schedule.exponential(1000).pipe(
-  Schedule.compose(Schedule.recurs(3))
+  Schedule.compose(Schedule.recurs(3)),
 );
 
 const httpCall = (id: number) =>
   HttpClientRequest.get(`/todos/${id}`).pipe(
     HttpClient.fetchOk,
-    HttpClientResponse.json
+    HttpClientResponse.json,
   );
 
 class Todo extends Schema.Class<Todo>("Todo")({
@@ -327,7 +327,7 @@ export const getTodo = (id: number) =>
     Effect.timeout("1 second"),
     Effect.retry(retryPolicy),
     Effect.flatMap(Schema.decodeUnknown(Todo)),
-    Effect.withSpan("getTodo", { attributes: { id } })
+    Effect.withSpan("getTodo", { attributes: { id } }),
   );
 ```
 

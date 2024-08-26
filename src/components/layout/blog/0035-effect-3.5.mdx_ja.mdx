@@ -42,7 +42,7 @@ Effect.gen(function* () {
   const map = yield* RcMap.make({
     lookup: (key: string) =>
       Effect.acquireRelease(Effect.succeed(`acquired ${key}`), () =>
-        Effect.log(`releasing ${key}`)
+        Effect.log(`releasing ${key}`),
       ),
   });
 
@@ -50,7 +50,7 @@ Effect.gen(function* () {
   // スコープが閉じるときに解放されます。
   yield* RcMap.get(map, "foo").pipe(
     Effect.andThen(RcMap.get(map, "foo")),
-    Effect.scoped
+    Effect.scoped,
   );
 });
 ```
@@ -81,7 +81,7 @@ Effect.gen(function* () {
   const sub = yield* PubSub.subscribe(pubsub);
   assert.deepStrictEqual(
     Chunk.toReadonlyArray(yield* Queue.takeAll(sub)),
-    [3, 4, 5]
+    [3, 4, 5],
   );
 });
 ```
@@ -96,7 +96,7 @@ import { Stream, Schedule, Console, Effect } from "effect";
 const stream = Stream.raceAll(
   Stream.fromSchedule(Schedule.spaced("1 millis")),
   Stream.fromSchedule(Schedule.spaced("2 millis")),
-  Stream.fromSchedule(Schedule.spaced("4 millis"))
+  Stream.fromSchedule(Schedule.spaced("4 millis")),
 ).pipe(Stream.take(6), Stream.tap(Console.log));
 
 Effect.runPromise(Stream.runDrain(stream));
@@ -126,7 +126,7 @@ Stream.async(
   (emit) => {
     // ...
   },
-  { bufferSize: 16, strategy: "dropping" }
+  { bufferSize: 16, strategy: "dropping" },
 );
 ```
 
@@ -145,7 +145,7 @@ Stream.fromSchedule(Schedule.spaced(1000)).pipe(
   Stream.toPubSub({
     capacity: 16, // または "unbounded"
     strategy: "dropping", // または "sliding" / "suspend"
-  })
+  }),
 );
 
 // broadcast API用にも
@@ -153,7 +153,7 @@ Stream.fromSchedule(Schedule.spaced(1000)).pipe(
   Stream.broadcastDynamic({
     capacity: 16,
     strategy: "dropping",
-  })
+  }),
 );
 ```
 

@@ -65,14 +65,14 @@ const meanAge = Effect.gen(function* () {
         Effect.gen(function* () {
           const user = yield* getAge(id);
           return sumOfAges + user.age;
-        })
-      )
+        }),
+      ),
     );
 
   yield* task(1).pipe(
     Effect.zip(task(2), { concurrent: true }),
     Effect.zip(task(3), { concurrent: true }),
-    Effect.zip(task(4), { concurrent: true })
+    Effect.zip(task(4), { concurrent: true }),
   );
 
   const value = yield* SynchronizedRef.get(ref);

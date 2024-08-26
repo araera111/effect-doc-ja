@@ -83,8 +83,8 @@ import { Effect } from "effect";
 const recoverFromTimeout = Effect.sleep("2 seconds").pipe(
   Effect.timeout("1 second"),
   Effect.catchTag("TimeoutException", () =>
-    Effect.log("プログラムがタイムアウトしました")
-  )
+    Effect.log("プログラムがタイムアウトしました"),
+  ),
 );
 ```
 
@@ -168,7 +168,7 @@ const data = S.parseSync({
   },
   {
     onExcessProperty: "preserve",
-  }
+  },
 );
 ```
 
@@ -222,7 +222,7 @@ import { Effect } from "effect";
 
 const request = HttpClientRequest.get(new URL("https://www.google.com/")).pipe(
   HttpClient.fetchOk,
-  Effect.flatMap((_) => _.text)
+  Effect.flatMap((_) => _.text),
 );
 ```
 

@@ -42,21 +42,21 @@ Effectは**構造化された並行性**モデルを採用しており、ファ�
 重要なのは、Effectが`child`ファイバーの寿命が`parent`ファイバーを超えることがないことを保証している点です：
 
 ```ts twoslash
-import { Effect, Console, Schedule } from "effect"
+import { Effect, Console, Schedule } from "effect";
 
 const child = Effect.repeat(
   Console.log("child: still running!"),
-  Schedule.fixed("1 second")
-)
+  Schedule.fixed("1 second"),
+);
 
 const parent = Effect.gen(function* () {
-  console.log("parent: started!")
-  yield* Effect.fork(child)
-  yield* Effect.sleep("3 seconds")
-  console.log("parent: finished!")
-})
+  console.log("parent: started!");
+  yield* Effect.fork(child);
+  yield* Effect.sleep("3 seconds");
+  console.log("parent: finished!");
+});
 
-Effect.runPromise(parent)
+Effect.runPromise(parent);
 ```
 
 上記のプログラムを実行すると、次の出力が得られます：
@@ -78,21 +78,21 @@ parent: finished!
 デーモンファイバーは、グローバルスコープが閉じられるか、その寿命が自然に尽きるまで終了しません。
 
 ```ts twoslash
-import { Effect, Console, Schedule } from "effect"
+import { Effect, Console, Schedule } from "effect";
 
 const daemon = Effect.repeat(
   Console.log("daemon: still running!"),
-  Schedule.fixed("1 second")
-)
+  Schedule.fixed("1 second"),
+);
 
 const parent = Effect.gen(function* () {
-  console.log("parent: started!")
-  yield* Effect.forkDaemon(daemon)
-  yield* Effect.sleep("3 seconds")
-  console.log("parent: finished!")
-})
+  console.log("parent: started!");
+  yield* Effect.forkDaemon(daemon);
+  yield* Effect.sleep("3 seconds");
+  console.log("parent: finished!");
+});
 
-Effect.runPromise(parent)
+Effect.runPromise(parent);
 ```
 
 上記のプログラムを実行すると、次の出力が得られます。`parent`ファイバーの寿命が3秒後に終了する一方で、`daemon`ファイバーがまだ実行中であることが示されています：
@@ -114,27 +114,27 @@ daemon: still running!
 親ファイバーを中断しても、`daemon`ファイバーは中断されません：
 
 ```ts twoslash
-import { Effect, Console, Schedule, Fiber } from "effect"
+import { Effect, Console, Schedule, Fiber } from "effect";
 
 const daemon = Effect.repeat(
   Console.log("daemon: still running!"),
-  Schedule.fixed("1 second")
-)
+  Schedule.fixed("1 second"),
+);
 
 const parent = Effect.gen(function* () {
-  console.log("parent: started!")
-  yield* Effect.forkDaemon(daemon)
-  yield* Effect.sleep("3 seconds")
-  console.log("parent: finished!")
-}).pipe(Effect.onInterrupt(() => Console.log("parent: interrupted!")))
+  console.log("parent: started!");
+  yield* Effect.forkDaemon(daemon);
+  yield* Effect.sleep("3 seconds");
+  console.log("parent: finished!");
+}).pipe(Effect.onInterrupt(() => Console.log("parent: interrupted!")));
 
 const program = Effect.gen(function* () {
-  const fiber = yield* Effect.fork(parent)
-  yield* Effect.sleep("2 seconds")
-  yield* Fiber.interrupt(fiber)
-})
+  const fiber = yield* Effect.fork(parent);
+  yield* Effect.sleep("2 seconds");
+  yield* Fiber.interrupt(fiber);
+});
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 ```
 
 出力：
@@ -157,30 +157,30 @@ daemon: still running!
 時には、ファイバーをローカルスコープに付けたいことがあります。そのような場合は、`Effect.forkScoped`演算子を使用します。この演算子を使用することで、フォークされたファイバーのライフタイムは親ファイバーの寿命を超えることができ、ローカルスコープが閉じられたときに終了します：
 
 ```ts twoslash
-import { Effect, Console, Schedule } from "effect"
+import { Effect, Console, Schedule } from "effect";
 
 const child = Effect.repeat(
   Console.log("child: still running!"),
-  Schedule.fixed("1 second")
-)
+  Schedule.fixed("1 second"),
+);
 
 const parent = Effect.gen(function* () {
-  console.log("parent: started!")
-  yield* Effect.forkScoped(child)
-  yield* Effect.sleep("3 seconds")
-  console.log("parent: finished!")
-})
+  console.log("parent: started!");
+  yield* Effect.forkScoped(child);
+  yield* Effect.sleep("3 seconds");
+  console.log("parent: finished!");
+});
 
 const program = Effect.scoped(
   Effect.gen(function* () {
-    console.log("Local scope started!")
-    yield* Effect.fork(parent)
-    yield* Effect.sleep("5 seconds")
-    console.log("Leaving the local scope!")
-  })
-)
+    console.log("Local scope started!");
+    yield* Effect.fork(parent);
+    yield* Effect.sleep("5 seconds");
+    console.log("Leaving the local scope!");
+  }),
+);
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 ```
 
 上記の例では、ローカルスコープでフォークされた`child`ファイバーはその`parent`ファイバーよりも長いライフタイムを持っています。したがって、`parent`ファイバーが終了しても、ローカルスコープ内で`child`ファイバーは閉じられるまで実行を続けます。
@@ -203,35 +203,35 @@ Leaving the local scope!
 より細かい制御が必要な場合、特定のスコープでファイバーをフォークしたい場合があります。その場合、`Effect.forkIn`演算子を使用して対象スコープを引数として指定できます：
 
 ```ts twoslash
-import { Console, Effect, Schedule } from "effect"
+import { Console, Effect, Schedule } from "effect";
 
 const child = Console.log("child: still running!").pipe(
-  Effect.repeat(Schedule.fixed("1 second"))
-)
+  Effect.repeat(Schedule.fixed("1 second")),
+);
 
 const program = Effect.scoped(
   Effect.gen(function* () {
     yield* Effect.addFinalizer(() =>
-      Console.log("The outer scope is about to be closed!")
-    )
+      Console.log("The outer scope is about to be closed!"),
+    );
 
-    const outerScope = yield* Effect.scope
+    const outerScope = yield* Effect.scope;
 
     yield* Effect.scoped(
       Effect.gen(function* () {
         yield* Effect.addFinalizer(() =>
-          Console.log("The inner scope is about to be closed!")
-        )
-        yield* Effect.forkIn(child, outerScope)
-        yield* Effect.sleep("3 seconds")
-      })
-    )
+          Console.log("The inner scope is about to be closed!"),
+        );
+        yield* Effect.forkIn(child, outerScope);
+        yield* Effect.sleep("3 seconds");
+      }),
+    );
 
-    yield* Effect.sleep("5 seconds")
-  })
-)
+    yield* Effect.sleep("5 seconds");
+  }),
+);
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 ```
 
 出力：
@@ -257,20 +257,20 @@ The outer scope is about to be closed!
 以下の例では、`SubscriptionRef`の`changes`ストリームは単一の値`2`しか含まれません。それは、ストリームを実行するために作成されたファイバー（`fork`によって）の開始が、値が更新された**後**であるためです。
 
 ```ts twoslash
-import { Effect, SubscriptionRef, Stream, Console } from "effect"
+import { Effect, SubscriptionRef, Stream, Console } from "effect";
 
 const program = Effect.gen(function* () {
-  const ref = yield* SubscriptionRef.make(0)
+  const ref = yield* SubscriptionRef.make(0);
   yield* ref.changes.pipe(
     Stream.tap((n) => Console.log(`SubscriptionRef changed to ${n}`)),
     Stream.runDrain,
-    Effect.fork
-  )
-  yield* SubscriptionRef.set(ref, 1)
-  yield* SubscriptionRef.set(ref, 2)
-})
+    Effect.fork,
+  );
+  yield* SubscriptionRef.set(ref, 1);
+  yield* SubscriptionRef.set(ref, 2);
+});
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 /*
 Output:
 SubscriptionRef changed to 2
@@ -280,21 +280,21 @@ SubscriptionRef changed to 2
 もし、`Effect.yieldNow()`を追加して現在のファイバーをイールドさせると、ストリームはすべての値`0`、`1`、`2`を含むことになります。これは、ストリームを実行するファイバーが値が変更される前に開始される機会があるからです。
 
 ```ts twoslash
-import { Effect, SubscriptionRef, Stream, Console } from "effect"
+import { Effect, SubscriptionRef, Stream, Console } from "effect";
 
 const program = Effect.gen(function* () {
-  const ref = yield* SubscriptionRef.make(0)
+  const ref = yield* SubscriptionRef.make(0);
   yield* ref.changes.pipe(
     Stream.tap((n) => Console.log(`SubscriptionRef changed to ${n}`)),
     Stream.runDrain,
-    Effect.fork
-  )
-  yield* Effect.yieldNow()
-  yield* SubscriptionRef.set(ref, 1)
-  yield* SubscriptionRef.set(ref, 2)
-})
+    Effect.fork,
+  );
+  yield* Effect.yieldNow();
+  yield* SubscriptionRef.set(ref, 1);
+  yield* SubscriptionRef.set(ref, 2);
+});
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 /*
 Output:
 SubscriptionRef changed to 0

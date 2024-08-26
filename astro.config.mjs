@@ -13,6 +13,9 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Effect日本語版ドキュメント",
+      components: {
+        SocialIcons: "./src/components/SocialIcons.astro",
+      },
       favicon: "/icon.png",
       locales: {
         root: {
@@ -35,12 +38,6 @@ export default defineConfig({
           label: "Guides",
           autogenerate: {
             directory: "guides",
-          },
-        },
-        {
-          label: "Blog",
-          autogenerate: {
-            directory: "blog",
           },
         },
       ],

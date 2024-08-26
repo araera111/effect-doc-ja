@@ -548,7 +548,7 @@ import * as ResolversWithContext from "./ResolversWithContext";
 
 export const getTodos = Effect.request(
   Requests.GetTodos({}),
-  ResolversWithContext.GetTodosResolver
+  ResolversWithContext.GetTodosResolver,
 );
 ```
 
@@ -597,12 +597,12 @@ export const TodosServiceLive = Layer.effect(
             .fetch("https://api.example.demo/todos")
             .then((res) => res.json()),
         catch: () => new Model.GetTodosError(),
-      })
+      }),
     );
     return {
       getTodos: Effect.request(Requests.GetTodos({}), resolver),
     };
-  })
+  }),
 );
 
 export const getTodos: Effect.Effect<
@@ -644,7 +644,7 @@ import * as Resolvers from "./Resolvers";
 export const getUserById = (id: number) =>
   Effect.request(
     Requests.GetUserById({ id }),
-    Resolvers.GetUserByIdResolver
+    Resolvers.GetUserByIdResolver,
   ).pipe(Effect.withRequestCaching(true));
 ```
 
@@ -729,9 +729,9 @@ const program = Effect.gen(function* () {
   Effect.repeat(Schedule.fixed("10 seconds")),
   Effect.provide(
     Layer.setRequestCache(
-      Request.makeCache({ capacity: 256, timeToLive: "60 minutes" })
-    )
-  )
+      Request.makeCache({ capacity: 256, timeToLive: "60 minutes" }),
+    ),
+  ),
 );
 ```
 

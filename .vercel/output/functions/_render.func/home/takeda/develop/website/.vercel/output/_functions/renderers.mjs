@@ -1,8 +1,20 @@
-import { f as AstroUserError, A as AstroError } from './chunks/astro/assets-service_64qOpLeW.mjs';
-import { A as AstroJSX, e as renderJSX, c as createVNode } from './chunks/astro/server_DxB5J_Wm.mjs';
+import {
+  f as AstroUserError,
+  A as AstroError,
+} from "./chunks/astro/assets-service_64qOpLeW.mjs";
+import {
+  A as AstroJSX,
+  e as renderJSX,
+  c as createVNode,
+} from "./chunks/astro/server_DxB5J_Wm.mjs";
 
-const slotName = (str) => str.trim().replace(/[-_]([a-z])/g, (_, w) => w.toUpperCase());
-async function check(Component, props, { default: children = null, ...slotted } = {}) {
+const slotName = (str) =>
+  str.trim().replace(/[-_]([a-z])/g, (_, w) => w.toUpperCase());
+async function check(
+  Component,
+  props,
+  { default: children = null, ...slotted } = {},
+) {
   if (typeof Component !== "function") return false;
   const slots = {};
   for (const [key, value] of Object.entries(slotted)) {
@@ -17,7 +29,11 @@ async function check(Component, props, { default: children = null, ...slotted } 
   }
   return false;
 }
-async function renderToStaticMarkup(Component, props = {}, { default: children = null, ...slotted } = {}) {
+async function renderToStaticMarkup(
+  Component,
+  props = {},
+  { default: children = null, ...slotted } = {},
+) {
   const slots = {};
   for (const [key, value] of Object.entries(slotted)) {
     const name = slotName(key);
@@ -25,7 +41,10 @@ async function renderToStaticMarkup(Component, props = {}, { default: children =
   }
   const { result } = this;
   try {
-    const html = await renderJSX(result, createVNode(Component, { ...props, ...slots, children }));
+    const html = await renderJSX(
+      result,
+      createVNode(Component, { ...props, ...slots, children }),
+    );
     return { html };
   } catch (e) {
     throwEnhancedErrorIfMdxComponent(e, Component);
@@ -40,17 +59,26 @@ function throwEnhancedErrorIfMdxComponent(error, Component) {
       title: error.name,
       hint: `This issue often occurs when your MDX component encounters runtime errors.`,
       name: error.name,
-      stack: error.stack
+      stack: error.stack,
     });
   }
 }
 const renderer = {
   name: "astro:jsx",
   check,
-  renderToStaticMarkup
+  renderToStaticMarkup,
 };
 var server_default = renderer;
 
-const renderers = [Object.assign({"name":"astro:jsx","serverEntrypoint":"astro/jsx/server.js","jsxImportSource":"astro"}, { ssr: server_default }),];
+const renderers = [
+  Object.assign(
+    {
+      name: "astro:jsx",
+      serverEntrypoint: "astro/jsx/server.js",
+      jsxImportSource: "astro",
+    },
+    { ssr: server_default },
+  ),
+];
 
 export { renderers };

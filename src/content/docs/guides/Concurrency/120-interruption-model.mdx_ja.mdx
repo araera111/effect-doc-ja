@@ -62,7 +62,7 @@ const program = Effect.gen(function* () {
 });
 
 Effect.runPromise(program).catch((error) =>
-  console.log(`interrupted: ${error}`)
+  console.log(`interrupted: ${error}`),
 );
 /*
 出力:
@@ -81,11 +81,11 @@ import { Effect } from "effect";
 
 const program = Effect.log("start").pipe(
   Effect.andThen(Effect.sleep("2 seconds")),
-  Effect.andThen(Effect.log("done"))
+  Effect.andThen(Effect.log("done")),
 );
 
 Effect.runPromise(program).catch((error) =>
-  console.log(`interrupted: ${error}`)
+  console.log(`interrupted: ${error}`),
 );
 /*
 出力:
@@ -146,7 +146,7 @@ import { Effect } from "effect";
 const program = Effect.log("start").pipe(
   Effect.andThen(Effect.sleep("2秒")),
   Effect.andThen(Effect.interrupt),
-  Effect.andThen(Effect.log("done"))
+  Effect.andThen(Effect.log("done")),
 );
 
 Effect.runPromiseExit(program).then(console.log);
@@ -196,11 +196,11 @@ const program = Effect.forEach(
       }
       yield* Effect.log(`done #${n}`);
     }),
-  { concurrency: "unbounded" }
+  { concurrency: "unbounded" },
 );
 
 Effect.runPromiseExit(program).then((exit) =>
-  console.log(JSON.stringify(exit, null, 2))
+  console.log(JSON.stringify(exit, null, 2)),
 );
 /*
 出力:
@@ -267,13 +267,13 @@ const program = Effect.forEach(
           return effect;
         }
       }),
-      Effect.andThen(Effect.log(`done #${n}`))
+      Effect.andThen(Effect.log(`done #${n}`)),
     ),
-  { concurrency: "unbounded" }
+  { concurrency: "unbounded" },
 );
 
 Effect.runPromiseExit(program).then((exit) =>
-  console.log(JSON.stringify(exit, null, 2))
+  console.log(JSON.stringify(exit, null, 2)),
 );
 /*
 出力:

@@ -18,12 +18,13 @@ Effect 3.4.0がリリースされました！このリリースには多くの�
 単一のインポートではなく、必要な特定のモジュールをインポートします：
 
 ```typescript
-import { HttpClient, HttpClientRequest, HttpClientResponse } from "@effect/platform"
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+} from "@effect/platform";
 
-HttpClientRequest.get("/").pipe(
-  HttpClient.fetchOk,
-  HttpClientResponse.json,
-)
+HttpClientRequest.get("/").pipe(HttpClient.fetchOk, HttpClientResponse.json);
 ```
 
 ## 新しいMicroモジュール
@@ -39,13 +40,13 @@ HttpClientRequest.get("/").pipe(
 `Array.ensure`は、`A | ReadonlyArray<A>`を`Array<A>`に正規化するために使用できるAPIです。
 
 ```typescript
-import { ensure } from "effect/Array"
+import { ensure } from "effect/Array";
 
 // メンバーかコレクションか100%確信がない場合を考えます
-declare const someValue: {foo: string} | Array<{foo: string}>
+declare const someValue: { foo: string } | Array<{ foo: string }>;
 
 // $ExpectType ({ foo: string })[]
-const normalized = ensure(someValue)
+const normalized = ensure(someValue);
 ```
 
 ## liftPredicateの変更
@@ -64,9 +65,9 @@ const normalized = ensure(someValue)
 `Tuple.at` APIを使用して、タプルから指定されたインデックスの要素を取得できます。
 
 ```typescript
-import { Tuple } from "effect"
+import { Tuple } from "effect";
 
-assert.deepStrictEqual(Tuple.at([1, 'hello', true], 1), 'hello')
+assert.deepStrictEqual(Tuple.at([1, "hello", true], 1), "hello");
 ```
 
 ## Chunk.lastNonEmptyの追加
@@ -74,9 +75,9 @@ assert.deepStrictEqual(Tuple.at([1, 'hello', true], 1), 'hello')
 `NonEmptyChunk`がある場合、`lastNonEmpty`を使用して、ランタイムチェックなしで直接最後の要素を取得できます。
 
 ```typescript
-import { Chunk } from "effect"
+import { Chunk } from "effect";
 
-const last = Chunk.lastNonEmpty(Chunk.of(1))
+const last = Chunk.lastNonEmpty(Chunk.of(1));
 ```
 
 ## その他の変更

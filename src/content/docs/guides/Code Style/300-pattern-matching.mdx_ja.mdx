@@ -24,7 +24,7 @@ import { Match } from "effect";
 const match = Match.type<{ a: number } | { b: string }>().pipe(
   Match.when({ a: Match.number }, (_) => _.a),
   Match.when({ b: Match.string }, (_) => _.b),
-  Match.exhaustive
+  Match.exhaustive,
 );
 
 console.log(match({ a: 0 })); // 出力: 0
@@ -51,7 +51,7 @@ import { Match } from "effect";
 
 const result = Match.value({ name: "John", age: 30 }).pipe(
   Match.when({ name: "John" }, (user) => `${user.name}は${user.age}歳です`),
-  Match.orElse(() => "ああ、Johnではない")
+  Match.orElse(() => "ああ、Johnではない"),
 );
 
 console.log(result); // 出力: "Johnは30歳です"
@@ -74,7 +74,7 @@ import { Match } from "effect";
 
 const match = Match.type<{ age: number }>().pipe(
   Match.when({ age: (age) => age >= 5 }, (user) => `年齢: ${user.age}`),
-  Match.orElse((user) => `${user.age}は若すぎます`)
+  Match.orElse((user) => `${user.age}は若すぎます`),
 );
 
 console.log(match({ age: 5 })); // 出力: "年齢: 5"
@@ -90,7 +90,7 @@ import { Match } from "effect";
 
 const match = Match.type<string | number>().pipe(
   Match.not("hi", (_) => "a"),
-  Match.orElse(() => "b")
+  Match.orElse(() => "b"),
 );
 
 console.log(match("hello")); // 出力: "a"
@@ -107,7 +107,7 @@ import { Match, Either } from "effect";
 const match = Match.type<Either.Either<number, string>>().pipe(
   Match.tag("Right", (_) => _.right),
   Match.tag("Left", (_) => _.left),
-  Match.exhaustive
+  Match.exhaustive,
 );
 
 console.log(match(Either.right(123))); // 出力: 123
@@ -131,7 +131,7 @@ import { Match, Either } from "effect";
 const result = Match.value(Either.right(0)).pipe(
   Match.when({ _tag: "Right" }, (_) => _.right),
   // @ts-expect-error
-  Match.exhaustive // 型エラー！Type 'Left<never, number>'は型'never'に割り当てられません
+  Match.exhaustive, // 型エラー！Type 'Left<never, number>'は型'never'に割り当てられません
 );
 ```
 
@@ -144,7 +144,7 @@ import { Match } from "effect";
 
 const match = Match.type<string | number>().pipe(
   Match.when("hi", (_) => "こんにちは"),
-  Match.orElse(() => "全く理解できません")
+  Match.orElse(() => "全く理解できません"),
 );
 
 console.log(match("hi")); // 出力: "こんにちは"
@@ -160,7 +160,7 @@ import { Match, Either } from "effect";
 
 const result = Match.value(Either.right(0)).pipe(
   Match.when({ _tag: "Right" }, (_) => _.right),
-  Match.option
+  Match.option,
 );
 
 console.log(result); // 出力: { _id: 'Option', _tag: 'Some', value: 0 }
@@ -175,7 +175,7 @@ import { Match } from "effect";
 
 const match = Match.type<string>().pipe(
   Match.when("hi", (_) => _.length),
-  Match.either
+  Match.either,
 );
 
 console.log(match("hi")); // 出力: { _id: 'Either', _tag: 'Right', right: 2 }

@@ -30,7 +30,7 @@ const addServiceCharge = (amount: number) => amount + 1;
 // 取引額に安全に割引を適用する関数
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -53,7 +53,7 @@ const program = Effect.gen(function* () {
   // 割引額を計算する
   const discountedAmount = yield* applyDiscount(
     transactionAmount,
-    discountRate
+    discountRate,
   );
 
   // サービス手数料を加算する
@@ -94,7 +94,7 @@ const addServiceCharge = (amount: number) => amount + 1;
 
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -109,7 +109,7 @@ export const program = Effect.gen(function* () {
   const discountRate = yield* fetchDiscountRate;
   const discountedAmount = yield* applyDiscount(
     transactionAmount,
-    discountRate
+    discountRate,
   );
   const finalAmount = addServiceCharge(discountedAmount);
   return `請求額: ${finalAmount}`;
@@ -154,7 +154,7 @@ import { Effect } from "effect";
 
 const calculateTax = (
   amount: number,
-  taxRate: number
+  taxRate: number,
 ): Effect.Effect<number, Error> =>
   taxRate > 0
     ? Effect.succeed((amount * taxRate) / 100)

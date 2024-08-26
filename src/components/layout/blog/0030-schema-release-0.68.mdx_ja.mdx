@@ -24,29 +24,29 @@ authors:
 **以前の実装例:**
 
 ```ts
-import { ArrayFormatter, Schema } from "@effect/schema"
-import { Either } from "effect"
+import { ArrayFormatter, Schema } from "@effect/schema";
+import { Either } from "effect";
 
-const Password = Schema.Trim.pipe(Schema.minLength(1))
+const Password = Schema.Trim.pipe(Schema.minLength(1));
 
 const MyForm = Schema.Struct({
   password: Password,
-  confirm_password: Password
+  confirm_password: Password,
 }).pipe(
   Schema.filter((input) => {
     if (input.password !== input.confirm_password) {
-      return "Passwords do not match"
+      return "Passwords do not match";
     }
-  })
-)
+  }),
+);
 
 console.log(
   "%o",
   Schema.decodeUnknownEither(MyForm)({
     password: "abc",
-    confirm_password: "d"
-  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error)))
-)
+    confirm_password: "d",
+  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error))),
+);
 /*
 {
   _id: 'Either',
@@ -71,32 +71,32 @@ console.log(
 **更新された実装例:**
 
 ```ts
-import { ArrayFormatter, Schema } from "@effect/schema"
-import { Either } from "effect"
+import { ArrayFormatter, Schema } from "@effect/schema";
+import { Either } from "effect";
 
-const Password = Schema.Trim.pipe(Schema.minLength(1))
+const Password = Schema.Trim.pipe(Schema.minLength(1));
 
 const MyForm = Schema.Struct({
   password: Password,
-  confirm_password: Password
+  confirm_password: Password,
 }).pipe(
   Schema.filter((input) => {
     if (input.password !== input.confirm_password) {
       return {
         path: ["confirm_password"],
-        message: "Passwords do not match"
-      }
+        message: "Passwords do not match",
+      };
     }
-  })
-)
+  }),
+);
 
 console.log(
   "%o",
   Schema.decodeUnknownEither(MyForm)({
     password: "abc",
-    confirm_password: "d"
-  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error)))
-)
+    confirm_password: "d",
+  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error))),
+);
 /*
 {
   _id: 'Either',
@@ -121,45 +121,45 @@ console.log(
 **複数の問題報告の例:**
 
 ```ts
-import { ArrayFormatter, Schema } from "@effect/schema"
-import { Either } from "effect"
+import { ArrayFormatter, Schema } from "@effect/schema";
+import { Either } from "effect";
 
-const Password = Schema.Trim.pipe(Schema.minLength(1))
-const OptionalString = Schema.optional(Schema.String)
+const Password = Schema.Trim.pipe(Schema.minLength(1));
+const OptionalString = Schema.optional(Schema.String);
 
 const MyForm = Schema.Struct({
   password: Password,
   confirm_password: Password,
   name: OptionalString,
-  surname: OptionalString
+  surname: OptionalString,
 }).pipe(
   Schema.filter((input) => {
-    const issues: Array<Schema.FilterIssue> = []
+    const issues: Array<Schema.FilterIssue> = [];
     // パスワードは一致する必要があります
     if (input.password !== input.confirm_password) {
       issues.push({
         path: ["confirm_password"],
-        message: "Passwords do not match"
-      })
+        message: "Passwords do not match",
+      });
     }
     // 名前または姓のいずれかが必要です
     if (!input.name && !input.surname) {
       issues.push({
         path: ["surname"],
-        message: "Surname must be present if name is not present"
-      })
+        message: "Surname must be present if name is not present",
+      });
     }
-    return issues
-  })
-)
+    return issues;
+  }),
+);
 
 console.log(
   "%o",
   Schema.decodeUnknownEither(MyForm)({
     password: "abc",
-    confirm_password: "d"
-  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error)))
-)
+    confirm_password: "d",
+  }).pipe(Either.mapLeft((error) => ArrayFormatter.formatErrorSync(error))),
+);
 /*
 {
   _id: 'Either',
@@ -197,7 +197,7 @@ export type ParseIssue =
   | Pointer
   | Refinement
   | Transformation
-  | Composite
+  | Composite;
 ```
 
 **モデルの主な変更点:**
@@ -216,11 +216,11 @@ export type ParseIssue =
 
 ```ts
 interface Composite {
-  readonly _tag: "Composite"
-  readonly ast: AST.Annotated
-  readonly actual: unknown
-  readonly issues: ParseIssue | NonEmptyReadonlyArray<ParseIssue>
-  readonly output?: unknown
+  readonly _tag: "Composite";
+  readonly ast: AST.Annotated;
+  readonly actual: unknown;
+  readonly issues: ParseIssue | NonEmptyReadonlyArray<ParseIssue>;
+  readonly output?: unknown;
 }
 ```
 
@@ -231,9 +231,9 @@ interface Composite {
 **例**
 
 ```ts
-import { JSONSchema, Schema } from "@effect/schema"
+import { JSONSchema, Schema } from "@effect/schema";
 
-JSONSchema.make(Schema.Struct({ a: Schema.Void }))
+JSONSchema.make(Schema.Struct({ a: Schema.Void }));
 /*
 throws:
 Error: Missing annotation
@@ -248,22 +248,22 @@ schema (VoidKeyword): void
 アノテーションは、タプルの各要素にメタデータを追加するために使用され、各要素の目的や要件をより明確に説明できます。これは、スキーマからドキュメントやJSONスキーマを生成する際に特に有用です。
 
 ```ts
-import { JSONSchema, Schema } from "@effect/schema"
+import { JSONSchema, Schema } from "@effect/schema";
 
 // 点の各座標にアノテーションを付けたタプルの定義
 const Point = Schema.Tuple(
   Schema.element(Schema.Number).annotations({
     title: "X",
-    description: "X coordinate"
+    description: "X coordinate",
   }),
   Schema.optionalElement(Schema.Number).annotations({
     title: "Y",
-    description: "optional Y coordinate"
-  })
-)
+    description: "optional Y coordinate",
+  }),
+);
 
 // タプルからのJSONスキーマの生成
-console.log(JSONSchema.make(Point))
+console.log(JSONSchema.make(Point));
 /*
 Output:
 {
@@ -290,15 +290,15 @@ Output:
 例（欠落フィールド）
 
 ```ts
-import { Schema } from "@effect/schema"
+import { Schema } from "@effect/schema";
 
 const Person = Schema.Struct({
   name: Schema.propertySignature(Schema.String).annotations({
-    missingMessage: () => "Name is required"
-  })
-})
+    missingMessage: () => "Name is required",
+  }),
+});
 
-Schema.decodeUnknownSync(Person)({})
+Schema.decodeUnknownSync(Person)({});
 /*
 Output:
 Error: { readonly name: string }
@@ -310,18 +310,18 @@ Error: { readonly name: string }
 例（欠落要素）
 
 ```ts
-import { Schema } from "@effect/schema"
+import { Schema } from "@effect/schema";
 
 const Point = Schema.Tuple(
   Schema.element(Schema.Number).annotations({
-    missingMessage: () => "X coordinate is required"
+    missingMessage: () => "X coordinate is required",
   }),
   Schema.element(Schema.Number).annotations({
-    missingMessage: () => "Y coordinate is required"
-  })
-)
+    missingMessage: () => "Y coordinate is required",
+  }),
+);
 
-Schema.decodeUnknownSync(Point)([], { errors: "all" })
+Schema.decodeUnknownSync(Point)([], { errors: "all" });
 /*
 Output:
 Error: readonly [number, number]
@@ -339,24 +339,24 @@ Error: readonly [number, number]
 以前
 
 ```ts
-import { Schema } from "@effect/schema"
+import { Schema } from "@effect/schema";
 
 // 専用APIを使って識別子を追加する例
-const schema = Schema.String.pipe(Schema.identifier("myIdentitifer"))
+const schema = Schema.String.pipe(Schema.identifier("myIdentitifer"));
 ```
 
 今
 
 ```ts
-import { Schema } from "@effect/schema"
+import { Schema } from "@effect/schema";
 
 // アノテーションメソッドを直接使用
-const schema = Schema.String.annotations({ identifier: "myIdentitifer" })
+const schema = Schema.String.annotations({ identifier: "myIdentitifer" });
 // または
 const schema2 = Schema.String.pipe(
   // パイプ可能な形式でアノテーション関数を使う
-  Schema.annotations({ identifier: "myIdentitifer" })
-)
+  Schema.annotations({ identifier: "myIdentitifer" }),
+);
 ```
 
 ## *Either、*Sync および asserts API のエラーハンドリングの標準化
@@ -364,21 +364,21 @@ const schema2 = Schema.String.pipe(
 現在、`*Sync` および `asserts` API は `ParseError` を投げるようになり、以前は `ParseIssue` を `cause` に含む単純な `Error` を投げていました。
 
 ```ts
-import { ParseResult, Schema } from "@effect/schema"
+import { ParseResult, Schema } from "@effect/schema";
 
 try {
-  Schema.decodeUnknownSync(Schema.String)(null)
+  Schema.decodeUnknownSync(Schema.String)(null);
 } catch (e) {
-  console.log(ParseResult.isParseError(e)) // true
+  console.log(ParseResult.isParseError(e)); // true
 }
 
 const asserts: (u: unknown) => asserts u is string = Schema.asserts(
-  Schema.String
-)
+  Schema.String,
+);
 try {
-  asserts(null)
+  asserts(null);
 } catch (e) {
-  console.log(ParseResult.isParseError(e)) // true
+  console.log(ParseResult.isParseError(e)); // true
 }
 ```
 

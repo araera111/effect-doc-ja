@@ -18,7 +18,7 @@ import { Stream, Console, Effect } from "effect";
 const stream = Stream.make(1, 2, 3).pipe(
   Stream.tap((n) => Console.log(`before mapping: ${n}`)),
   Stream.map((n) => n * 2),
-  Stream.tap((n) => Console.log(`after mapping: ${n}`))
+  Stream.tap((n) => Console.log(`after mapping: ${n}`)),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -153,7 +153,7 @@ If your transformation involves effects, you can use `Stream.mapEffect` instead.
 import { Stream, Random, Effect } from "effect";
 
 const stream = Stream.make(10, 20, 30).pipe(
-  Stream.mapEffect((n) => Random.nextIntBetween(0, n))
+  Stream.mapEffect((n) => Random.nextIntBetween(0, n)),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -180,7 +180,7 @@ const fetchUrl = (url: string) =>
   ]);
 
 const stream = Stream.fromIterableEffect(getUrls).pipe(
-  Stream.mapEffect(fetchUrl, { concurrency: 4 })
+  Stream.mapEffect(fetchUrl, { concurrency: 4 }),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -208,7 +208,7 @@ const runningTotal = (stream: Stream.Stream<number>): Stream.Stream<number> =>
   stream.pipe(Stream.mapAccum(0, (s, a) => [s + a, s + a]));
 
 Effect.runPromise(Stream.runCollect(runningTotal(Stream.range(0, 5)))).then(
-  console.log
+  console.log,
 );
 /*
 Output:
@@ -225,7 +225,7 @@ import { Stream, Effect } from "effect";
 
 const numbers = Stream.make("1-2-3", "4-5", "6").pipe(
   Stream.mapConcat((s) => s.split("-")),
-  Stream.map((s) => parseInt(s))
+  Stream.map((s) => parseInt(s)),
 );
 
 Effect.runPromise(Stream.runCollect(numbers)).then(console.log);
@@ -339,7 +339,7 @@ const s2 = Stream.repeatEffect(
     const number = Math.abs(nextInt % 10);
     console.log(`random number: ${number}`);
     return number;
-  })
+  }),
 ).pipe(Stream.take(3));
 
 Effect.runPromise(Stream.runCollect(s2)).then(console.log);
@@ -393,7 +393,7 @@ import { Stream, Effect } from "effect";
 // We create two streams and zip them together.
 const s1 = Stream.zip(
   Stream.make(1, 2, 3, 4, 5, 6),
-  Stream.make("a", "b", "c")
+  Stream.make("a", "b", "c"),
 );
 
 Effect.runPromise(Stream.runCollect(s1)).then(console.log);
@@ -406,7 +406,7 @@ Output:
 const s2 = Stream.zipWith(
   Stream.make(1, 2, 3, 4, 5, 6),
   Stream.make("a", "b", "c"),
-  (n, s) => [n - s.length, s]
+  (n, s) => [n - s.length, s],
 );
 
 Effect.runPromise(Stream.runCollect(s2)).then(console.log);
@@ -481,11 +481,11 @@ Sometimes, you might have two streams producing elements at different speeds. If
 import { Stream, Schedule, Effect } from "effect";
 
 const s1 = Stream.make(1, 2, 3).pipe(
-  Stream.schedule(Schedule.spaced("1 second"))
+  Stream.schedule(Schedule.spaced("1 second")),
 );
 
 const s2 = Stream.make("a", "b", "c", "d").pipe(
-  Stream.schedule(Schedule.spaced("500 millis"))
+  Stream.schedule(Schedule.spaced("500 millis")),
 );
 
 const stream = Stream.zipLatest(s1, s2);
@@ -531,7 +531,7 @@ const s2 = Stream.zipWithNext(stream);
 const s3 = Stream.zipWithPreviousAndNext(stream);
 
 Effect.runPromise(Stream.runCollect(s1)).then((chunks) =>
-  console.log("%o", chunks)
+  console.log("%o", chunks),
 );
 /*
 Output:
@@ -548,7 +548,7 @@ Output:
 */
 
 Effect.runPromise(Stream.runCollect(s2)).then((chunks) =>
-  console.log("%o", chunks)
+  console.log("%o", chunks),
 );
 /*
 Output:
@@ -565,7 +565,7 @@ Output:
 */
 
 Effect.runPromise(Stream.runCollect(s3)).then((chunks) =>
-  console.log("%o", chunks)
+  console.log("%o", chunks),
 );
 /*
 Output:
@@ -676,7 +676,7 @@ Here's an example where we partition a stream of numbers into even and odd numbe
 import { Stream, Effect } from "effect";
 
 const partition = Stream.range(1, 9).pipe(
-  Stream.partition((n) => n % 2 === 0, { bufferSize: 5 })
+  Stream.partition((n) => n % 2 === 0, { bufferSize: 5 }),
 );
 
 Effect.runPromise(
@@ -685,8 +685,8 @@ Effect.runPromise(
       const [evens, odds] = yield* partition;
       console.log(yield* Stream.runCollect(evens));
       console.log(yield* Stream.runCollect(odds));
-    })
-  )
+    }),
+  ),
 );
 /*
 Output:
@@ -709,8 +709,8 @@ import { Stream, Effect, Either } from "effect";
 const partition = Stream.range(1, 9).pipe(
   Stream.partitionEither(
     (n) => Effect.succeed(n % 2 === 0 ? Either.left(n) : Either.right(n)),
-    { bufferSize: 5 }
-  )
+    { bufferSize: 5 },
+  ),
 );
 
 Effect.runPromise(
@@ -719,8 +719,8 @@ Effect.runPromise(
       const [evens, odds] = yield* partition;
       console.log(yield* Stream.runCollect(evens));
       console.log(yield* Stream.runCollect(odds));
-    })
-  )
+    }),
+  ),
 );
 /*
 Output:
@@ -750,7 +750,10 @@ In the example below, we use `groupByKey` to group exam results by the tens plac
 import { Stream, GroupBy, Effect, Chunk } from "effect";
 
 class Exam {
-  constructor(readonly person: string, readonly score: number) {}
+  constructor(
+    readonly person: string,
+    readonly score: number,
+  ) {}
 }
 
 const examResults = [
@@ -762,15 +765,15 @@ const examResults = [
 ];
 
 const groupByKeyResult = Stream.fromIterable(examResults).pipe(
-  Stream.groupByKey((exam) => Math.floor(exam.score / 10) * 10)
+  Stream.groupByKey((exam) => Math.floor(exam.score / 10) * 10),
 );
 
 const stream = GroupBy.evaluate(groupByKeyResult, (key, stream) =>
   Stream.fromEffect(
     Stream.runCollect(stream).pipe(
-      Effect.andThen((chunk) => [key, Chunk.size(chunk)] as const)
-    )
-  )
+      Effect.andThen((chunk) => [key, Chunk.size(chunk)] as const),
+    ),
+  ),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -805,9 +808,9 @@ const groupByKeyResult = Stream.fromIterable([
 const stream = GroupBy.evaluate(groupByKeyResult, (key, stream) =>
   Stream.fromEffect(
     Stream.runCollect(stream).pipe(
-      Effect.andThen((chunk) => [key, Chunk.size(chunk)] as const)
-    )
-  )
+      Effect.andThen((chunk) => [key, Chunk.size(chunk)] as const),
+    ),
+  ),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -836,7 +839,7 @@ import { Stream, Effect } from "effect";
 const stream = Stream.range(0, 8).pipe(Stream.grouped(3));
 
 Effect.runPromise(Stream.runCollect(stream)).then((chunks) =>
-  console.log("%o", chunks)
+  console.log("%o", chunks),
 );
 /*
 Output:
@@ -864,11 +867,11 @@ import { Stream, Schedule, Effect, Chunk } from "effect";
 const stream = Stream.range(0, 9).pipe(
   Stream.repeat(Schedule.spaced("1 second")),
   Stream.groupedWithin(18, "1.5 seconds"),
-  Stream.take(3)
+  Stream.take(3),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then((chunks) =>
-  console.log(Chunk.toArray(chunks))
+  console.log(Chunk.toArray(chunks)),
 );
 /*
 Output:
@@ -966,7 +969,7 @@ Here's an example of using `Stream.flatMap`:
 import { Stream, Effect } from "effect";
 
 const stream = Stream.make(1, 2, 3).pipe(
-  Stream.flatMap((a) => Stream.repeatValue(a).pipe(Stream.take(4)))
+  Stream.flatMap((a) => Stream.repeatValue(a).pipe(Stream.take(4))),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -999,10 +1002,10 @@ Here's an example:
 import { Schedule, Stream, Effect } from "effect";
 
 const s1 = Stream.make(1, 2, 3).pipe(
-  Stream.schedule(Schedule.spaced("100 millis"))
+  Stream.schedule(Schedule.spaced("100 millis")),
 );
 const s2 = Stream.make(4, 5, 6).pipe(
-  Stream.schedule(Schedule.spaced("200 millis"))
+  Stream.schedule(Schedule.spaced("200 millis")),
 );
 
 const stream = Stream.merge(s1, s2);
@@ -1031,10 +1034,10 @@ Here's an example of specifying a termination strategy:
 import { Stream, Schedule, Effect } from "effect";
 
 const s1 = Stream.range(1, 5).pipe(
-  Stream.schedule(Schedule.spaced("100 millis"))
+  Stream.schedule(Schedule.spaced("100 millis")),
 );
 const s2 = Stream.repeatValue(0).pipe(
-  Stream.schedule(Schedule.spaced("200 millis"))
+  Stream.schedule(Schedule.spaced("200 millis")),
 );
 
 const stream = Stream.merge(s1, s2, { haltStrategy: "left" });
@@ -1064,10 +1067,10 @@ Here's an example:
 import { Schedule, Stream, Effect } from "effect";
 
 const s1 = Stream.make("1", "2", "3").pipe(
-  Stream.schedule(Schedule.spaced("100 millis"))
+  Stream.schedule(Schedule.spaced("100 millis")),
 );
 const s2 = Stream.make(4.1, 5.3, 6.2).pipe(
-  Stream.schedule(Schedule.spaced("200 millis"))
+  Stream.schedule(Schedule.spaced("200 millis")),
 );
 
 const stream = Stream.mergeWith(s1, s2, {
@@ -1178,7 +1181,7 @@ const stream = Stream.make(1, 2, 3, 4, 5).pipe(
     start: "[",
     middle: "-",
     end: "]",
-  })
+  }),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -1213,23 +1216,23 @@ const numbers = Effect.scoped(
     Stream.flatMap(([first, second]) =>
       Effect.gen(function* () {
         const fiber1 = yield* Stream.runFold(first, 0, (acc, e) =>
-          Math.max(acc, e)
+          Math.max(acc, e),
         ).pipe(
           Effect.andThen((max) => Console.log(`Maximum: ${max}`)),
-          Effect.fork
+          Effect.fork,
         );
         const fiber2 = yield* second.pipe(
           Stream.schedule(Schedule.spaced("1 second")),
           Stream.runForEach((n) => Console.log(`Logging to the Console: ${n}`)),
-          Effect.fork
+          Effect.fork,
         );
         yield* Fiber.join(fiber1).pipe(
-          Effect.zip(Fiber.join(fiber2), { concurrent: true })
+          Effect.zip(Fiber.join(fiber2), { concurrent: true }),
         );
-      })
+      }),
     ),
-    Stream.runCollect
-  )
+    Stream.runCollect,
+  ),
 );
 
 Effect.runPromise(numbers).then(console.log);
@@ -1297,7 +1300,7 @@ const stream = Stream.range(1, 10).pipe(
   Stream.tap((n) => Console.log(`before buffering: ${n}`)),
   Stream.buffer({ capacity: 4 }),
   Stream.tap((n) => Console.log(`after buffering: ${n}`)),
-  Stream.schedule(Schedule.spaced("5 seconds"))
+  Stream.schedule(Schedule.spaced("5 seconds")),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -1353,16 +1356,16 @@ const log = (message: string) =>
 
 const stream = Stream.make(1, 2, 3).pipe(
   Stream.concat(
-    Stream.fromEffect(Effect.sleep("200 millis").pipe(Effect.as(4))) // Emit 4 after 200 ms
+    Stream.fromEffect(Effect.sleep("200 millis").pipe(Effect.as(4))), // Emit 4 after 200 ms
   ),
   Stream.concat(Stream.make(5, 6)), // Continue with more rapid values
   Stream.concat(
-    Stream.fromEffect(Effect.sleep("150 millis").pipe(Effect.as(7))) // Emit 7 after 150 ms
+    Stream.fromEffect(Effect.sleep("150 millis").pipe(Effect.as(7))), // Emit 7 after 150 ms
   ),
   Stream.concat(Stream.make(8)),
   Stream.tap((n) => log(`Received ${n}`)),
   Stream.debounce("100 millis"), // Only emit values after a pause of at least 100 milliseconds,
-  Stream.tap((n) => log(`> Emitted ${n}`))
+  Stream.tap((n) => log(`> Emitted ${n}`)),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -1436,7 +1439,7 @@ const stream = Stream.fromSchedule(Schedule.spaced("50 millis")).pipe(
     duration: "100 millis",
     units: 1,
   }),
-  Stream.tap((n) => log(`> Emitted ${n}`))
+  Stream.tap((n) => log(`> Emitted ${n}`)),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -1482,7 +1485,7 @@ const stream = Stream.make(1, 2, 3, 4, 5, 6).pipe(
     units: 1,
     strategy: "enforce",
   }),
-  Stream.tap((n) => log(`> Emitted ${n}`))
+  Stream.tap((n) => log(`> Emitted ${n}`)),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -1529,7 +1532,7 @@ const stream = Stream.fromSchedule(Schedule.spaced("10 millis")).pipe(
     strategy: "enforce",
     burst: 2,
   }),
-  Stream.tap((n) => log(`> Emitted ${n}`))
+  Stream.tap((n) => log(`> Emitted ${n}`)),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);

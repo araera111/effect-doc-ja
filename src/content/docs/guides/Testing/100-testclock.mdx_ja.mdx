@@ -39,7 +39,7 @@ const test = Effect.gen(function* () {
       onSuccess: Option.some,
       onTimeout: () => Option.none<void>(),
     }),
-    Effect.fork
+    Effect.fork,
   );
 
   // 時間の経過をシミュレートするためにTestClockを1分調整
@@ -75,17 +75,17 @@ const test = pipe(
   Effect.fork,
   Effect.tap(() =>
     // 時間の経過をシミュレートするためにTestClockを1分調整
-    TestClock.adjust("1 minute")
+    TestClock.adjust("1 minute"),
   ),
   Effect.andThen((fiber) =>
     // ファイバーの結果を取得
-    Fiber.join(fiber)
+    Fiber.join(fiber),
   ),
   Effect.andThen((result) => {
     // 結果がNoneであるか確認し、タイムアウトを示す
     assert.ok(Option.isNone(result));
   }),
-  Effect.provide(TestContext.TestContext)
+  Effect.provide(TestContext.TestContext),
 );
 
 Effect.runPromise(test);
@@ -125,7 +125,7 @@ const test = Effect.gen(function* () {
     // エフェクトを60分遅延させて永遠に繰り返す
     Effect.delay("60 minutes"),
     Effect.forever,
-    Effect.fork
+    Effect.fork,
   );
 
   // 再帰期間前にエフェクトが実行されないことを確認
@@ -178,7 +178,7 @@ const test = pipe(
           Effect.Do,
           // 再帰期間前にエフェクトが実行されないことを確認
           Effect.bind("a", () =>
-            pipe(Queue.poll(q), Effect.andThen(Option.isNone))
+            pipe(Queue.poll(q), Effect.andThen(Option.isNone)),
           ),
           // 時間の経過をシミュレートするためにTestClockを60分調整
           Effect.tap(() => TestClock.adjust("60 minutes")),
@@ -186,24 +186,24 @@ const test = pipe(
           Effect.bind("b", () => pipe(Queue.take(q), Effect.as(true))),
           // エフェクトがちょうど1回実行されたことを確認
           Effect.bind("c", () =>
-            pipe(Queue.poll(q), Effect.andThen(Option.isNone))
+            pipe(Queue.poll(q), Effect.andThen(Option.isNone)),
           ),
           // さらに60分調整
           Effect.tap(() => TestClock.adjust("60 minutes")),
           // もう1つのエフェクトが実行されることを確認
           Effect.bind("d", () => pipe(Queue.take(q), Effect.as(true))),
           Effect.bind("e", () =>
-            pipe(Queue.poll(q), Effect.andThen(Option.isNone))
-          )
-        )
+            pipe(Queue.poll(q), Effect.andThen(Option.isNone)),
+          ),
+        ),
       ),
       Effect.andThen(({ a, b, c, d, e }) => {
         // すべての条件が満たされていることを確認
         assert.ok(a && b && c && d && e);
-      })
-    )
+      }),
+    ),
   ),
-  Effect.provide(TestContext.TestContext)
+  Effect.provide(TestContext.TestContext),
 );
 
 Effect.runPromise(test);
@@ -272,10 +272,10 @@ const test = pipe(
       Effect.andThen((endTime) => {
         // 時間差が少なくとも60,000ミリ秒（1分）であることを確認
         assert.ok(endTime - startTime >= 60_000);
-      })
-    )
+      }),
+    ),
   ),
-  Effect.provide(TestContext.TestContext)
+  Effect.provide(TestContext.TestContext),
 );
 
 Effect.runPromise(test);
@@ -305,7 +305,7 @@ const test = Effect.gen(function* () {
   // 10秒スリープし、デファードに1の値をセットする2つのエフェクトを並行して実行
   yield* Effect.all(
     [Effect.sleep("10 seconds"), Deferred.succeed(deferred, 1)],
-    { concurrency: "unbounded" }
+    { concurrency: "unbounded" },
   ).pipe(Effect.fork);
 
   // TestClockを10秒調整
@@ -338,8 +338,8 @@ const test = pipe(
     Effect.fork(
       Effect.all([Effect.sleep("10 seconds"), Deferred.succeed(deferred, 1)], {
         concurrency: "unbounded",
-      })
-    )
+      }),
+    ),
   ),
   // TestClockを10秒調整
   Effect.tap(() => TestClock.adjust("10 seconds")),
@@ -348,7 +348,7 @@ const test = pipe(
   Effect.andThen((readRef) => {
     assert.ok(1 === readRef);
   }),
-  Effect.provide(TestContext.TestContext)
+  Effect.provide(TestContext.TestContext),
 );
 
 Effect.runPromise(test);

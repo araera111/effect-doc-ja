@@ -16,7 +16,7 @@ import { Stream, Effect } from "effect";
 
 const s1 = Stream.make(1, 2, 3).pipe(
   Stream.concat(Stream.fail("Oh! エラー！")),
-  Stream.concat(Stream.make(4, 5))
+  Stream.concat(Stream.make(4, 5)),
 );
 
 const s2 = Stream.make("a", "b", "c");

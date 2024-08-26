@@ -25,32 +25,32 @@ sandbox: Effect<A, E, R> -> Effect<A, Cause<E>, R>
 エラーのサンドボックス化がどのように機能するのかを示すために、例を見てみましょう：
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const effect = Effect.fail("ああ、うまくいかなかった！").pipe(
-  Effect.as("主要な結果")
-)
+  Effect.as("主要な結果"),
+);
 
-const sandboxed = Effect.sandbox(effect)
+const sandboxed = Effect.sandbox(effect);
 
 const program = Effect.catchTags(sandboxed, {
   Die: (cause) =>
     Console.log(`欠陥をキャッチしました: ${cause.defect}`).pipe(
-      Effect.as("欠陥によるフォールバック結果")
+      Effect.as("欠陥によるフォールバック結果"),
     ),
   Interrupt: (cause) =>
     Console.log(`欠陥をキャッチしました: ${cause.fiberId}`).pipe(
-      Effect.as("ファイバー中断によるフォールバック結果")
+      Effect.as("ファイバー中断によるフォールバック結果"),
     ),
   Fail: (cause) =>
     Console.log(`欠陥をキャッチしました: ${cause.error}`).pipe(
-      Effect.as("失敗によるフォールバック結果")
-    )
-})
+      Effect.as("失敗によるフォールバック結果"),
+    ),
+});
 
-const main = Effect.unsandbox(program)
+const main = Effect.unsandbox(program);
 
-Effect.runPromise(main).then(console.log)
+Effect.runPromise(main).then(console.log);
 /*
 Output:
 欠陥をキャッチしました: ああ、うまくいかなかった！

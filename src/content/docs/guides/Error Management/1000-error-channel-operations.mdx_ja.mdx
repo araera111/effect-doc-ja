@@ -69,25 +69,25 @@ import { Effect, Random, Cause } from "effect";
 const task1 = Effect.filterOrFail(
   Random.nextRange(-1, 1),
   (n) => n >= 0,
-  () => "ランダムな数が負です"
+  () => "ランダムな数が負です",
 );
 
 const task2 = Effect.filterOrDie(
   Random.nextRange(-1, 1),
   (n) => n >= 0,
-  () => new Cause.IllegalArgumentException("ランダムな数が負です")
+  () => new Cause.IllegalArgumentException("ランダムな数が負です"),
 );
 
 const task3 = Effect.filterOrDieMessage(
   Random.nextRange(-1, 1),
   (n) => n >= 0,
-  "ランダムな数が負です"
+  "ランダムな数が負です",
 );
 
 const task4 = Effect.filterOrElse(
   Random.nextRange(-1, 1),
   (n) => n >= 0,
-  () => task3
+  () => task3,
 );
 ```
 
@@ -111,9 +111,9 @@ const program = pipe(
   Effect.filterOrFail(
     // 型を絞り込むためのガードを定義
     (user): user is User => user !== null,
-    () => new Error("認証されていません")
+    () => new Error("認証されていません"),
   ),
-  Effect.andThen((user) => user.name) // ここでの'user'は型が`User`です、`User | null`ではありません
+  Effect.andThen((user) => user.name), // ここでの'user'は型が`User`です、`User | null`ではありません
 );
 ```
 
@@ -151,7 +151,7 @@ const task: Effect.Effect<number, string> = Effect.fail("ネットワークエ�
 // タスクが失敗した場合にエラーメッセージをログに記録します。この関数はエラーがある場合にのみ実行され、
 // 元のエフェクトの結果を変更することなくエラーを処理または検査する方法を提供します。
 const tapping = Effect.tapError(task, (error) =>
-  Console.log(`予期されたエラー: ${error}`)
+  Console.log(`予期されたエラー: ${error}`),
 );
 
 Effect.runFork(tapping);
@@ -180,13 +180,13 @@ class ValidationError {
 
 // 失敗するように設計されたエフェクトを作成し、ネットワークエラーが発生したことをシミュレート
 const task: Effect.Effect<number, NetworkError | ValidationError> = Effect.fail(
-  new NetworkError(504)
+  new NetworkError(504),
 );
 
 // "ネットワークエラー"というタグが付けられたエラーにのみエラーハンドリング関数を適用し、
 // エラーの対応するステータスコードをログに記録します。
 const tapping = Effect.tapErrorTag(task, "ネットワークエラー", (error) =>
-  Console.log(`予期されたエラー: ${error.statusCode}`)
+  Console.log(`予期されたエラー: ${error.statusCode}`),
 );
 
 Effect.runFork(tapping);
@@ -208,7 +208,7 @@ const task1: Effect.Effect<number, string> = Effect.fail("ネットワークエ�
 
 // このコードは、予期されたエラーや欠陥の原因を記録します
 const tapping1 = Effect.tapErrorCause(task1, (cause) =>
-  Console.log(`エラーの原因: ${cause}`)
+  Console.log(`エラーの原因: ${cause}`),
 );
 
 Effect.runFork(tapping1);
@@ -223,7 +223,7 @@ const task2: Effect.Effect<number, string> =
 
 // このコードは、予期されたエラーや欠陥の原因を記録します
 const tapping2 = Effect.tapErrorCause(task2, (cause) =>
-  Console.log(`エラーの原因: ${cause}`)
+  Console.log(`エラーの原因: ${cause}`),
 );
 
 Effect.runFork(tapping2);
@@ -246,7 +246,7 @@ const task1: Effect.Effect<number, string> = Effect.fail("ネットワークエ�
 
 // これは欠陥ではないため、何もログに記録されません
 const tapping1 = Effect.tapDefect(task1, (cause) =>
-  Console.log(`欠陥: ${cause}`)
+  Console.log(`欠陥: ${cause}`),
 );
 
 Effect.runFork(tapping1);
@@ -260,7 +260,7 @@ const task2: Effect.Effect<number, string> =
 
 // このコードは、欠陥のみをログに記録し、エラーは記録しません
 const tapping2 = Effect.tapDefect(task2, (cause) =>
-  Console.log(`欠陥: ${cause}`)
+  Console.log(`欠陥: ${cause}`),
 );
 
 Effect.runFork(tapping2);
@@ -282,7 +282,7 @@ import { Effect, Random, Console } from "effect";
 const task = Effect.filterOrFail(
   Random.nextRange(-1, 1),
   (n) => n >= 0,
-  () => "ランダムな数が負です"
+  () => "ランダムな数が負です",
 );
 
 // 'task'の成功と失敗の両方の結果をログに記録するエフェクトを定義
@@ -349,8 +349,8 @@ const program = Effect.either(simulatedTask).pipe(
     Either.match(failureOrSuccess, {
       onLeft: (error) => Console.log(`失敗: ${error}`).pipe(Effect.as(0)),
       onRight: (value) => Console.log(`成功: ${value}`).pipe(Effect.as(value)),
-    })
-  )
+    }),
+  ),
 );
 ```
 
@@ -388,7 +388,7 @@ import { Effect, Console } from "effect";
 const simulatedTask = Effect.fail("ああ、そうだ！").pipe(Effect.as(2));
 
 const program = Effect.cause(simulatedTask).pipe(
-  Effect.andThen((cause) => Console.log(cause))
+  Effect.andThen((cause) => Console.log(cause)),
 );
 ```
 

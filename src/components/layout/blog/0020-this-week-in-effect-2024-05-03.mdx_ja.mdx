@@ -49,7 +49,6 @@ TWIEが初めての方へ、TWIEが何であるか、そしてその目的につ
 
 それでは、ビジネスに戻りましょう！
 
-
 ## 技術
 
 [Effect 3.1](https://effect.website/blog/effect-3.1)がリリースされました。最新の機能や改善点を把握するために、[Tim Smart](https://twitter.com/tim_smart)によって編集されたリリース投稿と関連する[変更履歴](https://github.com/Effect-TS/effect/blob/main/packages/effect/CHANGELOG.md)を必ずお読みください。
@@ -57,54 +56,63 @@ TWIEが初めての方へ、TWIEが何であるか、そしてその目的につ
 以下では、先週の場合に起こったすべての変更（Effect 3.1リリースに含まれるPRはリストに含まれません）をご覧いただけます。
 
 ### Effect Core
-+ [レース条件が発生した場合に完了したリクエストを中断されたものとして扱わない](https://github.com/Effect-TS/effect/pull/2637) (バグ修正)
-+ [Fix: Effect.forEachのオーバーロード](https://github.com/Effect-TS/effect/pull/2640) (バグ修正)
-+ [Causeの等価性における失敗のタイプを考慮](https://github.com/Effect-TS/effect/pull/2653) (バグ修正)
-+ [Causeの等価性を実際に修正](https://github.com/Effect-TS/effect/pull/2654) (バグ修正)
-+ [Effect.neverのドキュメント内のタイプミスを修正](https://github.com/Effect-TS/effect/pull/2655) (ドキュメント更新)
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
-+ [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
-+ [do構文に関するコードを中央集約化](https://github.com/Effect-TS/effect/pull/2681) (リファクタリング)
-+ [例におけるインポートを標準化](https://github.com/Effect-TS/effect/pull/2686) (バグ修正)
-+ [Array用のdo構文を追加](https://github.com/Effect-TS/effect/pull/2678) (機能、次のマイナーバージョン)
+
+- [レース条件が発生した場合に完了したリクエストを中断されたものとして扱わない](https://github.com/Effect-TS/effect/pull/2637) (バグ修正)
+- [Fix: Effect.forEachのオーバーロード](https://github.com/Effect-TS/effect/pull/2640) (バグ修正)
+- [Causeの等価性における失敗のタイプを考慮](https://github.com/Effect-TS/effect/pull/2653) (バグ修正)
+- [Causeの等価性を実際に修正](https://github.com/Effect-TS/effect/pull/2654) (バグ修正)
+- [Effect.neverのドキュメント内のタイプミスを修正](https://github.com/Effect-TS/effect/pull/2655) (ドキュメント更新)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+- [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
+- [do構文に関するコードを中央集約化](https://github.com/Effect-TS/effect/pull/2681) (リファクタリング)
+- [例におけるインポートを標準化](https://github.com/Effect-TS/effect/pull/2686) (バグ修正)
+- [Array用のdo構文を追加](https://github.com/Effect-TS/effect/pull/2678) (機能、次のマイナーバージョン)
 
 ### Effect Opentelemetry
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
 
 ### Effect Platform
-+ [Http.client.filterStatus*のエラーメッセージを改善](https://github.com/Effect-TS/effect/pull/2650) (改善)
-+ [/platform workers内で"self"がundefinedになる問題を修正](https://github.com/Effect-TS/effect/pull/2651) (バグ修正)
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
-+ [http検索パラメータAPIをServerRequestモジュールに移動](https://github.com/Effect-TS/effect/pull/2669) (リファクタリング)
-+ [httpクライアントのトレース伝播を制御可能にする](https://github.com/Effect-TS/effect/pull/2672) (機能)
-+ [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
-+ [Fix: "effect"ピアからの型インポートを修正](https://github.com/Effect-TS/effect/pull/2648) (バグ修正)
-+ [httpレスポンスミドルウェアが中断可能であることを確認](https://github.com/Effect-TS/effect/pull/2689) (バグ修正)
+
+- [Http.client.filterStatus\*のエラーメッセージを改善](https://github.com/Effect-TS/effect/pull/2650) (改善)
+- [/platform workers内で"self"がundefinedになる問題を修正](https://github.com/Effect-TS/effect/pull/2651) (バグ修正)
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+- [http検索パラメータAPIをServerRequestモジュールに移動](https://github.com/Effect-TS/effect/pull/2669) (リファクタリング)
+- [httpクライアントのトレース伝播を制御可能にする](https://github.com/Effect-TS/effect/pull/2672) (機能)
+- [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
+- [Fix: "effect"ピアからの型インポートを修正](https://github.com/Effect-TS/effect/pull/2648) (バグ修正)
+- [httpレスポンスミドルウェアが中断可能であることを確認](https://github.com/Effect-TS/effect/pull/2689) (バグ修正)
 
 ### Effect Experimental
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
-+ [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+- [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
 
 ### Effect Vitest
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
-+ [テスト用の等価性に構造的領域を許可し、vitestを1.5.3に更新](https://github.com/Effect-TS/effect/pull/2670) (機能)
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+- [テスト用の等価性に構造的領域を許可し、vitestを1.5.3に更新](https://github.com/Effect-TS/effect/pull/2670) (機能)
 
 ### Effect CLI
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
 
 ### Effect RPC
-+ [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
+
+- [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
 
 ### Effect SQL
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
-+ [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
-+ [PgClientConfigにprepareとtypesを追加](https://github.com/Effect-TS/effect/pull/2683) (機能)
-+ [sql.updateのデフォルト引数を修正](https://github.com/Effect-TS/effect/pull/2685) (バグ修正)
-+ [@effect/sqlヘルパー内のプレースホルダー数を修正](https://github.com/Effect-TS/effect/pull/2684) (バグ修正)
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+- [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
+- [PgClientConfigにprepareとtypesを追加](https://github.com/Effect-TS/effect/pull/2683) (機能)
+- [sql.updateのデフォルト引数を修正](https://github.com/Effect-TS/effect/pull/2685) (バグ修正)
+- [@effect/sqlヘルパー内のプレースホルダー数を修正](https://github.com/Effect-TS/effect/pull/2684) (バグ修正)
 
 ### Effect Schema
-+ [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
-+ [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
+
+- [依存関係を更新](https://github.com/Effect-TS/effect/pull/2656) (改善)
+- [すべてのタイプIDがユニークなシンボルで注釈されることを確認](https://github.com/Effect-TS/effect/pull/2679) (リファクタリング)
 
 ## コミュニティ
 
@@ -112,7 +120,7 @@ TWIEが初めての方へ、TWIEが何であるか、そしてその目的につ
 
 ### コンテンツ更新
 
-月曜日、私たちは[ヴェルセル](https://vercel.com/)のCEOであり[Next.js](https://nextjs.org/)の作成者であるGuillermo RauchによるEffect Days Conferenceのプレゼンテーション「AIネイティブなユーザー体験: Effectの機会」を公開しました。 
+月曜日、私たちは[ヴェルセル](https://vercel.com/)のCEOであり[Next.js](https://nextjs.org/)の作成者であるGuillermo RauchによるEffect Days Conferenceのプレゼンテーション「AIネイティブなユーザー体験: Effectの機会」を公開しました。
 
 この講演では、GuillermoがAIの最先端の進展とそれがソフトウェア開発に与える影響について語ります。特に、AIネイティブなユーザー体験という概念を探求し、このパラダイムシフトにおけるTypeScriptの重要な役割を強調します。従来の機械学習からAIへの移行についても考察し、チャットボットアプリケーションの進化する状況についても光を当てます。さらに、ユーザーインターフェースがAI駆動のアプリケーションにシームレスに統合される可能性についても議論します。
 
@@ -120,16 +128,17 @@ TWIEが初めての方へ、TWIEが何であるか、そしてその目的につ
 
 私たちは、コンテンツ作成者の間でEffect関連のトピックに焦点を当てたライブストリーミングの人気が高まっていることを嬉しく思います。以下に、今週放送されたすべてのライブストリームの包括的なリストをご覧ください：
 
-+ [ミラッド・バファイファード](https://twitter.com/miladvafaeifard)、ソフトウェアエンジニア兼教育者、[Sign Language Tech](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の作成者が、[Effectを使ったサーバーAPIの構築方法](https://www.youtube.com/watch?v=nU_jS2VyxpU)を紹介しました。
+- [ミラッド・バファイファード](https://twitter.com/miladvafaeifard)、ソフトウェアエンジニア兼教育者、[Sign Language Tech](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の作成者が、[Effectを使ったサーバーAPIの構築方法](https://www.youtube.com/watch?v=nU_jS2VyxpU)を紹介しました。
 
 新しい教育ビデオ「Schema Decoding Approaching Steps with Effect」も公開しました。
+
 <YouTube url="https://www.youtube.com/embed/DtDf6DUP1-Y?si=jYVqUUd-ohw9DXio" />
 
-+ [ディロン・マルロイ](https://twitter.com/dillon_mulroy)、[ヴェルセル](https://vercel.com)のソフトウェアエンジニアは、[Effectを使ったApple MusicのTwitch統合の構築方法](https://www.twitch.tv/dmmulroy/videos)に関するシリーズの新しいエピソードを2つ放送しました。
+- [ディロン・マルロイ](https://twitter.com/dillon_mulroy)、[ヴェルセル](https://vercel.com)のソフトウェアエンジニアは、[Effectを使ったApple MusicのTwitch統合の構築方法](https://www.twitch.tv/dmmulroy/videos)に関するシリーズの新しいエピソードを2つ放送しました。
 
-+ [マイケル・アルナルディ](https://twitter.com/MichaelArnaldi)、Effectの著者がTwitchでのストリーミングを開始しました。今週は、[Effectを使ったRemixの使用方法](https://www.twitch.tv/videos/2132768293)を紹介しました。
+- [マイケル・アルナルディ](https://twitter.com/MichaelArnaldi)、Effectの著者がTwitchでのストリーミングを開始しました。今週は、[Effectを使ったRemixの使用方法](https://www.twitch.tv/videos/2132768293)を紹介しました。
 
-+ [マッティア・マンツァティ](https://twitter.com/MattiaManzati)、Effect Cluster Contributorは、[Effect Cluster](https://www.twitch.tv/videos/2135438468)に引き続き取り組みました。さらに、マッティアの最初のコーディングセッションが私たちのYouTubeチャンネルで視聴可能です：
+- [マッティア・マンツァティ](https://twitter.com/MattiaManzati)、Effect Cluster Contributorは、[Effect Cluster](https://www.twitch.tv/videos/2135438468)に引き続き取り組みました。さらに、マッティアの最初のコーディングセッションが私たちのYouTubeチャンネルで視聴可能です：
 
 <YouTube url="https://www.youtube.com/embed/FMXJYU4Jru4?si=RneSZODG9k9DGOfL" />
 

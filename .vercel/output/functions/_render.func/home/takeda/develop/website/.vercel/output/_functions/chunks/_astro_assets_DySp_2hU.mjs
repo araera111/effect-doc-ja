@@ -1,29 +1,69 @@
-import { A as AstroError, h as NoImageMetadata, F as FailedToFetchRemoteImageDimensions, j as ExpectedImageOptions, k as ExpectedImage, l as ExpectedNotESMImage, r as resolveSrc, m as isRemoteImage, n as isESMImportedImage, o as isLocalService, D as DEFAULT_HASH_PROPS, p as InvalidImageService, q as ImageMissingAlt } from './astro/assets-service_64qOpLeW.mjs';
-import { a as createComponent, r as renderTemplate, m as maybeRenderHead, h as addAttribute, s as spreadAttributes, d as createAstro } from './astro/server_DxB5J_Wm.mjs';
-import 'clsx';
+import {
+  A as AstroError,
+  h as NoImageMetadata,
+  F as FailedToFetchRemoteImageDimensions,
+  j as ExpectedImageOptions,
+  k as ExpectedImage,
+  l as ExpectedNotESMImage,
+  r as resolveSrc,
+  m as isRemoteImage,
+  n as isESMImportedImage,
+  o as isLocalService,
+  D as DEFAULT_HASH_PROPS,
+  p as InvalidImageService,
+  q as ImageMissingAlt,
+} from "./astro/assets-service_64qOpLeW.mjs";
+import {
+  a as createComponent,
+  r as renderTemplate,
+  m as maybeRenderHead,
+  h as addAttribute,
+  s as spreadAttributes,
+  d as createAstro,
+} from "./astro/server_DxB5J_Wm.mjs";
+import "clsx";
 
 function isImageMetadata(src) {
   return src.fsPath && !("fsPath" in src);
 }
 
 const decoder = new TextDecoder();
-const toUTF8String = (input, start = 0, end = input.length) => decoder.decode(input.slice(start, end));
-const toHexString = (input, start = 0, end = input.length) => input.slice(start, end).reduce((memo, i) => memo + ("0" + i.toString(16)).slice(-2), "");
+const toUTF8String = (input, start = 0, end = input.length) =>
+  decoder.decode(input.slice(start, end));
+const toHexString = (input, start = 0, end = input.length) =>
+  input
+    .slice(start, end)
+    .reduce((memo, i) => memo + ("0" + i.toString(16)).slice(-2), "");
 const readInt16LE = (input, offset = 0) => {
   const val = input[offset] + input[offset + 1] * 2 ** 8;
-  return val | (val & 2 ** 15) * 131070;
+  return val | ((val & (2 ** 15)) * 131070);
 };
-const readUInt16BE = (input, offset = 0) => input[offset] * 2 ** 8 + input[offset + 1];
-const readUInt16LE = (input, offset = 0) => input[offset] + input[offset + 1] * 2 ** 8;
-const readUInt24LE = (input, offset = 0) => input[offset] + input[offset + 1] * 2 ** 8 + input[offset + 2] * 2 ** 16;
-const readInt32LE = (input, offset = 0) => input[offset] + input[offset + 1] * 2 ** 8 + input[offset + 2] * 2 ** 16 + (input[offset + 3] << 24);
-const readUInt32BE = (input, offset = 0) => input[offset] * 2 ** 24 + input[offset + 1] * 2 ** 16 + input[offset + 2] * 2 ** 8 + input[offset + 3];
-const readUInt32LE = (input, offset = 0) => input[offset] + input[offset + 1] * 2 ** 8 + input[offset + 2] * 2 ** 16 + input[offset + 3] * 2 ** 24;
+const readUInt16BE = (input, offset = 0) =>
+  input[offset] * 2 ** 8 + input[offset + 1];
+const readUInt16LE = (input, offset = 0) =>
+  input[offset] + input[offset + 1] * 2 ** 8;
+const readUInt24LE = (input, offset = 0) =>
+  input[offset] + input[offset + 1] * 2 ** 8 + input[offset + 2] * 2 ** 16;
+const readInt32LE = (input, offset = 0) =>
+  input[offset] +
+  input[offset + 1] * 2 ** 8 +
+  input[offset + 2] * 2 ** 16 +
+  (input[offset + 3] << 24);
+const readUInt32BE = (input, offset = 0) =>
+  input[offset] * 2 ** 24 +
+  input[offset + 1] * 2 ** 16 +
+  input[offset + 2] * 2 ** 8 +
+  input[offset + 3];
+const readUInt32LE = (input, offset = 0) =>
+  input[offset] +
+  input[offset + 1] * 2 ** 8 +
+  input[offset + 2] * 2 ** 16 +
+  input[offset + 3] * 2 ** 24;
 const methods = {
   readUInt16BE,
   readUInt16LE,
   readUInt32BE,
-  readUInt32LE
+  readUInt32LE,
 };
 function readUInt(input, bits, offset, isBigEndian) {
   offset = offset || 0;
@@ -38,7 +78,7 @@ function readBox(buffer, offset) {
   return {
     name: toUTF8String(buffer, 4 + offset, 8 + offset),
     offset,
-    size: boxSize
+    size: boxSize,
   };
 }
 function findBox(buffer, boxName, offset) {
@@ -54,8 +94,8 @@ const BMP = {
   validate: (input) => toUTF8String(input, 0, 2) === "BM",
   calculate: (input) => ({
     height: Math.abs(readInt32LE(input, 22)),
-    width: readUInt32LE(input, 18)
-  })
+    width: readUInt32LE(input, 18),
+  }),
 };
 
 const TYPE_ICON = 1;
@@ -69,7 +109,7 @@ function getImageSize$1(input, imageIndex) {
   const offset = SIZE_HEADER$1 + imageIndex * SIZE_IMAGE_ENTRY;
   return {
     height: getSizeFromOffset(input, offset + 1),
-    width: getSizeFromOffset(input, offset)
+    width: getSizeFromOffset(input, offset),
   };
 }
 const ICO = {
@@ -91,9 +131,9 @@ const ICO = {
     return {
       height: imageSize.height,
       images: imgs,
-      width: imageSize.width
+      width: imageSize.width,
     };
-  }
+  },
 };
 
 const TYPE_CURSOR = 2;
@@ -105,15 +145,15 @@ const CUR = {
     const imageType = readUInt16LE(input, 2);
     return imageType === TYPE_CURSOR;
   },
-  calculate: (input) => ICO.calculate(input)
+  calculate: (input) => ICO.calculate(input),
 };
 
 const DDS = {
   validate: (input) => readUInt32LE(input, 0) === 542327876,
   calculate: (input) => ({
     height: readUInt32LE(input, 12),
-    width: readUInt32LE(input, 16)
-  })
+    width: readUInt32LE(input, 16),
+  }),
 };
 
 const gifRegexp = /^GIF8[79]a/;
@@ -121,8 +161,8 @@ const GIF = {
   validate: (input) => gifRegexp.test(toUTF8String(input, 0, 6)),
   calculate: (input) => ({
     height: readUInt16LE(input, 8),
-    width: readUInt16LE(input, 6)
-  })
+    width: readUInt16LE(input, 6),
+  }),
 };
 
 const brandMap = {
@@ -134,7 +174,7 @@ const brandMap = {
   heix: "heic",
   hevc: "heic",
   // heic-sequence
-  hevx: "heic"
+  hevx: "heic",
   // heic-sequence
 };
 function detectBrands(buffer, start, end) {
@@ -147,7 +187,12 @@ function detectBrands(buffer, start, end) {
   }
   if ("avif" in brandsDetected) {
     return "avif";
-  } else if ("heic" in brandsDetected || "heix" in brandsDetected || "hevc" in brandsDetected || "hevx" in brandsDetected) {
+  } else if (
+    "heic" in brandsDetected ||
+    "heix" in brandsDetected ||
+    "hevc" in brandsDetected ||
+    "hevx" in brandsDetected
+  ) {
     return "heic";
   } else if ("mif1" in brandsDetected || "msf1" in brandsDetected) {
     return "heif";
@@ -168,11 +213,11 @@ const HEIF = {
       return {
         height: readUInt32BE(buffer, ispeBox.offset + 16),
         width: readUInt32BE(buffer, ispeBox.offset + 12),
-        type: detectBrands(buffer, 8, metaBox.offset)
+        type: detectBrands(buffer, 8, metaBox.offset),
       };
     }
     throw new TypeError("Invalid HEIF, no size found");
-  }
+  },
 };
 
 const SIZE_HEADER = 4 + 4;
@@ -218,13 +263,13 @@ const ICON_TYPE_SIZE = {
   ic09: 512,
   ic14: 512,
   // . => 1024 x 1024
-  ic10: 1024
+  ic10: 1024,
 };
 function readImageHeader(input, imageOffset) {
   const imageLengthOffset = imageOffset + ENTRY_LENGTH_OFFSET;
   return [
     toUTF8String(input, imageOffset, imageLengthOffset),
-    readUInt32BE(input, imageLengthOffset)
+    readUInt32BE(input, imageLengthOffset),
   ];
 }
 function getImageSize(type) {
@@ -244,7 +289,7 @@ const ICNS = {
     const result = {
       height: imageSize.height,
       images: [imageSize],
-      width: imageSize.width
+      width: imageSize.width,
     };
     while (imageOffset < fileLength && imageOffset < inputLength) {
       imageHeader = readImageHeader(input, imageOffset);
@@ -253,7 +298,7 @@ const ICNS = {
       result.images.push(imageSize);
     }
     return result;
-  }
+  },
 };
 
 const J2C = {
@@ -261,13 +306,14 @@ const J2C = {
   validate: (input) => toHexString(input, 0, 4) === "ff4fff51",
   calculate: (input) => ({
     height: readUInt32BE(input, 12),
-    width: readUInt32BE(input, 8)
-  })
+    width: readUInt32BE(input, 8),
+  }),
 };
 
 const JP2 = {
   validate(input) {
-    if (readUInt32BE(input, 4) !== 1783636e3 || readUInt32BE(input, 0) < 1) return false;
+    if (readUInt32BE(input, 4) !== 1783636e3 || readUInt32BE(input, 0) < 1)
+      return false;
     const ftypBox = findBox(input, "ftyp", 0);
     if (!ftypBox) return false;
     return readUInt32BE(input, ftypBox.offset + 4) === 1718909296;
@@ -278,11 +324,11 @@ const JP2 = {
     if (ihdrBox) {
       return {
         height: readUInt32BE(input, ihdrBox.offset + 8),
-        width: readUInt32BE(input, ihdrBox.offset + 12)
+        width: readUInt32BE(input, ihdrBox.offset + 12),
       };
     }
     throw new TypeError("Unsupported JPEG 2000 format");
-  }
+  },
 };
 
 const EXIF_MARKER = "45786966";
@@ -299,15 +345,22 @@ function isEXIF(input) {
 function extractSize(input, index) {
   return {
     height: readUInt16BE(input, index),
-    width: readUInt16BE(input, index + 2)
+    width: readUInt16BE(input, index + 2),
   };
 }
 function extractOrientation(exifBlock, isBigEndian) {
   const idfOffset = 8;
   const offset = EXIF_HEADER_BYTES + idfOffset;
   const idfDirectoryEntries = readUInt(exifBlock, 16, offset, isBigEndian);
-  for (let directoryEntryNumber = 0; directoryEntryNumber < idfDirectoryEntries; directoryEntryNumber++) {
-    const start = offset + NUM_DIRECTORY_ENTRIES_BYTES + directoryEntryNumber * IDF_ENTRY_BYTES;
+  for (
+    let directoryEntryNumber = 0;
+    directoryEntryNumber < idfDirectoryEntries;
+    directoryEntryNumber++
+  ) {
+    const start =
+      offset +
+      NUM_DIRECTORY_ENTRIES_BYTES +
+      directoryEntryNumber * IDF_ENTRY_BYTES;
     const end = start + IDF_ENTRY_BYTES;
     if (start > exifBlock.length) {
       return;
@@ -332,7 +385,7 @@ function validateExifBlock(input, index) {
   const byteAlign = toHexString(
     exifBlock,
     EXIF_HEADER_BYTES,
-    EXIF_HEADER_BYTES + TIFF_BYTE_ALIGN_BYTES
+    EXIF_HEADER_BYTES + TIFF_BYTE_ALIGN_BYTES,
   );
   const isBigEndian = byteAlign === BIG_ENDIAN_BYTE_ALIGN;
   const isLittleEndian = byteAlign === LITTLE_ENDIAN_BYTE_ALIGN;
@@ -370,13 +423,13 @@ const JPG = {
         return {
           height: size.height,
           orientation,
-          width: size.width
+          width: size.width,
         };
       }
       input = input.slice(i + 2);
     }
     throw new TypeError("Invalid JPG, no size found");
-  }
+  },
 };
 
 const KTX = {
@@ -390,9 +443,9 @@ const KTX = {
     return {
       height: readUInt32LE(input, offset + 4),
       width: readUInt32LE(input, offset),
-      type
+      type,
     };
-  }
+  },
 };
 
 const pngSignature = "PNG\r\n\n";
@@ -416,14 +469,14 @@ const PNG = {
     if (toUTF8String(input, 12, 16) === pngFriedChunkName) {
       return {
         height: readUInt32BE(input, 36),
-        width: readUInt32BE(input, 32)
+        width: readUInt32BE(input, 32),
       };
     }
     return {
       height: readUInt32BE(input, 20),
-      width: readUInt32BE(input, 16)
+      width: readUInt32BE(input, 16),
     };
-  }
+  },
 };
 
 const PNMTypes = {
@@ -434,7 +487,7 @@ const PNMTypes = {
   P5: "pgm",
   P6: "ppm",
   P7: "pam",
-  PF: "pfm"
+  PF: "pfm",
 };
 const handlers = {
   default: (lines) => {
@@ -450,7 +503,7 @@ const handlers = {
     if (dimensions.length === 2) {
       return {
         height: parseInt(dimensions[1], 10),
-        width: parseInt(dimensions[0], 10)
+        width: parseInt(dimensions[0], 10),
       };
     } else {
       throw new TypeError("Invalid PNM");
@@ -474,12 +527,12 @@ const handlers = {
     if (size.height && size.width) {
       return {
         height: size.height,
-        width: size.width
+        width: size.width,
       };
     } else {
       throw new TypeError("Invalid PAM");
     }
-  }
+  },
 };
 const PNM = {
   validate: (input) => toUTF8String(input, 0, 2) in PNMTypes,
@@ -489,15 +542,15 @@ const PNM = {
     const lines = toUTF8String(input, 3).split(/[\r\n]+/);
     const handler = handlers[type] || handlers.default;
     return handler(lines);
-  }
+  },
 };
 
 const PSD = {
   validate: (input) => toUTF8String(input, 0, 4) === "8BPS",
   calculate: (input) => ({
     height: readUInt32BE(input, 14),
-    width: readUInt32BE(input, 18)
-  })
+    width: readUInt32BE(input, 18),
+  }),
 };
 
 const svgReg = /<svg\s([^>"']|"[^"]*"|'[^']*')*>/;
@@ -505,7 +558,7 @@ const extractorRegExps = {
   height: /\sheight=(['"])([^%]+?)\1/,
   root: svgReg,
   viewbox: /\sviewBox=(['"])(.+?)\1/i,
-  width: /\swidth=(['"])([^%]+?)\1/
+  width: /\swidth=(['"])([^%]+?)\1/,
 };
 const INCH_CM = 2.54;
 const units = {
@@ -513,14 +566,14 @@ const units = {
   cm: 96 / INCH_CM,
   em: 16,
   ex: 8,
-  m: 96 / INCH_CM * 100,
+  m: (96 / INCH_CM) * 100,
   mm: 96 / INCH_CM / 10,
   pc: 96 / 72 / 12,
   pt: 96 / 72,
-  px: 1
+  px: 1,
 };
 const unitsReg = new RegExp(
-  `^([0-9.]+(?:e\\d+)?)(${Object.keys(units).join("|")})?$`
+  `^([0-9.]+(?:e\\d+)?)(${Object.keys(units).join("|")})?$`,
 );
 function parseLength(len) {
   const m = unitsReg.exec(len);
@@ -533,7 +586,7 @@ function parseViewbox(viewbox) {
   const bounds = viewbox.split(" ");
   return {
     height: parseLength(bounds[3]),
-    width: parseLength(bounds[2])
+    width: parseLength(bounds[2]),
   };
 }
 function parseAttributes(root) {
@@ -543,13 +596,13 @@ function parseAttributes(root) {
   return {
     height: height && parseLength(height[2]),
     viewbox: viewbox && parseViewbox(viewbox[2]),
-    width: width && parseLength(width[2])
+    width: width && parseLength(width[2]),
   };
 }
 function calculateByDimensions(attrs) {
   return {
     height: attrs.height,
-    width: attrs.width
+    width: attrs.width,
   };
 }
 function calculateByViewbox(attrs, viewbox) {
@@ -557,18 +610,18 @@ function calculateByViewbox(attrs, viewbox) {
   if (attrs.width) {
     return {
       height: Math.floor(attrs.width / ratio),
-      width: attrs.width
+      width: attrs.width,
     };
   }
   if (attrs.height) {
     return {
       height: attrs.height,
-      width: Math.floor(attrs.height * ratio)
+      width: Math.floor(attrs.height * ratio),
     };
   }
   return {
     height: viewbox.height,
-    width: viewbox.width
+    width: viewbox.width,
   };
 }
 const SVG = {
@@ -586,7 +639,7 @@ const SVG = {
       }
     }
     throw new TypeError("Invalid SVG");
-  }
+  },
 };
 
 const TGA = {
@@ -596,9 +649,9 @@ const TGA = {
   calculate(input) {
     return {
       height: readUInt16LE(input, 14),
-      width: readUInt16LE(input, 12)
+      width: readUInt16LE(input, 12),
     };
-  }
+  },
 };
 
 function readIFD(input, isBigEndian) {
@@ -645,7 +698,7 @@ const signatures = [
   // '492049', // currently not supported
   "49492a00",
   // Little endian
-  "4d4d002a"
+  "4d4d002a",
   // Big Endian
   // '4d4d002a', // BigTIFF > 4GB. currently not supported
 ];
@@ -661,25 +714,26 @@ const TIFF = {
       throw new TypeError("Invalid Tiff. Missing tags");
     }
     return { height, width };
-  }
+  },
 };
 
 function calculateExtended(input) {
   return {
     height: 1 + readUInt24LE(input, 7),
-    width: 1 + readUInt24LE(input, 4)
+    width: 1 + readUInt24LE(input, 4),
   };
 }
 function calculateLossless(input) {
   return {
-    height: 1 + ((input[4] & 15) << 10 | input[3] << 2 | (input[2] & 192) >> 6),
-    width: 1 + ((input[2] & 63) << 8 | input[1])
+    height:
+      1 + (((input[4] & 15) << 10) | (input[3] << 2) | ((input[2] & 192) >> 6)),
+    width: 1 + (((input[2] & 63) << 8) | input[1]),
   };
 }
 function calculateLossy(input) {
   return {
     height: readInt16LE(input, 8) & 16383,
-    width: readInt16LE(input, 6) & 16383
+    width: readInt16LE(input, 6) & 16383,
   };
 }
 const WEBP = {
@@ -710,7 +764,7 @@ const WEBP = {
       return calculateLossless(input);
     }
     throw new TypeError("Invalid WebP");
-  }
+  },
 };
 
 const typeHandlers = /* @__PURE__ */ new Map([
@@ -731,7 +785,7 @@ const typeHandlers = /* @__PURE__ */ new Map([
   ["svg", SVG],
   ["tga", TGA],
   ["tiff", TIFF],
-  ["webp", WEBP]
+  ["webp", WEBP],
 ]);
 const types = Array.from(typeHandlers.keys());
 
@@ -745,7 +799,7 @@ const firstBytes = /* @__PURE__ */ new Map([
   [82, "webp"],
   [105, "icns"],
   [137, "png"],
-  [255, "jpg"]
+  [255, "jpg"],
 ]);
 function detector(input) {
   const byte = input[0];
@@ -757,7 +811,7 @@ function detector(input) {
 }
 
 const globalOptions = {
-  disabledTypes: []
+  disabledTypes: [],
 };
 function lookup$1(input) {
   const type = detector(input);
@@ -780,7 +834,7 @@ async function imageMetadata(data, src) {
     if (!result.height || !result.width || !result.type) {
       throw new AstroError({
         ...NoImageMetadata,
-        message: NoImageMetadata.message(src)
+        message: NoImageMetadata.message(src),
       });
     }
     const { width, height, type, orientation } = result;
@@ -789,12 +843,12 @@ async function imageMetadata(data, src) {
       width: isPortrait ? height : width,
       height: isPortrait ? width : height,
       format: type,
-      orientation
+      orientation,
     };
   } catch {
     throw new AstroError({
       ...NoImageMetadata,
-      message: NoImageMetadata.message(src)
+      message: NoImageMetadata.message(src),
     });
   }
 }
@@ -804,7 +858,7 @@ async function inferRemoteSize(url) {
   if (!response.body || !response.ok) {
     throw new AstroError({
       ...FailedToFetchRemoteImageDimensions,
-      message: FailedToFetchRemoteImageDimensions.message(url)
+      message: FailedToFetchRemoteImageDimensions.message(url),
     });
   }
   const reader = response.body.getReader();
@@ -826,13 +880,12 @@ async function inferRemoteSize(url) {
           await reader.cancel();
           return dimensions;
         }
-      } catch {
-      }
+      } catch {}
     }
   }
   throw new AstroError({
     ...NoImageMetadata,
-    message: NoImageMetadata.message(url)
+    message: NoImageMetadata.message(url),
   });
 }
 
@@ -840,12 +893,14 @@ async function getConfiguredImageService() {
   if (!globalThis?.astroAsset?.imageService) {
     const { default: service } = await import(
       // @ts-expect-error
-      './astro/assets-service_64qOpLeW.mjs'
-    ).then(n => n.a1).catch((e) => {
-      const error = new AstroError(InvalidImageService);
-      error.cause = e;
-      throw error;
-    });
+      "./astro/assets-service_64qOpLeW.mjs"
+    )
+      .then((n) => n.a1)
+      .catch((e) => {
+        const error = new AstroError(InvalidImageService);
+        error.cause = e;
+        throw error;
+      });
     if (!globalThis.astroAsset) globalThis.astroAsset = {};
     globalThis.astroAsset.imageService = service;
     return service;
@@ -856,7 +911,7 @@ async function getImage$1(options, imageConfig) {
   if (!options || typeof options !== "object") {
     throw new AstroError({
       ...ExpectedImageOptions,
-      message: ExpectedImageOptions.message(JSON.stringify(options))
+      message: ExpectedImageOptions.message(JSON.stringify(options)),
     });
   }
   if (typeof options.src === "undefined") {
@@ -865,8 +920,8 @@ async function getImage$1(options, imageConfig) {
       message: ExpectedImage.message(
         options.src,
         "undefined",
-        JSON.stringify(options)
-      )
+        JSON.stringify(options),
+      ),
     });
   }
   if (isImageMetadata(options)) {
@@ -875,7 +930,7 @@ async function getImage$1(options, imageConfig) {
   const service = await getConfiguredImageService();
   const resolvedOptions = {
     ...options,
-    src: await resolveSrc(options.src)
+    src: await resolveSrc(options.src),
   };
   if (options.inferSize && isRemoteImage(resolvedOptions.src)) {
     const result = await inferRemoteSize(resolvedOptions.src);
@@ -883,35 +938,49 @@ async function getImage$1(options, imageConfig) {
     resolvedOptions.height ??= result.height;
     delete resolvedOptions.inferSize;
   }
-  const originalFilePath = isESMImportedImage(resolvedOptions.src) ? resolvedOptions.src.fsPath : void 0;
-  const clonedSrc = isESMImportedImage(resolvedOptions.src) ? (
-    // @ts-expect-error - clone is a private, hidden prop
-    resolvedOptions.src.clone ?? resolvedOptions.src
-  ) : resolvedOptions.src;
+  const originalFilePath = isESMImportedImage(resolvedOptions.src)
+    ? resolvedOptions.src.fsPath
+    : void 0;
+  const clonedSrc = isESMImportedImage(resolvedOptions.src)
+    ? // @ts-expect-error - clone is a private, hidden prop
+      (resolvedOptions.src.clone ?? resolvedOptions.src)
+    : resolvedOptions.src;
   resolvedOptions.src = clonedSrc;
-  const validatedOptions = service.validateOptions ? await service.validateOptions(resolvedOptions, imageConfig) : resolvedOptions;
-  const srcSetTransforms = service.getSrcSet ? await service.getSrcSet(validatedOptions, imageConfig) : [];
+  const validatedOptions = service.validateOptions
+    ? await service.validateOptions(resolvedOptions, imageConfig)
+    : resolvedOptions;
+  const srcSetTransforms = service.getSrcSet
+    ? await service.getSrcSet(validatedOptions, imageConfig)
+    : [];
   let imageURL = await service.getURL(validatedOptions, imageConfig);
   let srcSets = await Promise.all(
     srcSetTransforms.map(async (srcSet) => ({
       transform: srcSet.transform,
       url: await service.getURL(srcSet.transform, imageConfig),
       descriptor: srcSet.descriptor,
-      attributes: srcSet.attributes
-    }))
+      attributes: srcSet.attributes,
+    })),
   );
-  if (isLocalService(service) && globalThis.astroAsset.addStaticImage && !(isRemoteImage(validatedOptions.src) && imageURL === validatedOptions.src)) {
+  if (
+    isLocalService(service) &&
+    globalThis.astroAsset.addStaticImage &&
+    !(isRemoteImage(validatedOptions.src) && imageURL === validatedOptions.src)
+  ) {
     const propsToHash = service.propertiesToHash ?? DEFAULT_HASH_PROPS;
     imageURL = globalThis.astroAsset.addStaticImage(
       validatedOptions,
       propsToHash,
-      originalFilePath
+      originalFilePath,
     );
     srcSets = srcSetTransforms.map((srcSet) => ({
       transform: srcSet.transform,
-      url: globalThis.astroAsset.addStaticImage(srcSet.transform, propsToHash, originalFilePath),
+      url: globalThis.astroAsset.addStaticImage(
+        srcSet.transform,
+        propsToHash,
+        originalFilePath,
+      ),
       descriptor: srcSet.descriptor,
-      attributes: srcSet.attributes
+      attributes: srcSet.attributes,
     }));
   }
   return {
@@ -920,538 +989,575 @@ async function getImage$1(options, imageConfig) {
     src: imageURL,
     srcSet: {
       values: srcSets,
-      attribute: srcSets.map((srcSet) => `${srcSet.url} ${srcSet.descriptor}`).join(", ")
+      attribute: srcSets
+        .map((srcSet) => `${srcSet.url} ${srcSet.descriptor}`)
+        .join(", "),
     },
-    attributes: service.getHTMLAttributes !== void 0 ? await service.getHTMLAttributes(validatedOptions, imageConfig) : {}
+    attributes:
+      service.getHTMLAttributes !== void 0
+        ? await service.getHTMLAttributes(validatedOptions, imageConfig)
+        : {},
   };
 }
 
 const $$Astro$1 = createAstro();
-const $$Image = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$1, $$props, $$slots);
-  Astro2.self = $$Image;
-  const props = Astro2.props;
-  if (props.alt === void 0 || props.alt === null) {
-    throw new AstroError(ImageMissingAlt);
-  }
-  if (typeof props.width === "string") {
-    props.width = parseInt(props.width);
-  }
-  if (typeof props.height === "string") {
-    props.height = parseInt(props.height);
-  }
-  const image = await getImage(props);
-  const additionalAttributes = {};
-  if (image.srcSet.values.length > 0) {
-    additionalAttributes.srcset = image.srcSet.attribute;
-  }
-  return renderTemplate`${maybeRenderHead()}<img${addAttribute(image.src, "src")}${spreadAttributes(additionalAttributes)}${spreadAttributes(image.attributes)}>`;
-}, "/home/takeda/develop/website/node_modules/.pnpm/astro@4.14.5_@types+node@18.19.45_rollup@4.21.0_typescript@5.5.4/node_modules/astro/components/Image.astro", void 0);
+const $$Image = createComponent(
+  async ($$result, $$props, $$slots) => {
+    const Astro2 = $$result.createAstro($$Astro$1, $$props, $$slots);
+    Astro2.self = $$Image;
+    const props = Astro2.props;
+    if (props.alt === void 0 || props.alt === null) {
+      throw new AstroError(ImageMissingAlt);
+    }
+    if (typeof props.width === "string") {
+      props.width = parseInt(props.width);
+    }
+    if (typeof props.height === "string") {
+      props.height = parseInt(props.height);
+    }
+    const image = await getImage(props);
+    const additionalAttributes = {};
+    if (image.srcSet.values.length > 0) {
+      additionalAttributes.srcset = image.srcSet.attribute;
+    }
+    return renderTemplate`${maybeRenderHead()}<img${addAttribute(image.src, "src")}${spreadAttributes(additionalAttributes)}${spreadAttributes(image.attributes)}>`;
+  },
+  "/home/takeda/develop/website/node_modules/.pnpm/astro@4.14.5_@types+node@18.19.45_rollup@4.21.0_typescript@5.5.4/node_modules/astro/components/Image.astro",
+  void 0,
+);
 
 const mimes = {
   "3g2": "video/3gpp2",
   "3gp": "video/3gpp",
   "3gpp": "video/3gpp",
   "3mf": "model/3mf",
-  "aac": "audio/aac",
-  "ac": "application/pkix-attr-cert",
-  "adp": "audio/adpcm",
-  "adts": "audio/aac",
-  "ai": "application/postscript",
-  "aml": "application/automationml-aml+xml",
-  "amlx": "application/automationml-amlx+zip",
-  "amr": "audio/amr",
-  "apng": "image/apng",
-  "appcache": "text/cache-manifest",
-  "appinstaller": "application/appinstaller",
-  "appx": "application/appx",
-  "appxbundle": "application/appxbundle",
-  "asc": "application/pgp-keys",
-  "atom": "application/atom+xml",
-  "atomcat": "application/atomcat+xml",
-  "atomdeleted": "application/atomdeleted+xml",
-  "atomsvc": "application/atomsvc+xml",
-  "au": "audio/basic",
-  "avci": "image/avci",
-  "avcs": "image/avcs",
-  "avif": "image/avif",
-  "aw": "application/applixware",
-  "bdoc": "application/bdoc",
-  "bin": "application/octet-stream",
-  "bmp": "image/bmp",
-  "bpk": "application/octet-stream",
-  "btf": "image/prs.btif",
-  "btif": "image/prs.btif",
-  "buffer": "application/octet-stream",
-  "ccxml": "application/ccxml+xml",
-  "cdfx": "application/cdfx+xml",
-  "cdmia": "application/cdmi-capability",
-  "cdmic": "application/cdmi-container",
-  "cdmid": "application/cdmi-domain",
-  "cdmio": "application/cdmi-object",
-  "cdmiq": "application/cdmi-queue",
-  "cer": "application/pkix-cert",
-  "cgm": "image/cgm",
-  "cjs": "application/node",
-  "class": "application/java-vm",
-  "coffee": "text/coffeescript",
-  "conf": "text/plain",
-  "cpl": "application/cpl+xml",
-  "cpt": "application/mac-compactpro",
-  "crl": "application/pkix-crl",
-  "css": "text/css",
-  "csv": "text/csv",
-  "cu": "application/cu-seeme",
-  "cwl": "application/cwl",
-  "cww": "application/prs.cww",
-  "davmount": "application/davmount+xml",
-  "dbk": "application/docbook+xml",
-  "deb": "application/octet-stream",
-  "def": "text/plain",
-  "deploy": "application/octet-stream",
-  "dib": "image/bmp",
+  aac: "audio/aac",
+  ac: "application/pkix-attr-cert",
+  adp: "audio/adpcm",
+  adts: "audio/aac",
+  ai: "application/postscript",
+  aml: "application/automationml-aml+xml",
+  amlx: "application/automationml-amlx+zip",
+  amr: "audio/amr",
+  apng: "image/apng",
+  appcache: "text/cache-manifest",
+  appinstaller: "application/appinstaller",
+  appx: "application/appx",
+  appxbundle: "application/appxbundle",
+  asc: "application/pgp-keys",
+  atom: "application/atom+xml",
+  atomcat: "application/atomcat+xml",
+  atomdeleted: "application/atomdeleted+xml",
+  atomsvc: "application/atomsvc+xml",
+  au: "audio/basic",
+  avci: "image/avci",
+  avcs: "image/avcs",
+  avif: "image/avif",
+  aw: "application/applixware",
+  bdoc: "application/bdoc",
+  bin: "application/octet-stream",
+  bmp: "image/bmp",
+  bpk: "application/octet-stream",
+  btf: "image/prs.btif",
+  btif: "image/prs.btif",
+  buffer: "application/octet-stream",
+  ccxml: "application/ccxml+xml",
+  cdfx: "application/cdfx+xml",
+  cdmia: "application/cdmi-capability",
+  cdmic: "application/cdmi-container",
+  cdmid: "application/cdmi-domain",
+  cdmio: "application/cdmi-object",
+  cdmiq: "application/cdmi-queue",
+  cer: "application/pkix-cert",
+  cgm: "image/cgm",
+  cjs: "application/node",
+  class: "application/java-vm",
+  coffee: "text/coffeescript",
+  conf: "text/plain",
+  cpl: "application/cpl+xml",
+  cpt: "application/mac-compactpro",
+  crl: "application/pkix-crl",
+  css: "text/css",
+  csv: "text/csv",
+  cu: "application/cu-seeme",
+  cwl: "application/cwl",
+  cww: "application/prs.cww",
+  davmount: "application/davmount+xml",
+  dbk: "application/docbook+xml",
+  deb: "application/octet-stream",
+  def: "text/plain",
+  deploy: "application/octet-stream",
+  dib: "image/bmp",
   "disposition-notification": "message/disposition-notification",
-  "dist": "application/octet-stream",
-  "distz": "application/octet-stream",
-  "dll": "application/octet-stream",
-  "dmg": "application/octet-stream",
-  "dms": "application/octet-stream",
-  "doc": "application/msword",
-  "dot": "application/msword",
-  "dpx": "image/dpx",
-  "drle": "image/dicom-rle",
-  "dsc": "text/prs.lines.tag",
-  "dssc": "application/dssc+der",
-  "dtd": "application/xml-dtd",
-  "dump": "application/octet-stream",
-  "dwd": "application/atsc-dwd+xml",
-  "ear": "application/java-archive",
-  "ecma": "application/ecmascript",
-  "elc": "application/octet-stream",
-  "emf": "image/emf",
-  "eml": "message/rfc822",
-  "emma": "application/emma+xml",
-  "emotionml": "application/emotionml+xml",
-  "eps": "application/postscript",
-  "epub": "application/epub+zip",
-  "exe": "application/octet-stream",
-  "exi": "application/exi",
-  "exp": "application/express",
-  "exr": "image/aces",
-  "ez": "application/andrew-inset",
-  "fdf": "application/fdf",
-  "fdt": "application/fdt+xml",
-  "fits": "image/fits",
-  "g3": "image/g3fax",
-  "gbr": "application/rpki-ghostbusters",
-  "geojson": "application/geo+json",
-  "gif": "image/gif",
-  "glb": "model/gltf-binary",
-  "gltf": "model/gltf+json",
-  "gml": "application/gml+xml",
-  "gpx": "application/gpx+xml",
-  "gram": "application/srgs",
-  "grxml": "application/srgs+xml",
-  "gxf": "application/gxf",
-  "gz": "application/gzip",
-  "h261": "video/h261",
-  "h263": "video/h263",
-  "h264": "video/h264",
-  "heic": "image/heic",
-  "heics": "image/heic-sequence",
-  "heif": "image/heif",
-  "heifs": "image/heif-sequence",
-  "hej2": "image/hej2k",
-  "held": "application/atsc-held+xml",
-  "hjson": "application/hjson",
-  "hlp": "application/winhlp",
-  "hqx": "application/mac-binhex40",
-  "hsj2": "image/hsj2",
-  "htm": "text/html",
-  "html": "text/html",
-  "ics": "text/calendar",
-  "ief": "image/ief",
-  "ifb": "text/calendar",
-  "iges": "model/iges",
-  "igs": "model/iges",
-  "img": "application/octet-stream",
-  "in": "text/plain",
-  "ini": "text/plain",
-  "ink": "application/inkml+xml",
-  "inkml": "application/inkml+xml",
-  "ipfix": "application/ipfix",
-  "iso": "application/octet-stream",
-  "its": "application/its+xml",
-  "jade": "text/jade",
-  "jar": "application/java-archive",
-  "jhc": "image/jphc",
-  "jls": "image/jls",
-  "jp2": "image/jp2",
-  "jpe": "image/jpeg",
-  "jpeg": "image/jpeg",
-  "jpf": "image/jpx",
-  "jpg": "image/jpeg",
-  "jpg2": "image/jp2",
-  "jpgm": "image/jpm",
-  "jpgv": "video/jpeg",
-  "jph": "image/jph",
-  "jpm": "image/jpm",
-  "jpx": "image/jpx",
-  "js": "text/javascript",
-  "json": "application/json",
-  "json5": "application/json5",
-  "jsonld": "application/ld+json",
-  "jsonml": "application/jsonml+json",
-  "jsx": "text/jsx",
-  "jt": "model/jt",
-  "jxr": "image/jxr",
-  "jxra": "image/jxra",
-  "jxrs": "image/jxrs",
-  "jxs": "image/jxs",
-  "jxsc": "image/jxsc",
-  "jxsi": "image/jxsi",
-  "jxss": "image/jxss",
-  "kar": "audio/midi",
-  "ktx": "image/ktx",
-  "ktx2": "image/ktx2",
-  "less": "text/less",
-  "lgr": "application/lgr+xml",
-  "list": "text/plain",
-  "litcoffee": "text/coffeescript",
-  "log": "text/plain",
-  "lostxml": "application/lost+xml",
-  "lrf": "application/octet-stream",
-  "m1v": "video/mpeg",
-  "m21": "application/mp21",
-  "m2a": "audio/mpeg",
-  "m2v": "video/mpeg",
-  "m3a": "audio/mpeg",
-  "m4a": "audio/mp4",
-  "m4p": "application/mp4",
-  "m4s": "video/iso.segment",
-  "ma": "application/mathematica",
-  "mads": "application/mads+xml",
-  "maei": "application/mmt-aei+xml",
-  "man": "text/troff",
-  "manifest": "text/cache-manifest",
-  "map": "application/json",
-  "mar": "application/octet-stream",
-  "markdown": "text/markdown",
-  "mathml": "application/mathml+xml",
-  "mb": "application/mathematica",
-  "mbox": "application/mbox",
-  "md": "text/markdown",
-  "mdx": "text/mdx",
-  "me": "text/troff",
-  "mesh": "model/mesh",
-  "meta4": "application/metalink4+xml",
-  "metalink": "application/metalink+xml",
-  "mets": "application/mets+xml",
-  "mft": "application/rpki-manifest",
-  "mid": "audio/midi",
-  "midi": "audio/midi",
-  "mime": "message/rfc822",
-  "mj2": "video/mj2",
-  "mjp2": "video/mj2",
-  "mjs": "text/javascript",
-  "mml": "text/mathml",
-  "mods": "application/mods+xml",
-  "mov": "video/quicktime",
-  "mp2": "audio/mpeg",
-  "mp21": "application/mp21",
-  "mp2a": "audio/mpeg",
-  "mp3": "audio/mpeg",
-  "mp4": "video/mp4",
-  "mp4a": "audio/mp4",
-  "mp4s": "application/mp4",
-  "mp4v": "video/mp4",
-  "mpd": "application/dash+xml",
-  "mpe": "video/mpeg",
-  "mpeg": "video/mpeg",
-  "mpf": "application/media-policy-dataset+xml",
-  "mpg": "video/mpeg",
-  "mpg4": "video/mp4",
-  "mpga": "audio/mpeg",
-  "mpp": "application/dash-patch+xml",
-  "mrc": "application/marc",
-  "mrcx": "application/marcxml+xml",
-  "ms": "text/troff",
-  "mscml": "application/mediaservercontrol+xml",
-  "msh": "model/mesh",
-  "msi": "application/octet-stream",
-  "msix": "application/msix",
-  "msixbundle": "application/msixbundle",
-  "msm": "application/octet-stream",
-  "msp": "application/octet-stream",
-  "mtl": "model/mtl",
-  "musd": "application/mmt-usd+xml",
-  "mxf": "application/mxf",
-  "mxmf": "audio/mobile-xmf",
-  "mxml": "application/xv+xml",
-  "n3": "text/n3",
-  "nb": "application/mathematica",
-  "nq": "application/n-quads",
-  "nt": "application/n-triples",
-  "obj": "model/obj",
-  "oda": "application/oda",
-  "oga": "audio/ogg",
-  "ogg": "audio/ogg",
-  "ogv": "video/ogg",
-  "ogx": "application/ogg",
-  "omdoc": "application/omdoc+xml",
-  "onepkg": "application/onenote",
-  "onetmp": "application/onenote",
-  "onetoc": "application/onenote",
-  "onetoc2": "application/onenote",
-  "opf": "application/oebps-package+xml",
-  "opus": "audio/ogg",
-  "otf": "font/otf",
-  "owl": "application/rdf+xml",
-  "oxps": "application/oxps",
-  "p10": "application/pkcs10",
-  "p7c": "application/pkcs7-mime",
-  "p7m": "application/pkcs7-mime",
-  "p7s": "application/pkcs7-signature",
-  "p8": "application/pkcs8",
-  "pdf": "application/pdf",
-  "pfr": "application/font-tdpfr",
-  "pgp": "application/pgp-encrypted",
-  "pkg": "application/octet-stream",
-  "pki": "application/pkixcmp",
-  "pkipath": "application/pkix-pkipath",
-  "pls": "application/pls+xml",
-  "png": "image/png",
-  "prc": "model/prc",
-  "prf": "application/pics-rules",
-  "provx": "application/provenance+xml",
-  "ps": "application/postscript",
-  "pskcxml": "application/pskc+xml",
-  "pti": "image/prs.pti",
-  "qt": "video/quicktime",
-  "raml": "application/raml+yaml",
-  "rapd": "application/route-apd+xml",
-  "rdf": "application/rdf+xml",
-  "relo": "application/p2p-overlay+xml",
-  "rif": "application/reginfo+xml",
-  "rl": "application/resource-lists+xml",
-  "rld": "application/resource-lists-diff+xml",
-  "rmi": "audio/midi",
-  "rnc": "application/relax-ng-compact-syntax",
-  "rng": "application/xml",
-  "roa": "application/rpki-roa",
-  "roff": "text/troff",
-  "rq": "application/sparql-query",
-  "rs": "application/rls-services+xml",
-  "rsat": "application/atsc-rsat+xml",
-  "rsd": "application/rsd+xml",
-  "rsheet": "application/urc-ressheet+xml",
-  "rss": "application/rss+xml",
-  "rtf": "text/rtf",
-  "rtx": "text/richtext",
-  "rusd": "application/route-usd+xml",
-  "s3m": "audio/s3m",
-  "sbml": "application/sbml+xml",
-  "scq": "application/scvp-cv-request",
-  "scs": "application/scvp-cv-response",
-  "sdp": "application/sdp",
-  "senmlx": "application/senml+xml",
-  "sensmlx": "application/sensml+xml",
-  "ser": "application/java-serialized-object",
-  "setpay": "application/set-payment-initiation",
-  "setreg": "application/set-registration-initiation",
-  "sgi": "image/sgi",
-  "sgm": "text/sgml",
-  "sgml": "text/sgml",
-  "shex": "text/shex",
-  "shf": "application/shf+xml",
-  "shtml": "text/html",
-  "sieve": "application/sieve",
-  "sig": "application/pgp-signature",
-  "sil": "audio/silk",
-  "silo": "model/mesh",
-  "siv": "application/sieve",
-  "slim": "text/slim",
-  "slm": "text/slim",
-  "sls": "application/route-s-tsid+xml",
-  "smi": "application/smil+xml",
-  "smil": "application/smil+xml",
-  "snd": "audio/basic",
-  "so": "application/octet-stream",
-  "spdx": "text/spdx",
-  "spp": "application/scvp-vp-response",
-  "spq": "application/scvp-vp-request",
-  "spx": "audio/ogg",
-  "sql": "application/sql",
-  "sru": "application/sru+xml",
-  "srx": "application/sparql-results+xml",
-  "ssdl": "application/ssdl+xml",
-  "ssml": "application/ssml+xml",
-  "stk": "application/hyperstudio",
-  "stl": "model/stl",
-  "stpx": "model/step+xml",
-  "stpxz": "model/step-xml+zip",
-  "stpz": "model/step+zip",
-  "styl": "text/stylus",
-  "stylus": "text/stylus",
-  "svg": "image/svg+xml",
-  "svgz": "image/svg+xml",
-  "swidtag": "application/swid+xml",
-  "t": "text/troff",
-  "t38": "image/t38",
-  "td": "application/urc-targetdesc+xml",
-  "tei": "application/tei+xml",
-  "teicorpus": "application/tei+xml",
-  "text": "text/plain",
-  "tfi": "application/thraud+xml",
-  "tfx": "image/tiff-fx",
-  "tif": "image/tiff",
-  "tiff": "image/tiff",
-  "toml": "application/toml",
-  "tr": "text/troff",
-  "trig": "application/trig",
-  "ts": "video/mp2t",
-  "tsd": "application/timestamped-data",
-  "tsv": "text/tab-separated-values",
-  "ttc": "font/collection",
-  "ttf": "font/ttf",
-  "ttl": "text/turtle",
-  "ttml": "application/ttml+xml",
-  "txt": "text/plain",
-  "u3d": "model/u3d",
-  "u8dsn": "message/global-delivery-status",
-  "u8hdr": "message/global-headers",
-  "u8mdn": "message/global-disposition-notification",
-  "u8msg": "message/global",
-  "ubj": "application/ubjson",
-  "uri": "text/uri-list",
-  "uris": "text/uri-list",
-  "urls": "text/uri-list",
-  "vcard": "text/vcard",
-  "vrml": "model/vrml",
-  "vtt": "text/vtt",
-  "vxml": "application/voicexml+xml",
-  "war": "application/java-archive",
-  "wasm": "application/wasm",
-  "wav": "audio/wav",
-  "weba": "audio/webm",
-  "webm": "video/webm",
-  "webmanifest": "application/manifest+json",
-  "webp": "image/webp",
-  "wgsl": "text/wgsl",
-  "wgt": "application/widget",
-  "wif": "application/watcherinfo+xml",
-  "wmf": "image/wmf",
-  "woff": "font/woff",
-  "woff2": "font/woff2",
-  "wrl": "model/vrml",
-  "wsdl": "application/wsdl+xml",
-  "wspolicy": "application/wspolicy+xml",
-  "x3d": "model/x3d+xml",
-  "x3db": "model/x3d+fastinfoset",
-  "x3dbz": "model/x3d+binary",
-  "x3dv": "model/x3d-vrml",
-  "x3dvz": "model/x3d+vrml",
-  "x3dz": "model/x3d+xml",
-  "xaml": "application/xaml+xml",
-  "xav": "application/xcap-att+xml",
-  "xca": "application/xcap-caps+xml",
-  "xcs": "application/calendar+xml",
-  "xdf": "application/xcap-diff+xml",
-  "xdssc": "application/dssc+xml",
-  "xel": "application/xcap-el+xml",
-  "xenc": "application/xenc+xml",
-  "xer": "application/patch-ops-error+xml",
-  "xfdf": "application/xfdf",
-  "xht": "application/xhtml+xml",
-  "xhtml": "application/xhtml+xml",
-  "xhvml": "application/xv+xml",
-  "xlf": "application/xliff+xml",
-  "xm": "audio/xm",
-  "xml": "text/xml",
-  "xns": "application/xcap-ns+xml",
-  "xop": "application/xop+xml",
-  "xpl": "application/xproc+xml",
-  "xsd": "application/xml",
-  "xsf": "application/prs.xsf+xml",
-  "xsl": "application/xml",
-  "xslt": "application/xml",
-  "xspf": "application/xspf+xml",
-  "xvm": "application/xv+xml",
-  "xvml": "application/xv+xml",
-  "yaml": "text/yaml",
-  "yang": "application/yang",
-  "yin": "application/yin+xml",
-  "yml": "text/yaml",
-  "zip": "application/zip"
+  dist: "application/octet-stream",
+  distz: "application/octet-stream",
+  dll: "application/octet-stream",
+  dmg: "application/octet-stream",
+  dms: "application/octet-stream",
+  doc: "application/msword",
+  dot: "application/msword",
+  dpx: "image/dpx",
+  drle: "image/dicom-rle",
+  dsc: "text/prs.lines.tag",
+  dssc: "application/dssc+der",
+  dtd: "application/xml-dtd",
+  dump: "application/octet-stream",
+  dwd: "application/atsc-dwd+xml",
+  ear: "application/java-archive",
+  ecma: "application/ecmascript",
+  elc: "application/octet-stream",
+  emf: "image/emf",
+  eml: "message/rfc822",
+  emma: "application/emma+xml",
+  emotionml: "application/emotionml+xml",
+  eps: "application/postscript",
+  epub: "application/epub+zip",
+  exe: "application/octet-stream",
+  exi: "application/exi",
+  exp: "application/express",
+  exr: "image/aces",
+  ez: "application/andrew-inset",
+  fdf: "application/fdf",
+  fdt: "application/fdt+xml",
+  fits: "image/fits",
+  g3: "image/g3fax",
+  gbr: "application/rpki-ghostbusters",
+  geojson: "application/geo+json",
+  gif: "image/gif",
+  glb: "model/gltf-binary",
+  gltf: "model/gltf+json",
+  gml: "application/gml+xml",
+  gpx: "application/gpx+xml",
+  gram: "application/srgs",
+  grxml: "application/srgs+xml",
+  gxf: "application/gxf",
+  gz: "application/gzip",
+  h261: "video/h261",
+  h263: "video/h263",
+  h264: "video/h264",
+  heic: "image/heic",
+  heics: "image/heic-sequence",
+  heif: "image/heif",
+  heifs: "image/heif-sequence",
+  hej2: "image/hej2k",
+  held: "application/atsc-held+xml",
+  hjson: "application/hjson",
+  hlp: "application/winhlp",
+  hqx: "application/mac-binhex40",
+  hsj2: "image/hsj2",
+  htm: "text/html",
+  html: "text/html",
+  ics: "text/calendar",
+  ief: "image/ief",
+  ifb: "text/calendar",
+  iges: "model/iges",
+  igs: "model/iges",
+  img: "application/octet-stream",
+  in: "text/plain",
+  ini: "text/plain",
+  ink: "application/inkml+xml",
+  inkml: "application/inkml+xml",
+  ipfix: "application/ipfix",
+  iso: "application/octet-stream",
+  its: "application/its+xml",
+  jade: "text/jade",
+  jar: "application/java-archive",
+  jhc: "image/jphc",
+  jls: "image/jls",
+  jp2: "image/jp2",
+  jpe: "image/jpeg",
+  jpeg: "image/jpeg",
+  jpf: "image/jpx",
+  jpg: "image/jpeg",
+  jpg2: "image/jp2",
+  jpgm: "image/jpm",
+  jpgv: "video/jpeg",
+  jph: "image/jph",
+  jpm: "image/jpm",
+  jpx: "image/jpx",
+  js: "text/javascript",
+  json: "application/json",
+  json5: "application/json5",
+  jsonld: "application/ld+json",
+  jsonml: "application/jsonml+json",
+  jsx: "text/jsx",
+  jt: "model/jt",
+  jxr: "image/jxr",
+  jxra: "image/jxra",
+  jxrs: "image/jxrs",
+  jxs: "image/jxs",
+  jxsc: "image/jxsc",
+  jxsi: "image/jxsi",
+  jxss: "image/jxss",
+  kar: "audio/midi",
+  ktx: "image/ktx",
+  ktx2: "image/ktx2",
+  less: "text/less",
+  lgr: "application/lgr+xml",
+  list: "text/plain",
+  litcoffee: "text/coffeescript",
+  log: "text/plain",
+  lostxml: "application/lost+xml",
+  lrf: "application/octet-stream",
+  m1v: "video/mpeg",
+  m21: "application/mp21",
+  m2a: "audio/mpeg",
+  m2v: "video/mpeg",
+  m3a: "audio/mpeg",
+  m4a: "audio/mp4",
+  m4p: "application/mp4",
+  m4s: "video/iso.segment",
+  ma: "application/mathematica",
+  mads: "application/mads+xml",
+  maei: "application/mmt-aei+xml",
+  man: "text/troff",
+  manifest: "text/cache-manifest",
+  map: "application/json",
+  mar: "application/octet-stream",
+  markdown: "text/markdown",
+  mathml: "application/mathml+xml",
+  mb: "application/mathematica",
+  mbox: "application/mbox",
+  md: "text/markdown",
+  mdx: "text/mdx",
+  me: "text/troff",
+  mesh: "model/mesh",
+  meta4: "application/metalink4+xml",
+  metalink: "application/metalink+xml",
+  mets: "application/mets+xml",
+  mft: "application/rpki-manifest",
+  mid: "audio/midi",
+  midi: "audio/midi",
+  mime: "message/rfc822",
+  mj2: "video/mj2",
+  mjp2: "video/mj2",
+  mjs: "text/javascript",
+  mml: "text/mathml",
+  mods: "application/mods+xml",
+  mov: "video/quicktime",
+  mp2: "audio/mpeg",
+  mp21: "application/mp21",
+  mp2a: "audio/mpeg",
+  mp3: "audio/mpeg",
+  mp4: "video/mp4",
+  mp4a: "audio/mp4",
+  mp4s: "application/mp4",
+  mp4v: "video/mp4",
+  mpd: "application/dash+xml",
+  mpe: "video/mpeg",
+  mpeg: "video/mpeg",
+  mpf: "application/media-policy-dataset+xml",
+  mpg: "video/mpeg",
+  mpg4: "video/mp4",
+  mpga: "audio/mpeg",
+  mpp: "application/dash-patch+xml",
+  mrc: "application/marc",
+  mrcx: "application/marcxml+xml",
+  ms: "text/troff",
+  mscml: "application/mediaservercontrol+xml",
+  msh: "model/mesh",
+  msi: "application/octet-stream",
+  msix: "application/msix",
+  msixbundle: "application/msixbundle",
+  msm: "application/octet-stream",
+  msp: "application/octet-stream",
+  mtl: "model/mtl",
+  musd: "application/mmt-usd+xml",
+  mxf: "application/mxf",
+  mxmf: "audio/mobile-xmf",
+  mxml: "application/xv+xml",
+  n3: "text/n3",
+  nb: "application/mathematica",
+  nq: "application/n-quads",
+  nt: "application/n-triples",
+  obj: "model/obj",
+  oda: "application/oda",
+  oga: "audio/ogg",
+  ogg: "audio/ogg",
+  ogv: "video/ogg",
+  ogx: "application/ogg",
+  omdoc: "application/omdoc+xml",
+  onepkg: "application/onenote",
+  onetmp: "application/onenote",
+  onetoc: "application/onenote",
+  onetoc2: "application/onenote",
+  opf: "application/oebps-package+xml",
+  opus: "audio/ogg",
+  otf: "font/otf",
+  owl: "application/rdf+xml",
+  oxps: "application/oxps",
+  p10: "application/pkcs10",
+  p7c: "application/pkcs7-mime",
+  p7m: "application/pkcs7-mime",
+  p7s: "application/pkcs7-signature",
+  p8: "application/pkcs8",
+  pdf: "application/pdf",
+  pfr: "application/font-tdpfr",
+  pgp: "application/pgp-encrypted",
+  pkg: "application/octet-stream",
+  pki: "application/pkixcmp",
+  pkipath: "application/pkix-pkipath",
+  pls: "application/pls+xml",
+  png: "image/png",
+  prc: "model/prc",
+  prf: "application/pics-rules",
+  provx: "application/provenance+xml",
+  ps: "application/postscript",
+  pskcxml: "application/pskc+xml",
+  pti: "image/prs.pti",
+  qt: "video/quicktime",
+  raml: "application/raml+yaml",
+  rapd: "application/route-apd+xml",
+  rdf: "application/rdf+xml",
+  relo: "application/p2p-overlay+xml",
+  rif: "application/reginfo+xml",
+  rl: "application/resource-lists+xml",
+  rld: "application/resource-lists-diff+xml",
+  rmi: "audio/midi",
+  rnc: "application/relax-ng-compact-syntax",
+  rng: "application/xml",
+  roa: "application/rpki-roa",
+  roff: "text/troff",
+  rq: "application/sparql-query",
+  rs: "application/rls-services+xml",
+  rsat: "application/atsc-rsat+xml",
+  rsd: "application/rsd+xml",
+  rsheet: "application/urc-ressheet+xml",
+  rss: "application/rss+xml",
+  rtf: "text/rtf",
+  rtx: "text/richtext",
+  rusd: "application/route-usd+xml",
+  s3m: "audio/s3m",
+  sbml: "application/sbml+xml",
+  scq: "application/scvp-cv-request",
+  scs: "application/scvp-cv-response",
+  sdp: "application/sdp",
+  senmlx: "application/senml+xml",
+  sensmlx: "application/sensml+xml",
+  ser: "application/java-serialized-object",
+  setpay: "application/set-payment-initiation",
+  setreg: "application/set-registration-initiation",
+  sgi: "image/sgi",
+  sgm: "text/sgml",
+  sgml: "text/sgml",
+  shex: "text/shex",
+  shf: "application/shf+xml",
+  shtml: "text/html",
+  sieve: "application/sieve",
+  sig: "application/pgp-signature",
+  sil: "audio/silk",
+  silo: "model/mesh",
+  siv: "application/sieve",
+  slim: "text/slim",
+  slm: "text/slim",
+  sls: "application/route-s-tsid+xml",
+  smi: "application/smil+xml",
+  smil: "application/smil+xml",
+  snd: "audio/basic",
+  so: "application/octet-stream",
+  spdx: "text/spdx",
+  spp: "application/scvp-vp-response",
+  spq: "application/scvp-vp-request",
+  spx: "audio/ogg",
+  sql: "application/sql",
+  sru: "application/sru+xml",
+  srx: "application/sparql-results+xml",
+  ssdl: "application/ssdl+xml",
+  ssml: "application/ssml+xml",
+  stk: "application/hyperstudio",
+  stl: "model/stl",
+  stpx: "model/step+xml",
+  stpxz: "model/step-xml+zip",
+  stpz: "model/step+zip",
+  styl: "text/stylus",
+  stylus: "text/stylus",
+  svg: "image/svg+xml",
+  svgz: "image/svg+xml",
+  swidtag: "application/swid+xml",
+  t: "text/troff",
+  t38: "image/t38",
+  td: "application/urc-targetdesc+xml",
+  tei: "application/tei+xml",
+  teicorpus: "application/tei+xml",
+  text: "text/plain",
+  tfi: "application/thraud+xml",
+  tfx: "image/tiff-fx",
+  tif: "image/tiff",
+  tiff: "image/tiff",
+  toml: "application/toml",
+  tr: "text/troff",
+  trig: "application/trig",
+  ts: "video/mp2t",
+  tsd: "application/timestamped-data",
+  tsv: "text/tab-separated-values",
+  ttc: "font/collection",
+  ttf: "font/ttf",
+  ttl: "text/turtle",
+  ttml: "application/ttml+xml",
+  txt: "text/plain",
+  u3d: "model/u3d",
+  u8dsn: "message/global-delivery-status",
+  u8hdr: "message/global-headers",
+  u8mdn: "message/global-disposition-notification",
+  u8msg: "message/global",
+  ubj: "application/ubjson",
+  uri: "text/uri-list",
+  uris: "text/uri-list",
+  urls: "text/uri-list",
+  vcard: "text/vcard",
+  vrml: "model/vrml",
+  vtt: "text/vtt",
+  vxml: "application/voicexml+xml",
+  war: "application/java-archive",
+  wasm: "application/wasm",
+  wav: "audio/wav",
+  weba: "audio/webm",
+  webm: "video/webm",
+  webmanifest: "application/manifest+json",
+  webp: "image/webp",
+  wgsl: "text/wgsl",
+  wgt: "application/widget",
+  wif: "application/watcherinfo+xml",
+  wmf: "image/wmf",
+  woff: "font/woff",
+  woff2: "font/woff2",
+  wrl: "model/vrml",
+  wsdl: "application/wsdl+xml",
+  wspolicy: "application/wspolicy+xml",
+  x3d: "model/x3d+xml",
+  x3db: "model/x3d+fastinfoset",
+  x3dbz: "model/x3d+binary",
+  x3dv: "model/x3d-vrml",
+  x3dvz: "model/x3d+vrml",
+  x3dz: "model/x3d+xml",
+  xaml: "application/xaml+xml",
+  xav: "application/xcap-att+xml",
+  xca: "application/xcap-caps+xml",
+  xcs: "application/calendar+xml",
+  xdf: "application/xcap-diff+xml",
+  xdssc: "application/dssc+xml",
+  xel: "application/xcap-el+xml",
+  xenc: "application/xenc+xml",
+  xer: "application/patch-ops-error+xml",
+  xfdf: "application/xfdf",
+  xht: "application/xhtml+xml",
+  xhtml: "application/xhtml+xml",
+  xhvml: "application/xv+xml",
+  xlf: "application/xliff+xml",
+  xm: "audio/xm",
+  xml: "text/xml",
+  xns: "application/xcap-ns+xml",
+  xop: "application/xop+xml",
+  xpl: "application/xproc+xml",
+  xsd: "application/xml",
+  xsf: "application/prs.xsf+xml",
+  xsl: "application/xml",
+  xslt: "application/xml",
+  xspf: "application/xspf+xml",
+  xvm: "application/xv+xml",
+  xvml: "application/xv+xml",
+  yaml: "text/yaml",
+  yang: "application/yang",
+  yin: "application/yin+xml",
+  yml: "text/yaml",
+  zip: "application/zip",
 };
 
 function lookup(extn) {
-	let tmp = ('' + extn).trim().toLowerCase();
-	let idx = tmp.lastIndexOf('.');
-	return mimes[!~idx ? tmp : tmp.substring(++idx)];
+  let tmp = ("" + extn).trim().toLowerCase();
+  let idx = tmp.lastIndexOf(".");
+  return mimes[!~idx ? tmp : tmp.substring(++idx)];
 }
 
 const $$Astro = createAstro();
-const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
-  Astro2.self = $$Picture;
-  const defaultFormats = ["webp"];
-  const defaultFallbackFormat = "png";
-  const specialFormatsFallback = ["gif", "svg", "jpg", "jpeg"];
-  const { formats = defaultFormats, pictureAttributes = {}, fallbackFormat, ...props } = Astro2.props;
-  if (props.alt === void 0 || props.alt === null) {
-    throw new AstroError(ImageMissingAlt);
-  }
-  const scopedStyleClass = props.class?.match(/\bastro-\w{8}\b/)?.[0];
-  if (scopedStyleClass) {
-    if (pictureAttributes.class) {
-      pictureAttributes.class = `${pictureAttributes.class} ${scopedStyleClass}`;
-    } else {
-      pictureAttributes.class = scopedStyleClass;
+const $$Picture = createComponent(
+  async ($$result, $$props, $$slots) => {
+    const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
+    Astro2.self = $$Picture;
+    const defaultFormats = ["webp"];
+    const defaultFallbackFormat = "png";
+    const specialFormatsFallback = ["gif", "svg", "jpg", "jpeg"];
+    const {
+      formats = defaultFormats,
+      pictureAttributes = {},
+      fallbackFormat,
+      ...props
+    } = Astro2.props;
+    if (props.alt === void 0 || props.alt === null) {
+      throw new AstroError(ImageMissingAlt);
     }
-  }
-  for (const key in props) {
-    if (key.startsWith("data-astro-cid")) {
-      pictureAttributes[key] = props[key];
+    const scopedStyleClass = props.class?.match(/\bastro-\w{8}\b/)?.[0];
+    if (scopedStyleClass) {
+      if (pictureAttributes.class) {
+        pictureAttributes.class = `${pictureAttributes.class} ${scopedStyleClass}`;
+      } else {
+        pictureAttributes.class = scopedStyleClass;
+      }
     }
-  }
-  const originalSrc = await resolveSrc(props.src);
-  const optimizedImages = await Promise.all(
-    formats.map(
-      async (format) => await getImage({
-        ...props,
-        src: originalSrc,
-        format,
-        widths: props.widths,
-        densities: props.densities
-      })
-    )
-  );
-  let resultFallbackFormat = fallbackFormat ?? defaultFallbackFormat;
-  if (!fallbackFormat && isESMImportedImage(originalSrc) && specialFormatsFallback.includes(originalSrc.format)) {
-    resultFallbackFormat = originalSrc.format;
-  }
-  const fallbackImage = await getImage({
-    ...props,
-    format: resultFallbackFormat,
-    widths: props.widths,
-    densities: props.densities
-  });
-  const imgAdditionalAttributes = {};
-  const sourceAdditionalAttributes = {};
-  if (props.sizes) {
-    sourceAdditionalAttributes.sizes = props.sizes;
-  }
-  if (fallbackImage.srcSet.values.length > 0) {
-    imgAdditionalAttributes.srcset = fallbackImage.srcSet.attribute;
-  }
-  return renderTemplate`${maybeRenderHead()}<picture${spreadAttributes(pictureAttributes)}> ${Object.entries(optimizedImages).map(([_, image]) => {
-    const srcsetAttribute = props.densities || !props.densities && !props.widths ? `${image.src}${image.srcSet.values.length > 0 ? ", " + image.srcSet.attribute : ""}` : image.srcSet.attribute;
-    return renderTemplate`<source${addAttribute(srcsetAttribute, "srcset")}${addAttribute(lookup(image.options.format ?? image.src) ?? `image/${image.options.format}`, "type")}${spreadAttributes(sourceAdditionalAttributes)}>`;
-  })} <img${addAttribute(fallbackImage.src, "src")}${spreadAttributes(imgAdditionalAttributes)}${spreadAttributes(fallbackImage.attributes)}> </picture>`;
-}, "/home/takeda/develop/website/node_modules/.pnpm/astro@4.14.5_@types+node@18.19.45_rollup@4.21.0_typescript@5.5.4/node_modules/astro/components/Picture.astro", void 0);
+    for (const key in props) {
+      if (key.startsWith("data-astro-cid")) {
+        pictureAttributes[key] = props[key];
+      }
+    }
+    const originalSrc = await resolveSrc(props.src);
+    const optimizedImages = await Promise.all(
+      formats.map(
+        async (format) =>
+          await getImage({
+            ...props,
+            src: originalSrc,
+            format,
+            widths: props.widths,
+            densities: props.densities,
+          }),
+      ),
+    );
+    let resultFallbackFormat = fallbackFormat ?? defaultFallbackFormat;
+    if (
+      !fallbackFormat &&
+      isESMImportedImage(originalSrc) &&
+      specialFormatsFallback.includes(originalSrc.format)
+    ) {
+      resultFallbackFormat = originalSrc.format;
+    }
+    const fallbackImage = await getImage({
+      ...props,
+      format: resultFallbackFormat,
+      widths: props.widths,
+      densities: props.densities,
+    });
+    const imgAdditionalAttributes = {};
+    const sourceAdditionalAttributes = {};
+    if (props.sizes) {
+      sourceAdditionalAttributes.sizes = props.sizes;
+    }
+    if (fallbackImage.srcSet.values.length > 0) {
+      imgAdditionalAttributes.srcset = fallbackImage.srcSet.attribute;
+    }
+    return renderTemplate`${maybeRenderHead()}<picture${spreadAttributes(pictureAttributes)}> ${Object.entries(
+      optimizedImages,
+    ).map(([_, image]) => {
+      const srcsetAttribute =
+        props.densities || (!props.densities && !props.widths)
+          ? `${image.src}${image.srcSet.values.length > 0 ? ", " + image.srcSet.attribute : ""}`
+          : image.srcSet.attribute;
+      return renderTemplate`<source${addAttribute(srcsetAttribute, "srcset")}${addAttribute(lookup(image.options.format ?? image.src) ?? `image/${image.options.format}`, "type")}${spreadAttributes(sourceAdditionalAttributes)}>`;
+    })} <img${addAttribute(fallbackImage.src, "src")}${spreadAttributes(imgAdditionalAttributes)}${spreadAttributes(fallbackImage.attributes)}> </picture>`;
+  },
+  "/home/takeda/develop/website/node_modules/.pnpm/astro@4.14.5_@types+node@18.19.45_rollup@4.21.0_typescript@5.5.4/node_modules/astro/components/Picture.astro",
+  void 0,
+);
 
-const imageConfig = {"service":{"entrypoint":"astro/assets/services/sharp","config":{}},"domains":[],"remotePatterns":[]};
-					const getImage = async (options) => await getImage$1(options, imageConfig);
+const imageConfig = {
+  service: { entrypoint: "astro/assets/services/sharp", config: {} },
+  domains: [],
+  remotePatterns: [],
+};
+const getImage = async (options) => await getImage$1(options, imageConfig);
 
-export { $$Image as $, getConfiguredImageService as g, imageConfig as i, lookup as l };
+export {
+  $$Image as $,
+  getConfiguredImageService as g,
+  imageConfig as i,
+  lookup as l,
+};

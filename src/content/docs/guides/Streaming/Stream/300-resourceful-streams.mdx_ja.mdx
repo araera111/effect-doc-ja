@@ -27,7 +27,7 @@ const open = (filename: string) =>
 
 const stream = Stream.acquireRelease(
   open("file.txt"),
-  (file) => file.close
+  (file) => file.close,
 ).pipe(Stream.flatMap((file) => file.getLines));
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -63,10 +63,10 @@ const program = application.pipe(
   Stream.concat(
     Stream.finalizer(
       deleteDir("tmp").pipe(
-        Effect.andThen(Console.log("Temporary directory was deleted."))
-      )
-    )
-  )
+        Effect.andThen(Console.log("Temporary directory was deleted.")),
+      ),
+    ),
+  ),
 );
 
 Effect.runPromise(Stream.runCollect(program)).then(console.log);
@@ -96,8 +96,8 @@ import { Stream, Console, Effect } from "effect";
 const program = Stream.fromEffect(Console.log("Application Logic.")).pipe(
   Stream.concat(Stream.finalizer(Console.log("Finalizing the stream"))),
   Stream.ensuring(
-    Console.log("Doing some other works after stream's finalization")
-  )
+    Console.log("Doing some other works after stream's finalization"),
+  ),
 );
 
 Effect.runPromise(Stream.runCollect(program)).then(console.log);

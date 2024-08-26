@@ -36,85 +36,97 @@ Effectは、開発者が複雑な同期および非同期プログラムを作�
 - [Effect 3.6](https://effect.website/blog/effect-3.6)がリリースされました。
 - 私たちの[Discordコミュニティ](https://discord.gg/effect-ts)のメンバーが3380人以上に達しました！
 
-
 ## 技術
 
 先週に発生したすべての技術的変更点を以下に示します。
 
 ### Effect Core
-+ [DateTimeテストでen-USロケールを使用](https://github.com/Effect-TS/effect/pull/3443) (機能)
-+ [Stream.toReadableStreamが常にenqueueの結果になるようにする](https://github.com/Effect-TS/effect/pull/3444) (バグ修正)
-+ [Cache 'Value'型パラメータのバリアンスを修正（共変 → 不変）](https://github.com/Effect-TS/effect/pull/3404) (バグ修正)
-+ [スケジューラーのタスクが一致する優先度バケットに追加されることを保証](https://github.com/Effect-TS/effect/pull/3452) (バグ修正)
-+ [makeZonedFromStringが00:00オフセットをサポートすることを保証](https://github.com/Effect-TS/effect/pull/3458) (バグ修正)
-+ [Effect.tryPromiseで欠陥が捕捉されることを保証](https://github.com/Effect-TS/effect/pull/3459) (バグ修正)
-+ [ファイナライザーの同時実行性の自動伝播を避ける](https://github.com/Effect-TS/effect/pull/3441) (バグ修正、次のマイナー)
+
+- [DateTimeテストでen-USロケールを使用](https://github.com/Effect-TS/effect/pull/3443) (機能)
+- [Stream.toReadableStreamが常にenqueueの結果になるようにする](https://github.com/Effect-TS/effect/pull/3444) (バグ修正)
+- [Cache 'Value'型パラメータのバリアンスを修正（共変 → 不変）](https://github.com/Effect-TS/effect/pull/3404) (バグ修正)
+- [スケジューラーのタスクが一致する優先度バケットに追加されることを保証](https://github.com/Effect-TS/effect/pull/3452) (バグ修正)
+- [makeZonedFromStringが00:00オフセットをサポートすることを保証](https://github.com/Effect-TS/effect/pull/3458) (バグ修正)
+- [Effect.tryPromiseで欠陥が捕捉されることを保証](https://github.com/Effect-TS/effect/pull/3459) (バグ修正)
+- [ファイナライザーの同時実行性の自動伝播を避ける](https://github.com/Effect-TS/effect/pull/3441) (バグ修正、次のマイナー)
 
 ### Effect Experimental
-+ [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
-+ [VariantSchemaおよびModelモジュールを追加](https://github.com/Effect-TS/effect/pull/3455) (機能)
+
+- [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
+- [VariantSchemaおよびModelモジュールを追加](https://github.com/Effect-TS/effect/pull/3455) (機能)
 
 ### Effect Platform
-+ [HttpRouter.concatAllを追加し、HttpRouter.concatのマウントを修正](https://github.com/Effect-TS/effect/pull/3439) (機能、バグ修正)
-+ [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
-+ [HttpRouter.currentRouterConfigファイバ参照を追加](https://github.com/Effect-TS/effect/pull/3454) (機能)
+
+- [HttpRouter.concatAllを追加し、HttpRouter.concatのマウントを修正](https://github.com/Effect-TS/effect/pull/3439) (機能、バグ修正)
+- [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
+- [HttpRouter.currentRouterConfigファイバ参照を追加](https://github.com/Effect-TS/effect/pull/3454) (機能)
 
 ### Effect Cluster
-+ [ソースコードに対して /cluster* package.json の依存関係を同期](https://github.com/Effect-TS/effect/pull/3446) (改善)
+
+- [ソースコードに対して /cluster\* package.json の依存関係を同期](https://github.com/Effect-TS/effect/pull/3446) (改善)
 
 ### Effect SQL
-+ [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
-+ [基礎SQLクライアントから生SQLクエリ結果を取得するサポートを追加](https://github.com/Effect-TS/effect/pull/3457) (機能)
-+ [SQLヘルパーで部分オブジェクトをサポート](https://github.com/Effect-TS/effect/pull/3460) (バグ修正)
-+ [VariantSchemaおよびModelモジュールを追加](https://github.com/Effect-TS/effect/pull/3455) (機能)
+
+- [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
+- [基礎SQLクライアントから生SQLクエリ結果を取得するサポートを追加](https://github.com/Effect-TS/effect/pull/3457) (機能)
+- [SQLヘルパーで部分オブジェクトをサポート](https://github.com/Effect-TS/effect/pull/3460) (バグ修正)
+- [VariantSchemaおよびModelモジュールを追加](https://github.com/Effect-TS/effect/pull/3455) (機能)
 
 ### Effect Schema
-+ [jsonスキーマの出力をOpen AI構造出力により互換性が高くなるように（"oneOf"と"const"を削除）](https://github.com/Effect-TS/effect/pull/3433) (バグ修正)
-+ [Schema.ArrayEnsureおよびSchema.NonEmptyArrayEnsureを追加](https://github.com/Effect-TS/effect/pull/3448) (機能)
-+ [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
-+ [スキーマのREADMEを修正](https://github.com/Effect-TS/effect/pull/3451) (ドキュメント更新)
+
+- [jsonスキーマの出力をOpen AI構造出力により互換性が高くなるように（"oneOf"と"const"を削除）](https://github.com/Effect-TS/effect/pull/3433) (バグ修正)
+- [Schema.ArrayEnsureおよびSchema.NonEmptyArrayEnsureを追加](https://github.com/Effect-TS/effect/pull/3448) (機能)
+- [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
+- [スキーマのREADMEを修正](https://github.com/Effect-TS/effect/pull/3451) (ドキュメント更新)
 
 ### Effect Vitest
-+ [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
+
+- [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
 
 ### Effect CLI
-+ [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
+
+- [ワークスペース依存関係を更新](https://github.com/Effect-TS/effect/pull/3450) (改善)
 
 ### Effect RPC
-+ [rpcモジュール名にRpc接頭辞を追加](https://github.com/Effect-TS/effect/pull/3442) (機能)
+
+- [rpcモジュール名にRpc接頭辞を追加](https://github.com/Effect-TS/effect/pull/3442) (機能)
 
 ### 一般的な雑事
-+ [不必要なチェックアウトステップを削除](https://github.com/Effect-TS/effect/pull/3462)
-+ [不必要なワークフローステップを削除](https://github.com/Effect-TS/effect/pull/3463)
 
+- [不必要なチェックアウトステップを削除](https://github.com/Effect-TS/effect/pull/3462)
+- [不必要なワークフローステップを削除](https://github.com/Effect-TS/effect/pull/3463)
 
 ## コミュニティのハイライト
 
-先週は+20人の新しいEffectersを私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に迎え入れました。皆さんと一緒に活動できることを非常に楽しみにしています！ 
+先週は+20人の新しいEffectersを私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に迎え入れました。皆さんと一緒に活動できることを非常に楽しみにしています！
 
-+ [Unsplash](https://unsplash.com/)が実際にEffectを使用し始めました！私たちは、Unsplashのシニアプロダクションエンジニア、Thomas Lefebvreからこのアップデートをお伝えできることを嬉しく思います。
-<Tweet id="1823773777244664201" />
+- [Unsplash](https://unsplash.com/)が実際にEffectを使用し始めました！私たちは、Unsplashのシニアプロダクションエンジニア、Thomas Lefebvreからこのアップデートをお伝えできることを嬉しく思います。
 
-+ Sandro Maglioneは今週、誰でも無料で受講できる[Effect: Beginners Complete Getting Startedコース](https://www.typeonce.dev/course/effect-beginners-complete-getting-started)を開始しました。このコースは、初心者がEffectの初期 journeyを通じて、最初のプロジェクトを構築する際のステップバイステップのサポートを提供します。
-<Tweet id="1823773431143313580" />
+  <Tweet id="1823773777244664201" />
 
-+ Johannes Schicklingが「Cause and Effect」というタイトルのポッドキャストのティーザーを公開しました。
-<Tweet id="1824356063002448329" />
+- Sandro Maglioneは今週、誰でも無料で受講できる[Effect: Beginners Complete Getting Startedコース](https://www.typeonce.dev/course/effect-beginners-complete-getting-started)を開始しました。このコースは、初心者がEffectの初期 journeyを通じて、最初のプロジェクトを構築する際のステップバイステップのサポートを提供します。
+
+  <Tweet id="1823773431143313580" />
+
+- Johannes Schicklingが「Cause and Effect」というタイトルのポッドキャストのティーザーを公開しました。
+  <Tweet id="1824356063002448329" />
 
 ## Effectコンテンツの更新
 
-+ Maxwell BrownとTim Smartが水曜日にTwitchで「EffectでのContentLayerの再考」の第4回目をライブ配信しました。この動画は近日中に[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で公開される予定です。
-<Tweet id="1823882284040110582" />
+- Maxwell BrownとTim Smartが水曜日にTwitchで「EffectでのContentLayerの再考」の第4回目をライブ配信しました。この動画は近日中に[Effect YouTubeチャンネル](https://www.youtube.com/@effect-ts)で公開される予定です。
 
-+ [Ethan Niser](https://x.com/ethanniser)はTypeScriptにおけるエラーハンドリングについての新しい動画を公開しました。この動画では、EffectライブラリがTypeScriptのエラー管理に強力なツールとして役立ち、コードの可読性と安全性を向上させ、エラーハンドリングを直感的で効果的にする方法を紹介しています。
-<YouTube url="https://www.youtube.com/embed/1U44SbOa7rE?si=u4SXhfEbRsTLe2NL" />
+  <Tweet id="1823882284040110582" />
 
-+ Ethanの動画に続き、[James - JollyCoding](https://x.com/JollyShopland)、Better Stackの開発者アドボケートが、Effectの主要な利点に焦点を当てた初めての動画を公開しました。これは、TypeScriptをより堅牢で、再利用可能でテスト可能にするためのものでした。
-<YouTube url="https://www.youtube.com/embed/TIvj-MCR34s?si=jTKSy6fbQp3tZTGQ" />
+- [Ethan Niser](https://x.com/ethanniser)はTypeScriptにおけるエラーハンドリングについての新しい動画を公開しました。この動画では、EffectライブラリがTypeScriptのエラー管理に強力なツールとして役立ち、コードの可読性と安全性を向上させ、エラーハンドリングを直感的で効果的にする方法を紹介しています。
 
-+ [Milad Vafaeifard](https://x.com/MiladVafaeifard)、[Sign Language Tech](https://signlanguagetech.com)の創設者が、EffectにおけるandThenとflatMapの違いを説明する手話の新しい動画ガイドを公開しました。
-<YouTube url="https://www.youtube.com/embed/tqM9_VyNkc8?si=hE4OZu6DSBYsGg3I" />
+  <YouTube url="https://www.youtube.com/embed/1U44SbOa7rE?si=u4SXhfEbRsTLe2NL" />
 
+- Ethanの動画に続き、[James - JollyCoding](https://x.com/JollyShopland)、Better Stackの開発者アドボケートが、Effectの主要な利点に焦点を当てた初めての動画を公開しました。これは、TypeScriptをより堅牢で、再利用可能でテスト可能にするためのものでした。
+
+  <YouTube url="https://www.youtube.com/embed/TIvj-MCR34s?si=jTKSy6fbQp3tZTGQ" />
+
+- [Milad Vafaeifard](https://x.com/MiladVafaeifard)、[Sign Language Tech](https://signlanguagetech.com)の創設者が、EffectにおけるandThenとflatMapの違いを説明する手話の新しい動画ガイドを公開しました。
+  <YouTube url="https://www.youtube.com/embed/tqM9_VyNkc8?si=hE4OZu6DSBYsGg3I" />
 
 ## 最後に
 

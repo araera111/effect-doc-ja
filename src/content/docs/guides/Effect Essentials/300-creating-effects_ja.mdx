@@ -48,7 +48,7 @@ import { Effect } from "effect";
 
 // 失敗シナリオを表すEffectを作成
 const failure = Effect.fail(
-  new Error("ネットワークエラーにより操作に失敗しました")
+  new Error("ネットワークエラーにより操作に失敗しました"),
 );
 ```
 
@@ -188,7 +188,7 @@ import { Effect } from "effect";
 
 const parse = (input: string) =>
   Effect.try(
-    () => JSON.parse(input) // 不正な入力の場合はエラーがスローされる場合があります
+    () => JSON.parse(input), // 不正な入力の場合はエラーがスローされる場合があります
   );
 
 const program = parse("");
@@ -247,7 +247,7 @@ const delay = (message: string) =>
         setTimeout(() => {
           resolve(message);
         }, 2000);
-      })
+      }),
   );
 
 const program = delay("非同期操作が正常に完了しました！");
@@ -277,7 +277,7 @@ import { Effect } from "effect";
 
 const getTodo = (id: number) =>
   Effect.tryPromise(() =>
-    fetch(`https://jsonplaceholder.typicode.com/todos/${id}`)
+    fetch(`https://jsonplaceholder.typicode.com/todos/${id}`),
   );
 
 const program = getTodo(1);
@@ -395,7 +395,7 @@ const suspendedEffect = Effect.suspend(() => effect);
        : Effect.zipWith(
            Effect.suspend(() => allGood(n - 1)),
            Effect.suspend(() => allGood(n - 2)),
-           (a, b) => a + b
+           (a, b) => a + b,
          );
 
    console.log(Effect.runSync(allGood(32))); // 出力: 3524578
@@ -426,7 +426,7 @@ const suspendedEffect = Effect.suspend(() => effect);
      Effect.suspend(() =>
        b === 0
          ? Effect.fail(new Error("ゼロで割ることはできません"))
-         : Effect.succeed(a / b)
+         : Effect.succeed(a / b),
      );
    ```
 

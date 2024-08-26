@@ -11,8 +11,8 @@ authors:
 
 `Effect`の新しいマイナーリリースが公開されました。ここでお知らせしたい大きな変更があります。
 
-+ `Schedule<Env, In, Out>`が`Schedule<Out, In = unknown, Env = never>`に変更されました。この変更により、クリーンな型シグネチャ（`Schedule<void>`）が得られ、重要度に基づいて型が整理されます。
-+ `Either<L, R>`が`Either<R, L = never>`に変更されました。この変更により、クリーンな型シグネチャ（`Either<void>`）が得られ、重要度に基づいて型が整理されます。
+- `Schedule<Env, In, Out>`が`Schedule<Out, In = unknown, Env = never>`に変更されました。この変更により、クリーンな型シグネチャ（`Schedule<void>`）が得られ、重要度に基づいて型が整理されます。
+- `Either<L, R>`が`Either<R, L = never>`に変更されました。この変更により、クリーンな型シグネチャ（`Either<void>`）が得られ、重要度に基づいて型が整理されます。
 
 上記の変更に対して、できるだけ簡単に移行できるようにコードモッドがリリースされました。
 

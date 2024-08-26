@@ -11,14 +11,14 @@ bottomNavigation: pagination
 最初は、標準の `pipe` [メソッド](../essentials/pipeline#the-pipe-method) を使用したコードが思いつくかもしれませんが、このアプローチは過剰なネストを引き起こし、冗長で読みづらいコードになる可能性があります。
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 // 現在のタイムスタンプを取得
-const now = Effect.sync(() => new Date().getTime())
+const now = Effect.sync(() => new Date().getTime());
 
 // `self` を実行するのにかかった時間を印刷
 const elapsed = <R, E, A>(
-  self: Effect.Effect<A, E, R>
+  self: Effect.Effect<A, E, R>,
 ): Effect.Effect<A, E, R> =>
   now.pipe(
     Effect.andThen((startMillis) =>
@@ -27,24 +27,24 @@ const elapsed = <R, E, A>(
           now.pipe(
             Effect.andThen((endMillis) => {
               // ミリ秒単位で経過時間を計算
-              const elapsed = endMillis - startMillis
+              const elapsed = endMillis - startMillis;
               // 経過時間をログに記録
               return Console.log(`Elapsed: ${elapsed}`).pipe(
-                Effect.map(() => result)
-              )
-            })
-          )
-        )
-      )
-    )
-  )
+                Effect.map(() => result),
+              );
+            }),
+          ),
+        ),
+      ),
+    ),
+  );
 
 // 200ミリ秒の遅延で成功する計算をシミュレート
-const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"))
+const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"));
 
-const program = elapsed(task)
+const program = elapsed(task);
 
-Effect.runPromise(program).then(console.log)
+Effect.runPromise(program).then(console.log);
 /*
 Output:
 Elapsed: 204
@@ -63,13 +63,13 @@ doシミュレーションの使い方は以下の通りです。
 1. `Effect.Do` 値を使用して doシミュレーションを開始します：
 
    ```ts
-   const program = Effect.Do.pipe(/* ... 残りのコード */)
+   const program = Effect.Do.pipe(/* ... 残りのコード */);
    ```
 
 2. doシミュレーションのスコープ内で、`Effect.bind` 関数を使用して変数を定義し、それらを `Effect` 値にバインドできます：
 
    ```ts
-   Effect.bind("variableName", (scope) => effectValue)
+   Effect.bind("variableName", (scope) => effectValue);
    ```
 
 - `variableName` は、定義したい変数の名前です。スコープ内で一意である必要があります。
@@ -86,7 +86,7 @@ doシミュレーションの使い方は以下の通りです。
 4. doシミュレーションのスコープ内でも、`Effect.let` 関数を使用して変数を定義し、それらを単純な値にバインドできます：
 
    ```ts
-   Effect.let("variableName", (scope) => simpleValue)
+   Effect.let("variableName", (scope) => simpleValue);
    ```
 
 - `variableName` は、変数に付ける名前です。先ほどと同様に、スコープ内で一意である必要があります。
@@ -98,19 +98,19 @@ doシミュレーションの使い方は以下の通りです。
    Effect.andThen(({ variable1, variable2 }) => {
      // variable1 と variable2 を使用して操作を行う
      // 結果として `Effect` 値を返す
-   })
+   });
    ```
 
 doシミュレーションを用いることで、`elapsed` コンビネーターを次のように書き換えることができます：
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 // 現在のタイムスタンプを取得
-const now = Effect.sync(() => new Date().getTime())
+const now = Effect.sync(() => new Date().getTime());
 
 const elapsed = <R, E, A>(
-  self: Effect.Effect<A, E, R>
+  self: Effect.Effect<A, E, R>,
 ): Effect.Effect<A, E, R> =>
   Effect.Do.pipe(
     Effect.bind("startMillis", () => now),
@@ -118,18 +118,18 @@ const elapsed = <R, E, A>(
     Effect.bind("endMillis", () => now),
     Effect.let(
       "elapsed",
-      ({ startMillis, endMillis }) => endMillis - startMillis // ミリ秒単位で経過時間を計算
+      ({ startMillis, endMillis }) => endMillis - startMillis, // ミリ秒単位で経過時間を計算
     ),
     Effect.tap(({ elapsed }) => Console.log(`Elapsed: ${elapsed}`)), // 経過時間をログに記録
-    Effect.map(({ result }) => result)
-  )
+    Effect.map(({ result }) => result),
+  );
 
 // 200ミリ秒の遅延で成功する計算をシミュレート
-const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"))
+const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"));
 
-const program = elapsed(task)
+const program = elapsed(task);
 
-Effect.runPromise(program).then(console.log)
+Effect.runPromise(program).then(console.log);
 /*
 Output:
 Elapsed: 204
@@ -145,32 +145,32 @@ some task
 最も簡潔で便利な解決策は、`Effect.gen` コンストラクタを使用することです。これにより、エフェクトを扱う際に [ジェネレータ](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) を使用できます。このアプローチは、ジェネレータ構文が提供するネイティブスコープを活用し、過剰なネストを回避し、より簡潔なコードを実現します。
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 // 現在のタイムスタンプを取得
-const now = Effect.sync(() => new Date().getTime())
+const now = Effect.sync(() => new Date().getTime());
 
 // `self` を実行するのにかかった時間を印刷
 const elapsed = <R, E, A>(
-  self: Effect.Effect<A, E, R>
+  self: Effect.Effect<A, E, R>,
 ): Effect.Effect<A, E, R> =>
   Effect.gen(function* () {
-    const startMillis = yield* now
-    const result = yield* self
-    const endMillis = yield* now
+    const startMillis = yield* now;
+    const result = yield* self;
+    const endMillis = yield* now;
     // ミリ秒単位で経過時間を計算
-    const elapsed = endMillis - startMillis
+    const elapsed = endMillis - startMillis;
     // 経過時間をログに記録
-    console.log(`Elapsed: ${elapsed}`)
-    return result
-  })
+    console.log(`Elapsed: ${elapsed}`);
+    return result;
+  });
 
 // 200ミリ秒の遅延で成功する計算をシミュレート
-const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"))
+const task = Effect.succeed("some task").pipe(Effect.delay("200 millis"));
 
-const program = elapsed(task)
+const program = elapsed(task);
 
-Effect.runPromise(program).then(console.log)
+Effect.runPromise(program).then(console.log);
 /*
 Output:
 Elapsed: 204

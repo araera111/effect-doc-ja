@@ -232,8 +232,8 @@ const program = Effect.gen(function* () {
   const queue = yield* Queue.bounded<number>(3);
   const fiber = yield* Effect.fork(
     Queue.awaitShutdown(queue).pipe(
-      Effect.andThen(Console.log("シャットダウンしています"))
-    )
+      Effect.andThen(Console.log("シャットダウンしています")),
+    ),
   );
   yield* Queue.shutdown(queue);
   yield* Fiber.join(fiber);

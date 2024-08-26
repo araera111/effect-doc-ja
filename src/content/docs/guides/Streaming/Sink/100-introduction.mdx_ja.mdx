@@ -14,15 +14,15 @@ bottomNavigation: pagination
 ストリームを処理するために`Sink`を使用するには、単にそれを`Stream.run`関数に渡します：
 
 ```ts twoslash
-import { Stream, Sink, Effect } from "effect"
+import { Stream, Sink, Effect } from "effect";
 
-const stream = Stream.make(1, 2, 3) // 1, 2, 3の数字を持つストリームを定義
+const stream = Stream.make(1, 2, 3); // 1, 2, 3の数字を持つストリームを定義
 
-const sink = Sink.sum // 数字を合計するSinkを選択
+const sink = Sink.sum; // 数字を合計するSinkを選択
 
-const sum = Stream.run(stream, sink) // ストリームをSinkを介して実行
+const sum = Stream.run(stream, sink); // ストリームをSinkを介して実行
 
-Effect.runPromise(sum).then(console.log)
+Effect.runPromise(sum).then(console.log);
 /*
 出力:
 6

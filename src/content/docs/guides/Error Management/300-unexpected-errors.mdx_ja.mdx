@@ -79,7 +79,7 @@ const divide = (a: number, b: number): Effect.Effect<number, Error> =>
 
 const program = Effect.orDieWith(
   divide(1, 0),
-  (error) => new Error(`欠陥: ${error.message}`)
+  (error) => new Error(`欠陥: ${error.message}`),
 );
 
 Effect.runSync(program); // エラーをスロー: 欠陥: ゼロで割ることはできません
@@ -120,7 +120,7 @@ const program = Effect.gen(function* () {
     const cause = exit.cause;
     if (Cause.isDieType(cause) && Cause.isRuntimeException(cause.defect)) {
       yield* Console.log(
-        `ランタイム例外欠陥がキャッチされました: ${cause.defect.message}`
+        `ランタイム例外欠陥がキャッチされました: ${cause.defect.message}`,
       );
     } else {
       yield* Console.log("未知の欠陥がキャッチされました。");
@@ -154,7 +154,7 @@ const task = Effect.dieMessage("バン!");
 const program = Effect.catchAllDefect(task, (defect) => {
   if (Cause.isRuntimeException(defect)) {
     return Console.log(
-      `ランタイム例外欠陥がキャッチされました: ${defect.message}`
+      `ランタイム例外欠陥がキャッチされました: ${defect.message}`,
     );
   }
   return Console.log("未知の欠陥がキャッチされました。");
@@ -193,8 +193,8 @@ const program = Effect.catchSomeDefect(task, (defect) => {
   if (Cause.isIllegalArgumentException(defect)) {
     return Option.some(
       Console.log(
-        `IllegalArgumentException欠陥がキャッチされました: ${defect.message}`
-      )
+        `IllegalArgumentException欠陥がキャッチされました: ${defect.message}`,
+      ),
     );
   }
   return Option.none();

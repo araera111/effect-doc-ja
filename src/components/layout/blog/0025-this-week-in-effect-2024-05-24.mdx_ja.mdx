@@ -45,68 +45,77 @@ Effectを始めるには、以下のクイックスタートガイドとドキ�
 ここでは、先週発生した技術的変更をすべてご紹介します（3.2リリースに含まれる変更は含まれていません）。
 
 ### Effect Core
-+ [スケジュールの無限遅延に対する修正](https://github.com/Effect-TS/effect/pull/2773) (バグ修正)
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
-+ [オプショナルプロパティのためのConfig.Wrapの修正](https://github.com/Effect-TS/effect/pull/2779) (バグ修正)
-+ [Effect.Tagにおける名前の衝突を禁止](https://github.com/Effect-TS/effect/pull/2787) (機能追加)
-+ [スパンでキャプチャされたときにスタックの早読みを防止](https://github.com/Effect-TS/effect/pull/2798) (バグ修正)
-+ [スタックトレースをクリアにするための関数の内部化の改善](https://github.com/Effect-TS/effect/pull/2797) (改善)
-+ [effect_internal_*関数名がesmで保持されることを保証](https://github.com/Effect-TS/effect/pull/2804) (バグ修正)
-+ [内部カットポイント名の保持の修正](https://github.com/Effect-TS/effect/pull/2805) (バグ修正)
-+ [Array：flatMapNullable実装の修正と説明・例の追加](https://github.com/Effect-TS/effect/pull/2808) (バグ修正、ドキュメント更新)
-+ [Array：ReadonlyArrayのシグネチャの簡略化](https://github.com/Effect-TS/effect/pull/2823) (リファクタリング)
-+ [separate, getRights, getLefts, getSomesのdtslintテストを追加](https://github.com/Effect-TS/effect/pull/2825) (機能追加)
-+ [Stream.toReadableStreamファイバをスコープにアタッチ](https://github.com/Effect-TS/effect/pull/2834) (バグ修正)
-+ [Layer.annotateLogs & Layer.annotateSpansの追加](https://github.com/Effect-TS/effect/pull/2836) (機能追加、次のマイナー版)
+
+- [スケジュールの無限遅延に対する修正](https://github.com/Effect-TS/effect/pull/2773) (バグ修正)
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+- [オプショナルプロパティのためのConfig.Wrapの修正](https://github.com/Effect-TS/effect/pull/2779) (バグ修正)
+- [Effect.Tagにおける名前の衝突を禁止](https://github.com/Effect-TS/effect/pull/2787) (機能追加)
+- [スパンでキャプチャされたときにスタックの早読みを防止](https://github.com/Effect-TS/effect/pull/2798) (バグ修正)
+- [スタックトレースをクリアにするための関数の内部化の改善](https://github.com/Effect-TS/effect/pull/2797) (改善)
+- [effect*internal*\*関数名がesmで保持されることを保証](https://github.com/Effect-TS/effect/pull/2804) (バグ修正)
+- [内部カットポイント名の保持の修正](https://github.com/Effect-TS/effect/pull/2805) (バグ修正)
+- [Array：flatMapNullable実装の修正と説明・例の追加](https://github.com/Effect-TS/effect/pull/2808) (バグ修正、ドキュメント更新)
+- [Array：ReadonlyArrayのシグネチャの簡略化](https://github.com/Effect-TS/effect/pull/2823) (リファクタリング)
+- [separate, getRights, getLefts, getSomesのdtslintテストを追加](https://github.com/Effect-TS/effect/pull/2825) (機能追加)
+- [Stream.toReadableStreamファイバをスコープにアタッチ](https://github.com/Effect-TS/effect/pull/2834) (バグ修正)
+- [Layer.annotateLogs & Layer.annotateSpansの追加](https://github.com/Effect-TS/effect/pull/2836) (機能追加、次のマイナー版)
 
 ### Effect Platform
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
-+ [Handlerの定義をApp.Defaultを利用するよう更新](https://github.com/Effect-TS/effect/pull/2784) (リファクタリング)
-+ [HTTPサーバーのためのGetting Startedドキュメントを追加](https://github.com/Effect-TS/effect/pull/2771) (ドキュメント更新)
-+ [ノードHTTPサーバーの応答でコールバックを待機](https://github.com/Effect-TS/effect/pull/2796) (バグ修正)
-+ [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
-+ [プラットフォームに「アプリケーションへのミドルウェアの適用」セクションを追加](https://github.com/Effect-TS/effect/pull/2826) (ドキュメント更新)
-+ [Array.separate, Array.getRights, Array.getLefts, Array.getSomesを異種混合にする](https://github.com/Effect-TS/effect/pull/2744) (機能追加)
-+ [プラットフォームワーカーのプールサイズの変更を削除し、同時アクセスを可能に](https://github.com/Effect-TS/effect/pull/2835) (バグ修正)
+
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+- [Handlerの定義をApp.Defaultを利用するよう更新](https://github.com/Effect-TS/effect/pull/2784) (リファクタリング)
+- [HTTPサーバーのためのGetting Startedドキュメントを追加](https://github.com/Effect-TS/effect/pull/2771) (ドキュメント更新)
+- [ノードHTTPサーバーの応答でコールバックを待機](https://github.com/Effect-TS/effect/pull/2796) (バグ修正)
+- [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
+- [プラットフォームに「アプリケーションへのミドルウェアの適用」セクションを追加](https://github.com/Effect-TS/effect/pull/2826) (ドキュメント更新)
+- [Array.separate, Array.getRights, Array.getLefts, Array.getSomesを異種混合にする](https://github.com/Effect-TS/effect/pull/2744) (機能追加)
+- [プラットフォームワーカーのプールサイズの変更を削除し、同時アクセスを可能に](https://github.com/Effect-TS/effect/pull/2835) (バグ修正)
 
 ### Effect RPC
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
 
 ### Effect Experimental
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
-+ [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
+
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+- [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
 
 ### Effect Vitest
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
 
 ### Effect OpenTelemetry
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
 
 ### Effect SQL
-+ [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
-+ [PgClient.configのPostgres.jsの解析オプションを置き換え](https://github.com/Effect-TS/effect/pull/2783) (バグ修正)
-+ [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
-+ [/sql-sqlite-react-nativeにsql.reactive APIを追加](https://github.com/Effect-TS/effect/pull/2833) (機能追加)
-+ [SQLクライアントに渡す追加のスパン属性を許可](https://github.com/Effect-TS/effect/pull/2838) (バグ修正)
+
+- [リリースキュー：マイナー](https://github.com/Effect-TS/effect/pull/2690) (改善)
+- [PgClient.configのPostgres.jsの解析オプションを置き換え](https://github.com/Effect-TS/effect/pull/2783) (バグ修正)
+- [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
+- [/sql-sqlite-react-nativeにsql.reactive APIを追加](https://github.com/Effect-TS/effect/pull/2833) (機能追加)
+- [SQLクライアントに渡す追加のスパン属性を許可](https://github.com/Effect-TS/effect/pull/2838) (バグ修正)
 
 ### Effect Schema
-+ [attachPropertySignatureの使用に関するノートを追加](https://github.com/Effect-TS/effect/pull/2770) (ドキュメント更新)
-+ [Schema：README.mdに要約セクションを追加](https://github.com/Effect-TS/effect/pull/2774) (ドキュメント更新)
-+ [schema.optionalにonNoneEncodingを追加](https://github.com/Effect-TS/effect/pull/2772) (機能追加)
-+ [トリムされたjson-schemaパターンを変更](https://github.com/Effect-TS/effect/pull/2775) (バグ修正)
-+ [Trimmedパターンのテストを追加](https://github.com/Effect-TS/effect/pull/2782) (改善)
-+ [Schema.OptionFromUndefinedOrのドキュメントを追加](https://github.com/Effect-TS/effect/pull/2786) (ドキュメント更新)
-+ [Schema.Structについてのノートを追加](https://github.com/Effect-TS/effect/pull/2790) (ドキュメント更新)
-+ [optionalおよびoptionalWithOptions APIインターフェースを追加](https://github.com/Effect-TS/effect/pull/2794) (機能追加)
-+ [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
-+ [RecordにEnumのサポートを追加](https://github.com/Effect-TS/effect/pull/2814) (機能追加)
-+ [Configモジュールのサポートを追加](https://github.com/Effect-TS/effect/pull/2816) (機能追加)
-+ [Schema：Configのドキュメントを追加](https://github.com/Effect-TS/effect/pull/2821) (ドキュメント更新)
-+ [Schema：readme：Secretスキーマの合成に関する警告を追加](https://github.com/Effect-TS/effect/pull/2822) (ドキュメント更新)
+
+- [attachPropertySignatureの使用に関するノートを追加](https://github.com/Effect-TS/effect/pull/2770) (ドキュメント更新)
+- [Schema：README.mdに要約セクションを追加](https://github.com/Effect-TS/effect/pull/2774) (ドキュメント更新)
+- [schema.optionalにonNoneEncodingを追加](https://github.com/Effect-TS/effect/pull/2772) (機能追加)
+- [トリムされたjson-schemaパターンを変更](https://github.com/Effect-TS/effect/pull/2775) (バグ修正)
+- [Trimmedパターンのテストを追加](https://github.com/Effect-TS/effect/pull/2782) (改善)
+- [Schema.OptionFromUndefinedOrのドキュメントを追加](https://github.com/Effect-TS/effect/pull/2786) (ドキュメント更新)
+- [Schema.Structについてのノートを追加](https://github.com/Effect-TS/effect/pull/2790) (ドキュメント更新)
+- [optionalおよびoptionalWithOptions APIインターフェースを追加](https://github.com/Effect-TS/effect/pull/2794) (機能追加)
+- [依存関係の更新](https://github.com/Effect-TS/effect/pull/2803) (改善)
+- [RecordにEnumのサポートを追加](https://github.com/Effect-TS/effect/pull/2814) (機能追加)
+- [Configモジュールのサポートを追加](https://github.com/Effect-TS/effect/pull/2816) (機能追加)
+- [Schema：Configのドキュメントを追加](https://github.com/Effect-TS/effect/pull/2821) (ドキュメント更新)
+- [Schema：readme：Secretスキーマの合成に関する警告を追加](https://github.com/Effect-TS/effect/pull/2822) (ドキュメント更新)
 
 ### 一般的な雑務
-+ [公開前にビルド出力をテスト](https://github.com/Effect-TS/effect/pull/2759)
-+ [コントリビューターをchangelogに反映](https://github.com/Effect-TS/effect/pull/2802) 
+
+- [公開前にビルド出力をテスト](https://github.com/Effect-TS/effect/pull/2759)
+- [コントリビューターをchangelogに反映](https://github.com/Effect-TS/effect/pull/2802)
 
 ## コミュニティのハイライト
 
@@ -117,20 +126,25 @@ Effectが[JavaScriptオープンソースアワード](https://osawards.com/java
 <Tweet id="1793926524044718256" />
 
 [Evryg](https://www.evryg.com)チームが、第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)の日程を発表しました：**6月25日火曜日の午後7時**です。講演者の募集を開始しています—[今すぐ応募](https://github.com/evryg-org/effect-paris/issues/new?template=talk.yml)してください！なお、ミートアップはフランス語で行われます。
+
 <Tweet id="1793661086291710258" />
 
 [スティーブン・ブラック](https://x.com/whatthebluck)さんは、長年のEffectコミュニティメンバーで、最近[EffectとRemixの連携](https://github.com/stevebluck/chuz)に関するプロジェクトを公開しました。
+
 <Tweet id="1792576786326257860" />
 
 [ディロン・マルロイ](https://twitter.com/dillon_mulroy)、[@Vercel](https://vercel.com)のソフトウェアエンジニアは、Effectを使用したSpotifyとTwitchの統合に関する作業の進捗を共有しました。詳細は以下のツイートをご覧ください：
+
 <Tweet id="1794019361876750644" />
 
 Effectの著者である[マイケル・アルナルディ](https://x.com/MichaelArnaldi)が、5月27日月曜日の午後5時UTCに[nickyt.live](https://nickyt.live/)ポッドキャストで[ニック・テイラー](https://x.com/nickytonline)と一緒にEffectの紹介を行います。
+
 <Tweet id="1793244515580400087" />
 
 ### コンテンツ更新
 
 月曜日には、Effect Days Conferenceからの新しいトーク「Effect Clusterを用いた耐久性ワークフロー」が[Mattia Manzati](https://twitter.com/MattiaManzati)によって公開されました。このトークでは、MattiaがEffect Clusterを使用した耐久性ワークフローの概念について掘り下げ、分散システムにおける障害や再試行の処理を手助けし、アクティビティやワークフローを処理するためのビルディングブロックを提供します。Mattiaのプレゼンテーションを以下でご覧ください：
+
 <YouTube url="https://www.youtube.com/embed/EcyrFrJFMWY?si=aEl-NyAeFzTMHNTV" />
 
 ## まとめ

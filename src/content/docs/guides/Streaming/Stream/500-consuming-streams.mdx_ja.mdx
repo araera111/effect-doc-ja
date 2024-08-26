@@ -11,13 +11,13 @@ bottomNavigation: pagination
 ストリームからすべての要素を単一の`Chunk`に集めるには、`Stream.runCollect`関数を使用します。
 
 ```ts twoslash
-import { Stream, Effect } from "effect"
+import { Stream, Effect } from "effect";
 
-const stream = Stream.make(1, 2, 3, 4, 5)
+const stream = Stream.make(1, 2, 3, 4, 5);
 
-const collectedData = Stream.runCollect(stream)
+const collectedData = Stream.runCollect(stream);
 
-Effect.runPromise(collectedData).then(console.log)
+Effect.runPromise(collectedData).then(console.log);
 /*
 出力:
 {
@@ -32,13 +32,13 @@ Effect.runPromise(collectedData).then(console.log)
 ストリームの要素を消費する別の方法は、`Stream.runForEach`を使用することです。この関数は、ストリームの各要素を受け取るコールバック関数を引数に取ります。以下はその例です。
 
 ```ts twoslash
-import { Stream, Effect, Console } from "effect"
+import { Stream, Effect, Console } from "effect";
 
 const effect = Stream.make(1, 2, 3).pipe(
-  Stream.runForEach((n) => Console.log(n))
-)
+  Stream.runForEach((n) => Console.log(n)),
+);
 
-Effect.runPromise(effect).then(console.log)
+Effect.runPromise(effect).then(console.log);
 /*
 出力:
 1
@@ -55,21 +55,21 @@ undefined
 `Stream.fold`関数は、ストリームから生成された値に対してフォールド操作を行い、その結果を含むエフェクトを返すことでストリームを消費する別の方法です。以下にいくつかの例を示します。
 
 ```ts twoslash
-import { Stream, Effect } from "effect"
+import { Stream, Effect } from "effect";
 
-const e1 = Stream.make(1, 2, 3, 4, 5).pipe(Stream.runFold(0, (a, b) => a + b))
+const e1 = Stream.make(1, 2, 3, 4, 5).pipe(Stream.runFold(0, (a, b) => a + b));
 
-Effect.runPromise(e1).then(console.log) // 出力: 15
+Effect.runPromise(e1).then(console.log); // 出力: 15
 
 const e2 = Stream.make(1, 2, 3, 4, 5).pipe(
   Stream.runFoldWhile(
     0,
     (n) => n <= 3,
-    (a, b) => a + b
-  )
-)
+    (a, b) => a + b,
+  ),
+);
 
-Effect.runPromise(e2).then(console.log) // 出力: 6
+Effect.runPromise(e2).then(console.log); // 出力: 6
 ```
 
 最初の例（`e1`）では、`Stream.runFold`を使用してすべての要素の合計を計算しています。二つ目の例（`e2`）では、`Stream.runFoldWhile`を使って特定の条件が満たされるまで合計を計算しています。
@@ -79,11 +79,11 @@ Effect.runPromise(e2).then(console.log) // 出力: 6
 `Sink`を使用してストリームを消費するには、`Sink`を`Stream.run`関数に渡します。以下にその例を示します。
 
 ```ts twoslash
-import { Stream, Sink, Effect } from "effect"
+import { Stream, Sink, Effect } from "effect";
 
-const effect = Stream.make(1, 2, 3).pipe(Stream.run(Sink.sum))
+const effect = Stream.make(1, 2, 3).pipe(Stream.run(Sink.sum));
 
-Effect.runPromise(effect).then(console.log) // 出力: 6
+Effect.runPromise(effect).then(console.log); // 出力: 6
 ```
 
 この例では、`Sink`を使用してストリーム内の要素の合計を計算しています。

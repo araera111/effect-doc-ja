@@ -119,12 +119,12 @@ import { effect } from "./fake";
 
 const policy = Schedule.addDelay(
   Schedule.recurs(2), // 最大で2回再試行
-  () => "100 millis" // 再試行の間に100ミリ秒の遅延を追加
+  () => "100 millis", // 再試行の間に100ミリ秒の遅延を追加
 );
 
 // 指定されたポリシーでエフェクトを再試行し、すべての再試行が失敗した場合はフォールバックエフェクトを提供する新しいエフェクトを作成
 const repeated = Effect.retryOrElse(effect, policy, () =>
-  Console.log("orElse").pipe(Effect.as("default value"))
+  Console.log("orElse").pipe(Effect.as("default value")),
 );
 
 Effect.runPromise(repeated).then(console.log);

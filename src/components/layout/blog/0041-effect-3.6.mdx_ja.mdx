@@ -22,21 +22,21 @@ Effect 3.6がリリースされました！このリリースには多くの新�
 また、文脈的にタイムゾーンを設定するための`CurrentTimeZone`サービスも用意されています。
 
 ```ts
-import { DateTime, Effect } from "effect"
+import { DateTime, Effect } from "effect";
 
 Effect.gen(function* () {
   // 現在のタイムゾーンにおける現在の時間を取得
-  const now = yield* DateTime.nowInCurrentZone
+  const now = yield* DateTime.nowInCurrentZone;
 
   // 数学関数が含まれています
-  const tomorrow = DateTime.add(now, { days: 1 })
+  const tomorrow = DateTime.add(now, { days: 1 });
 
   // 別のタイムゾーンに変換
   // `DateTime`のUTC部分は保持され、タイムゾーンのみが変更されます
   const sydneyTime = tomorrow.pipe(
     DateTime.unsafeSetZoneNamed("Australia/Sydney"),
-  )
-}).pipe(DateTime.withCurrentZoneNamed("America/New_York"))
+  );
+}).pipe(DateTime.withCurrentZoneNamed("America/New_York"));
 ```
 
 ## Stream.asyncPush API
@@ -70,17 +70,17 @@ Stream.asyncPush<string>(
 構造体の型付けされたキーにアクセスするためには、`Struct.keys`関数を使用します。
 
 ```ts
-import { Struct } from "effect"
+import { Struct } from "effect";
 
-const symbol: unique symbol = Symbol()
+const symbol: unique symbol = Symbol();
 
 const value = {
   a: 1,
   b: 2,
-  [symbol]: 3
-}
+  [symbol]: 3,
+};
 
-const keys: Array<"a" | "b"> = Struct.keys(value)
+const keys: Array<"a" | "b"> = Struct.keys(value);
 ```
 
 ## @effect/sql-kysely パッケージ
@@ -91,20 +91,26 @@ const keys: Array<"a" | "b"> = Struct.keys(value)
 // 自分の`Database`型でタグを作成
 class KyselyDB extends Context.Tag("KyselyDB")<KyselyDB, Kysely<Database>>() {}
 
-Effect.gen(function*(_) {
+Effect.gen(function* (_) {
   // サービスにアクセスしてクエリを実行
-  const db = yield* KyselyDB
+  const db = yield* KyselyDB;
 
   yield* db.schema
     .createTable("users")
     .addColumn("id", "integer", (c) => c.primaryKey().autoIncrement())
-    .addColumn("userName", "text", (c) => c.notNull())
+    .addColumn("userName", "text", (c) => c.notNull());
 
-  const inserted = yield* db.insertInto("users").values({ userName: "Alice" }).returningAll()
-  const selected = yield* db.selectFrom("users").selectAll()
-  const updated = yield* db.updateTable("users").set({ userName: "Bob" }).returningAll()
-  const deleted = yield* db.deleteFrom("users").returningAll()
-})
+  const inserted = yield* db
+    .insertInto("users")
+    .values({ userName: "Alice" })
+    .returningAll();
+  const selected = yield* db.selectFrom("users").selectAll();
+  const updated = yield* db
+    .updateTable("users")
+    .set({ userName: "Bob" })
+    .returningAll();
+  const deleted = yield* db.deleteFrom("users").returningAll();
+});
 ```
 
 ## Random.choice API
@@ -114,12 +120,12 @@ Effect.gen(function*(_) {
 `Iterable`が「NonEmpty」でない場合、Effectは`Cause.NoSuchElementException`で失敗する可能性があります。
 
 ```ts
-import { Random } from "effect"
+import { Random } from "effect";
 
 Effect.gen(function* () {
-  const randomItem = yield* Random.choice([1, 2, 3])
-  console.log(randomItem)
-})
+  const randomItem = yield* Random.choice([1, 2, 3]);
+  console.log(randomItem);
+});
 ```
 
 ## Effect.tap の onlyEffect オプション
@@ -133,12 +139,12 @@ Effect.gen(function* () {
 リファインメントを`Predicate.tuple`および`Predicate.struct`と共に使用して、結果の型を絞り込むことができるようになりました。
 
 ```ts
-import { Predicate } from "effect"
+import { Predicate } from "effect";
 
-const isTrue = (u: unknown): u is true => u === true
+const isTrue = (u: unknown): u is true => u === true;
 
 // 型を { isTrue: true } に絞り込みます
-Predicate.struct({ isTrue })
+Predicate.struct({ isTrue });
 ```
 
 ## Stream フック API

@@ -41,80 +41,93 @@ Effectは、開発者が複雑な同期・非同期プログラムを作成す�
 ## テクノロジー
 
 [Effect Schema 0.69](https://effect.website/blog/schema-release-0.69)がリリースされました。
+
 <Tweet id="1815769005619098053" />
 
 先週の技術的な変更点は以下の通りです。
 
 ### Effect Core
-+ [存在しないAPIへのリンクを削除](https://github.com/Effect-TS/effect/pull/3334)（ドキュメント更新）
-+ [typoをpropertyに修正](https://github.com/Effect-TS/effect/pull/3345)（バグ修正）
-+ [全てのData.Error引数が.toJSONで保持されることを確認](https://github.com/Effect-TS/effect/pull/3349)（バグ修正）
-+ [Hash.numberが一意の値を返さない問題を修正](https://github.com/Effect-TS/effect/pull/3355)（バグ修正）
-+ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+- [存在しないAPIへのリンクを削除](https://github.com/Effect-TS/effect/pull/3334)（ドキュメント更新）
+- [typoをpropertyに修正](https://github.com/Effect-TS/effect/pull/3345)（バグ修正）
+- [全てのData.Error引数が.toJSONで保持されることを確認](https://github.com/Effect-TS/effect/pull/3349)（バグ修正）
+- [Hash.numberが一意の値を返さない問題を修正](https://github.com/Effect-TS/effect/pull/3355)（バグ修正）
+- [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
 
 ### Effect Platform
-+ [検索パラメータに関連する関数シグネチャを修正](https://github.com/Effect-TS/effect/pull/3339)（バグ修正）
-+ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+- [検索パラメータに関連する関数シグネチャを修正](https://github.com/Effect-TS/effect/pull/3339)（バグ修正）
+- [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
 
 ### Effect SQL
-+ [最近のモジュール再編成を受けてe/sqlドキュメントを最新に更新](https://github.com/Effect-TS/effect/pull/3354)（ドキュメント更新）
+
+- [最近のモジュール再編成を受けてe/sqlドキュメントを最新に更新](https://github.com/Effect-TS/effect/pull/3354)（ドキュメント更新）
 
 ### Effect Experimental
-+ [DevToolsクライアントが中断時にリクエストをフラッシュすることを保証](https://github.com/Effect-TS/effect/pull/3325)（バグ修正、最適化）
+
+- [DevToolsクライアントが中断時にリクエストをフラッシュすることを保証](https://github.com/Effect-TS/effect/pull/3325)（バグ修正、最適化）
 
 ### Effect Schema
-+ [クラス定義内の不正確な静的オーバーライド型注釈を削除](https://github.com/Effect-TS/effect/pull/3311)（バグ修正）
-+ [JSON Schemaガイドを更新](https://github.com/Effect-TS/effect/pull/3313)（ドキュメント更新）
-+ [Schemaの次のマイナー](https://github.com/Effect-TS/effect/pull/3227)（改善）
-+ [スキーマベンチマークを修正](https://github.com/Effect-TS/effect/pull/3328)（バグ修正）
-+ [TaggedRequestClassインターフェースに成功と失敗のスキーマを公開](https://github.com/Effect-TS/effect/pull/3333)（改善）
-+ [クラスAPIからの注釈の取得を改善](https://github.com/Effect-TS/effect/pull/3357)（改善）
-+ [List.ConsをNonEmptyIterableに拡張](https://github.com/Effect-TS/effect/pull/3350)（機能、次のマイナー）
-+ [Random.choiceを追加](https://github.com/Effect-TS/effect/pull/3314)（機能、次のマイナー）
-+ [SchemaインターフェースにContextフィールドを追加](https://github.com/Effect-TS/effect/pull/3359)（機能）
-+ [NonEmptyTrimmedString、OptionFromNonEmptyTrimmedStringを追加](https://github.com/Effect-TS/effect/pull/3343)（機能）
+
+- [クラス定義内の不正確な静的オーバーライド型注釈を削除](https://github.com/Effect-TS/effect/pull/3311)（バグ修正）
+- [JSON Schemaガイドを更新](https://github.com/Effect-TS/effect/pull/3313)（ドキュメント更新）
+- [Schemaの次のマイナー](https://github.com/Effect-TS/effect/pull/3227)（改善）
+- [スキーマベンチマークを修正](https://github.com/Effect-TS/effect/pull/3328)（バグ修正）
+- [TaggedRequestClassインターフェースに成功と失敗のスキーマを公開](https://github.com/Effect-TS/effect/pull/3333)（改善）
+- [クラスAPIからの注釈の取得を改善](https://github.com/Effect-TS/effect/pull/3357)（改善）
+- [List.ConsをNonEmptyIterableに拡張](https://github.com/Effect-TS/effect/pull/3350)（機能、次のマイナー）
+- [Random.choiceを追加](https://github.com/Effect-TS/effect/pull/3314)（機能、次のマイナー）
+- [SchemaインターフェースにContextフィールドを追加](https://github.com/Effect-TS/effect/pull/3359)（機能）
+- [NonEmptyTrimmedString、OptionFromNonEmptyTrimmedStringを追加](https://github.com/Effect-TS/effect/pull/3343)（機能）
 
 ### Effect RPC
-+ [Schemaの次のマイナー](https://github.com/Effect-TS/effect/pull/3227)（改善）
-+ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+- [Schemaの次のマイナー](https://github.com/Effect-TS/effect/pull/3227)（改善）
+- [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
 
 ### Effect Vitest
-+ [vitest skipIfを追加](https://github.com/Effect-TS/effect/pull/3319)（機能）
+
+- [vitest skipIfを追加](https://github.com/Effect-TS/effect/pull/3319)（機能）
 
 ### Effect CLI
-+ [Prompt.allでレコード引数をサポート](https://github.com/Effect-TS/effect/pull/3329)（機能）
-+ [Prompt.allのJSDocを改善](https://github.com/Effect-TS/effect/pull/3332)（ドキュメント更新）
-+ [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
+
+- [Prompt.allでレコード引数をサポート](https://github.com/Effect-TS/effect/pull/3329)（機能）
+- [Prompt.allのJSDocを改善](https://github.com/Effect-TS/effect/pull/3332)（ドキュメント更新）
+- [様々な関数シグネチャをArrayを返すように調整](https://github.com/Effect-TS/effect/pull/3340)（バグ修正、次のマイナー）
 
 ### 一般的な雑用
-+ [babel-plugin-annotate-pure-callsのパッチを追加](https://github.com/Effect-TS/effect/pull/3310)
-+ [eslintプラグインをアップデート](https://github.com/Effect-TS/effect/pull/3312)
-+ [/snapshot出力の変更](https://github.com/Effect-TS/effect/pull/3316)
-+ [/snapshotコメント出力の修正](https://github.com/Effect-TS/effect/pull/3317)
-+ [すべてのプルリクエストでスナップショットを公開](https://github.com/Effect-TS/effect/pull/3320)（最適化）
-+ [スナップショットアクションを修正](https://github.com/Effect-TS/effect/pull/3321)（バグ修正）
-+ [スナップショットはプルリクエストでのみ実行を許可](https://github.com/Effect-TS/effect/pull/3324)（バグ修正）
-+ [スナップショットワークフローからプッシュトリガーを削除](https://github.com/Effect-TS/effect/pull/3342)（バグ修正）
-+ [スナップショットコメントを削除](https://github.com/Effect-TS/effect/pull/3351)（バグ修正）
-+ [typescriptをアップグレード](https://github.com/Effect-TS/effect/pull/3360)
+
+- [babel-plugin-annotate-pure-callsのパッチを追加](https://github.com/Effect-TS/effect/pull/3310)
+- [eslintプラグインをアップデート](https://github.com/Effect-TS/effect/pull/3312)
+- [/snapshot出力の変更](https://github.com/Effect-TS/effect/pull/3316)
+- [/snapshotコメント出力の修正](https://github.com/Effect-TS/effect/pull/3317)
+- [すべてのプルリクエストでスナップショットを公開](https://github.com/Effect-TS/effect/pull/3320)（最適化）
+- [スナップショットアクションを修正](https://github.com/Effect-TS/effect/pull/3321)（バグ修正）
+- [スナップショットはプルリクエストでのみ実行を許可](https://github.com/Effect-TS/effect/pull/3324)（バグ修正）
+- [スナップショットワークフローからプッシュトリガーを削除](https://github.com/Effect-TS/effect/pull/3342)（バグ修正）
+- [スナップショットコメントを削除](https://github.com/Effect-TS/effect/pull/3351)（バグ修正）
+- [typescriptをアップグレード](https://github.com/Effect-TS/effect/pull/3360)
 
 ## コミュニティのハイライト
 
-先週、40人以上の新しいEffectersを我々の[Discordコミュニティ](https://discord.gg/effect-ts)に迎えました - 皆さんをお迎えできて非常に嬉しいです！ 
+先週、40人以上の新しいEffectersを我々の[Discordコミュニティ](https://discord.gg/effect-ts)に迎えました - 皆さんをお迎えできて非常に嬉しいです！
 
 長年のEffectコミュニティメンバーである[Stephen Bluck](https://x.com/whatthebluck)が、Effectで動作するプロジェクトの一つ[YTK](https://iyk.app/)を紹介しました：Glimmers、NFC対応のステッカーで、さまざまなオブジェクトをプライベートフォトジャーナルに変えます。
+
 <Tweet id="1816209112255934617" />
 
 ## Effectコンテンツの更新
 
-+ Michael ArnaldiとMaxwell Brownによるシリーズ**Reimagining Contentlayer**のエピソード2が水曜日に放送されました。この動画は近日中に[EffectのYouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能になります。その間に、[MikeのTwitch](https://www.twitch.tv/mikearnaldi/video/2206072150)で見ることができます。
-<Tweet id="1816112584484913397" />
+- Michael ArnaldiとMaxwell Brownによるシリーズ**Reimagining Contentlayer**のエピソード2が水曜日に放送されました。この動画は近日中に[EffectのYouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能になります。その間に、[MikeのTwitch](https://www.twitch.tv/mikearnaldi/video/2206072150)で見ることができます。
 
-+ 「Reimagining Contentlayer」の第1話がYouTubeで公開されました。以下からチェックしてください：
-<YouTube url="https://www.youtube.com/embed/i4lYoTV0q6U?si=IiWblmlPZDMYcC3O" />
+  <Tweet id="1816112584484913397" />
 
-+ Effectの教育者でありEffect Days 2024のワークショップ講師である[Ethan Niser](https://x.com/ethanniser)が、構造化された並行性についての動画を公開しました。この中でEffectの進化した構造化された並行性モデルについても言及しています。下記の動画をご覧ください。
-<YouTube url="https://www.youtube.com/embed/ibxUIL_-LlA?si=u_GeUFW0NXoBKQYe" />
+- 「Reimagining Contentlayer」の第1話がYouTubeで公開されました。以下からチェックしてください：
+
+  <YouTube url="https://www.youtube.com/embed/i4lYoTV0q6U?si=IiWblmlPZDMYcC3O" />
+
+- Effectの教育者でありEffect Days 2024のワークショップ講師である[Ethan Niser](https://x.com/ethanniser)が、構造化された並行性についての動画を公開しました。この中でEffectの進化した構造化された並行性モデルについても言及しています。下記の動画をご覧ください。
+  <YouTube url="https://www.youtube.com/embed/ibxUIL_-LlA?si=u_GeUFW0NXoBKQYe" />
 
 ## 終わりの言葉
 

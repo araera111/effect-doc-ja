@@ -16,9 +16,9 @@ Effect 3.1.0がリリースされました！このリリースには多数の�
 この新しいAPIを使用すると、`EventTarget`から`Stream`を作成できます：
 
 ```ts
-import { Stream } from "effect/Stream"
+import { Stream } from "effect/Stream";
 
-Stream.fromEventListener(window, "click")
+Stream.fromEventListener(window, "click");
 ```
 
 また、`@effect/platform-browser/BrowserStream`が追加され、`fromEventListenerWindow`と`fromEventListenerDocument`のAPIも利用可能になりました。
@@ -46,13 +46,13 @@ Stream.fromEventListener(window, "click")
 `Effect`に新しいAPIが追加され、スコープのライフサイクル中にログを注釈することができるようになりました。
 
 ```ts
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 Effect.gen(function* () {
-  yield* Effect.log("注釈なし")
-  yield* Effect.annotateLogsScoped({ foo: "bar" })
-  yield* Effect.log("foo=barで注釈付き")
-}).pipe(Effect.scoped, Effect.andThen(Effect.log("再度注釈なし")))
+  yield* Effect.log("注釈なし");
+  yield* Effect.annotateLogsScoped({ foo: "bar" });
+  yield* Effect.log("foo=barで注釈付き");
+}).pipe(Effect.scoped, Effect.andThen(Effect.log("再度注釈なし")));
 ```
 
 ### Data.TaggedEnumヘルパー
@@ -60,24 +60,24 @@ Effect.gen(function* () {
 `Data.TaggedEnum`コンストラクタに`$is`と`$match`のヘルパーが追加されました。
 
 ```ts
-import { Data } from "effect"
+import { Data } from "effect";
 
 type HttpError = Data.TaggedEnum<{
-  NotFound: {}
-  InternalServerError: { reason: string }
-}>
+  NotFound: {};
+  InternalServerError: { reason: string };
+}>;
 const { $is, $match, InternalServerError, NotFound } =
-  Data.taggedEnum<HttpError>()
+  Data.taggedEnum<HttpError>();
 
 // マッチャーを作成
 const matcher = $match({
   NotFound: () => 0,
-  InternalServerError: () => 1
-})
+  InternalServerError: () => 1,
+});
 
 // ガードを使用
-$is("NotFound")(NotFound()) // true
-$is("NotFound")(InternalServerError({ reason: "fail" })) // false
+$is("NotFound")(NotFound()); // true
+$is("NotFound")(InternalServerError({ reason: "fail" })); // false
 ```
 
 ### Types.DeepMutable
@@ -85,15 +85,15 @@ $is("NotFound")(InternalServerError({ reason: "fail" })) // false
 型ヘルパーが追加され、型を深くミュータブルなバージョンに変換します。
 
 ```ts
-import { Types } from "effect"
+import { Types } from "effect";
 
 type Values<A> = {
-  readonly _tag: string
-  readonly value: ReadonlyArray<A>
-}
+  readonly _tag: string;
+  readonly value: ReadonlyArray<A>;
+};
 
 // { _tag: string, value: Array<A> }
-type MutableValues<A> = Types.DeepMutable<Values<A>>
+type MutableValues<A> = Types.DeepMutable<Values<A>>;
 ```
 
 ### 新しいSortedMap API

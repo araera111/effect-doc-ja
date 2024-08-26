@@ -47,68 +47,79 @@ Effectを始めるには、以下のクイックスタートガイドとドキ�
 先週発生したすべての技術的な変更を以下に示します（リリースに含まれる変更はリストに含まれていません）。
 
 ### Effect Core
-+ [チャンクテスト](https://github.com/Effect-TS/effect/pull/2999) (新機能)
-+ [Predicate.composeでのPredicateサポートの修正](https://github.com/Effect-TS/effect/pull/3000) (バグ修正)
-+ [Hash.randomにMath.randomを使用](https://github.com/Effect-TS/effect/pull/3001) (新機能)
-+ [JSDocs：キャッシング関数に例を追加](https://github.com/Effect-TS/effect/pull/3008) (文書更新)
-+ [Effect.tsのtypoを修正](https://github.com/Effect-TS/effect/pull/3011) (文書更新)
-+ [Config.Wrapが単純オブジェクトのみを分解することを保証](https://github.com/Effect-TS/effect/pull/3012) (バグ修正)
-+ [(JSDoc) Effect.zipおよびEffect.zipWithに説明と例を追加](https://github.com/Effect-TS/effect/pull/3019) (文書更新)
-+ [Schedule.tsのtypoを修正](https://github.com/Effect-TS/effect/pull/3026) (文書更新)
+
+- [チャンクテスト](https://github.com/Effect-TS/effect/pull/2999) (新機能)
+- [Predicate.composeでのPredicateサポートの修正](https://github.com/Effect-TS/effect/pull/3000) (バグ修正)
+- [Hash.randomにMath.randomを使用](https://github.com/Effect-TS/effect/pull/3001) (新機能)
+- [JSDocs：キャッシング関数に例を追加](https://github.com/Effect-TS/effect/pull/3008) (文書更新)
+- [Effect.tsのtypoを修正](https://github.com/Effect-TS/effect/pull/3011) (文書更新)
+- [Config.Wrapが単純オブジェクトのみを分解することを保証](https://github.com/Effect-TS/effect/pull/3012) (バグ修正)
+- [(JSDoc) Effect.zipおよびEffect.zipWithに説明と例を追加](https://github.com/Effect-TS/effect/pull/3019) (文書更新)
+- [Schedule.tsのtypoを修正](https://github.com/Effect-TS/effect/pull/3026) (文書更新)
 
 ### Effect Platform
-+ [READMEにtoWebHandler関数のドキュメントを追加し、使用例を含む](https://github.com/Effect-TS/effect/pull/3009) (文書更新)
-+ [vercel edgeサポートを修正するためにfind-my-way-tsを更新](https://github.com/Effect-TS/effect/pull/3021) (バグ修正)
-+ [HTTPリクエストテストのためのfetchモックに関する例をREADMEに追加](https://github.com/Effect-TS/effect/pull/3007) (文書更新)
-+ [find-my-way-tsとmultipastaを更新](https://github.com/Effect-TS/effect/pull/3030) (新機能)
-+ [DevToolsから/platform-nodeへの依存関係を削除](https://github.com/Effect-TS/effect/pull/3036) (リファクタリング)
+
+- [READMEにtoWebHandler関数のドキュメントを追加し、使用例を含む](https://github.com/Effect-TS/effect/pull/3009) (文書更新)
+- [vercel edgeサポートを修正するためにfind-my-way-tsを更新](https://github.com/Effect-TS/effect/pull/3021) (バグ修正)
+- [HTTPリクエストテストのためのfetchモックに関する例をREADMEに追加](https://github.com/Effect-TS/effect/pull/3007) (文書更新)
+- [find-my-way-tsとmultipastaを更新](https://github.com/Effect-TS/effect/pull/3030) (新機能)
+- [DevToolsから/platform-nodeへの依存関係を削除](https://github.com/Effect-TS/effect/pull/3036) (リファクタリング)
 
 ### Effect Experimental
-+ [DevToolsから/platform-nodeへの依存関係を削除](https://github.com/Effect-TS/effect/pull/3036) (リファクタリング)
+
+- [DevToolsから/platform-nodeへの依存関係を削除](https://github.com/Effect-TS/effect/pull/3036) (リファクタリング)
 
 ### Effect SQL
-+ [SQLモジュールのインポートをフラットにするために再構築](https://github.com/Effect-TS/effect/pull/3035) (リファクタリング)
+
+- [SQLモジュールのインポートをフラットにするために再構築](https://github.com/Effect-TS/effect/pull/3035) (リファクタリング)
 
 ### Effect Cluster
-+ [SQLモジュールのインポートをフラットにするために再構築](https://github.com/Effect-TS/effect/pull/3035) (リファクタリング)
+
+- [SQLモジュールのインポートをフラットにするために再構築](https://github.com/Effect-TS/effect/pull/3035) (リファクタリング)
 
 ### Effect Schema
-+ [extend、pick、omit、pluck APIからSimplifyを削除](https://github.com/Effect-TS/effect/pull/2991) (リファクタリング)
-+ [内部のmergeSchemaAnnotationsを追加](https://github.com/Effect-TS/effect/pull/2992) (改善)
-+ [欠損したプロパティの厳密なデコーディングのためにexactオプションを公開](https://github.com/Effect-TS/effect/pull/2994) (新機能)
-+ [オプショナルの不適切な使用に対するエラーハンドリング（型レベル）を改善](https://github.com/Effect-TS/effect/pull/2997) (改善)
-+ [typoを修正（isExact -> exact）し、internal toASTAnnotationsをより一般的にする](https://github.com/Effect-TS/effect/pull/2998) (改善)
-+ [Schema: バージョン0.68.0](https://github.com/Effect-TS/effect/pull/2906) (新機能、バグ修正、マイナー)
-+ [AST.ParseOptionsでのexactオプションのオーバーライド処理を修正し、unmatched union schemasのPretty.makeでのエラーメッセージを改善](https://github.com/Effect-TS/effect/pull/3015) (バグ修正)
-+ [Types.SimplifyをカスタムSimplifyで置き換え、pickとomit用の良好な型を回復](https://github.com/Effect-TS/effect/pull/3024) (リファクタリング)
-+ [Schemaレベルでカスタマイズ可能なパース挙動を導入](https://github.com/Effect-TS/effect/pull/3028) (新機能)
-+ [Schema Readme: 汎用スキーマを扱う際のトラブルシューティングセクションを最新の変更に更新](https://github.com/Effect-TS/effect/pull/3038) (文書更新)
+
+- [extend、pick、omit、pluck APIからSimplifyを削除](https://github.com/Effect-TS/effect/pull/2991) (リファクタリング)
+- [内部のmergeSchemaAnnotationsを追加](https://github.com/Effect-TS/effect/pull/2992) (改善)
+- [欠損したプロパティの厳密なデコーディングのためにexactオプションを公開](https://github.com/Effect-TS/effect/pull/2994) (新機能)
+- [オプショナルの不適切な使用に対するエラーハンドリング（型レベル）を改善](https://github.com/Effect-TS/effect/pull/2997) (改善)
+- [typoを修正（isExact -> exact）し、internal toASTAnnotationsをより一般的にする](https://github.com/Effect-TS/effect/pull/2998) (改善)
+- [Schema: バージョン0.68.0](https://github.com/Effect-TS/effect/pull/2906) (新機能、バグ修正、マイナー)
+- [AST.ParseOptionsでのexactオプションのオーバーライド処理を修正し、unmatched union schemasのPretty.makeでのエラーメッセージを改善](https://github.com/Effect-TS/effect/pull/3015) (バグ修正)
+- [Types.SimplifyをカスタムSimplifyで置き換え、pickとomit用の良好な型を回復](https://github.com/Effect-TS/effect/pull/3024) (リファクタリング)
+- [Schemaレベルでカスタマイズ可能なパース挙動を導入](https://github.com/Effect-TS/effect/pull/3028) (新機能)
+- [Schema Readme: 汎用スキーマを扱う際のトラブルシューティングセクションを最新の変更に更新](https://github.com/Effect-TS/effect/pull/3038) (文書更新)
 
 ### 一般的な作業
-+ [@effect/cluster-* パッケージを追加](https://github.com/Effect-TS/effect/pull/2927)
+
+- [@effect/cluster-\* パッケージを追加](https://github.com/Effect-TS/effect/pull/2927)
 
 ## コミュニティのハイライト
 
 先週、+60人の新しいEffectersが私たちの[Discordコミュニティ](https://discord.gg/effect-ts)に参加してくれました。皆さんにお会いできてとても嬉しいです！
 
-+ [ecyrbe](https://x.com/ecyrbedev)、テックリード @ [Zodios](https://www.zodios.org)が、EffectのDBクエリビルダーとしての[Kysely](https://kysely.dev)サポートを追加しています。提出中の[PR](https://github.com/Effect-TS/effect/pull/3017)をぜひチェックして、フィードバックをお寄せください。
-<Tweet id="1803552136363380831" />
+- [ecyrbe](https://x.com/ecyrbedev)、テックリード @ [Zodios](https://www.zodios.org)が、EffectのDBクエリビルダーとしての[Kysely](https://kysely.dev)サポートを追加しています。提出中の[PR](https://github.com/Effect-TS/effect/pull/3017)をぜひチェックして、フィードバックをお寄せください。
 
-+ [マイケル・アルナルディ](https://x.com/MichaelArnaldi)が、ロンドンNode.jsユーザーグループの[Live Codingセッション](https://x.com/LNUGorg)に参加します。日時は6月26日水曜日、Cloudflareオフィスにて行われます。
-<Tweet id="1798704071161110554" />
+  <Tweet id="1803552136363380831" />
 
-+ 最新のガイドで、[サンドロ・マリオーネ](https://x.com/SandroMaglione)は、Effectに基づいて堅牢な認証ソリューションを構築する課題に取り組み、[React 19](https://react.dev/blog/2024/04/25/react-19)および[Next.js](https://nextjs.org)に追加された新しいプリミティブに対応しています。
-<Tweet id="1803829211611746506" />
+- [マイケル・アルナルディ](https://x.com/MichaelArnaldi)が、ロンドンNode.jsユーザーグループの[Live Codingセッション](https://x.com/LNUGorg)に参加します。日時は6月26日水曜日、Cloudflareオフィスにて行われます。
 
-+ [Evryg](https://www.evryg.com) チームが **6月25日火曜日の午後7時** に第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)を開催します。なお、ミートアップはフランス語で行われます。
+  <Tweet id="1798704071161110554" />
+
+- 最新のガイドで、[サンドロ・マリオーネ](https://x.com/SandroMaglione)は、Effectに基づいて堅牢な認証ソリューションを構築する課題に取り組み、[React 19](https://react.dev/blog/2024/04/25/react-19)および[Next.js](https://nextjs.org)に追加された新しいプリミティブに対応しています。
+
+  <Tweet id="1803829211611746506" />
+
+- [Evryg](https://www.evryg.com) チームが **6月25日火曜日の午後7時** に第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)を開催します。なお、ミートアップはフランス語で行われます。
 
 ### コンテンツの更新
 
-+ Effect Days Conferenceからの新しいトークが月曜日にリリースされました。「識別されたユニオン：TypeScript、Effect、そしてArkTypeにおける原則から実践へ」は[デイヴィッド・ブラース](https://x.com/ssalbdivad)によるものです。在庫の出るプレゼンテーションで、デイヴィッドはTypeScriptの核心にある集合論についてより深く理解し、EffectやArkTypeのようなライブラリがそれを活用して静的および実行時のパフォーマンスを向上させ、コードをより安全にする方法を説明しました。
-<YouTube url="https://www.youtube.com/embed/AaUKLH8N6go?si=v91LFcNDB5w1FcSB" />
+- Effect Days Conferenceからの新しいトークが月曜日にリリースされました。「識別されたユニオン：TypeScript、Effect、そしてArkTypeにおける原則から実践へ」は[デイヴィッド・ブラース](https://x.com/ssalbdivad)によるものです。在庫の出るプレゼンテーションで、デイヴィッドはTypeScriptの核心にある集合論についてより深く理解し、EffectやArkTypeのようなライブラリがそれを活用して静的および実行時のパフォーマンスを向上させ、コードをより安全にする方法を説明しました。
 
-+ [Local-First Conf](https://www.localfirstconf.com/)で、[ジェス・マーティン](https://x.com/jessmartin)が、Effect Schemaが[DXOS ECHO](https://dxos.org)や[Automerge](https://automerge.org)などの分散データ技術とどのように連携して、開発者とエンドユーザーの体験を劇的に向上させるかを示しました。
-<YouTube url="https://www.youtube.com/embed/_GBpPp92L2M?si=npy60RNpUkB_tvt6" />
+  <YouTube url="https://www.youtube.com/embed/AaUKLH8N6go?si=v91LFcNDB5w1FcSB" />
+
+- [Local-First Conf](https://www.localfirstconf.com/)で、[ジェス・マーティン](https://x.com/jessmartin)が、Effect Schemaが[DXOS ECHO](https://dxos.org)や[Automerge](https://automerge.org)などの分散データ技術とどのように連携して、開発者とエンドユーザーの体験を劇的に向上させるかを示しました。
+  <YouTube url="https://www.youtube.com/embed/_GBpPp92L2M?si=npy60RNpUkB_tvt6" />
 
 ## 終わりの言葉
 

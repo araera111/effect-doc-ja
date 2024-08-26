@@ -176,7 +176,7 @@ import { pipe, Effect } from "effect";
 // 取引金額に安全に割引を適用する関数
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -187,7 +187,7 @@ const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
 
 const finalAmount = pipe(
   fetchTransactionAmount,
-  Effect.flatMap((amount) => applyDiscount(amount, 5))
+  Effect.flatMap((amount) => applyDiscount(amount, 5)),
 );
 
 Effect.runPromise(finalAmount).then(console.log); // 出力: 95
@@ -219,7 +219,7 @@ const flattened = pipe(
     [1, 2],
     [3, 4],
   ]),
-  Effect.map((nested) => Array.flatten(nested))
+  Effect.map((nested) => Array.flatten(nested)),
 );
 ```
 
@@ -260,7 +260,7 @@ import { pipe, Effect } from "effect";
 // 取引金額に安全に割引を適用する関数
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -273,7 +273,7 @@ const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
 const result1 = pipe(
   fetchTransactionAmount,
   Effect.map((amount) => amount * 2),
-  Effect.flatMap((amount) => applyDiscount(amount, 5))
+  Effect.flatMap((amount) => applyDiscount(amount, 5)),
 );
 
 Effect.runPromise(result1).then(console.log); // 出力: 190
@@ -282,7 +282,7 @@ Effect.runPromise(result1).then(console.log); // 出力: 190
 const result2 = pipe(
   fetchTransactionAmount,
   Effect.andThen((amount) => amount * 2),
-  Effect.andThen((amount) => applyDiscount(amount, 5))
+  Effect.andThen((amount) => applyDiscount(amount, 5)),
 );
 
 Effect.runPromise(result2).then(console.log); // 出力: 190
@@ -302,7 +302,7 @@ const fetchNumberValue = Effect.promise(() => Promise.resolve(42));
 // 実際にはEffect<number, NoSuchElementException, never>です。
 const program = pipe(
   fetchNumberValue,
-  Effect.andThen((x) => (x > 0 ? Option.some(x) : Option.none()))
+  Effect.andThen((x) => (x > 0 ? Option.some(x) : Option.none())),
 );
 ```
 
@@ -326,7 +326,7 @@ const fetchStringValue = Effect.promise(() => Promise.resolve("42"));
 // 実際にはEffect<number, string, never>です。
 const program = pipe(
   fetchStringValue,
-  Effect.andThen((str) => parseInteger(str))
+  Effect.andThen((str) => parseInteger(str)),
 );
 ```
 
@@ -344,7 +344,7 @@ import { pipe, Effect } from "effect";
 // 取引金額に安全に割引を適用する関数
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -356,10 +356,10 @@ const fetchTransactionAmount = Effect.promise(() => Promise.resolve(100));
 const finalAmount = pipe(
   fetchTransactionAmount,
   Effect.tap((amount) =>
-    Effect.sync(() => console.log(`割引を適用する: ${amount}`))
+    Effect.sync(() => console.log(`割引を適用する: ${amount}`)),
   ),
   // `amount`はまだ利用可能です！
-  Effect.flatMap((amount) => applyDiscount(amount, 5))
+  Effect.flatMap((amount) => applyDiscount(amount, 5)),
 );
 
 Effect.runPromise(finalAmount).then(console.log);
@@ -397,12 +397,12 @@ import { Effect } from "effect";
 
 // 設定をファイルから読み取るシミュレーション関数
 const webConfig = Effect.promise(() =>
-  Promise.resolve({ dbConnection: "localhost", port: 8080 })
+  Promise.resolve({ dbConnection: "localhost", port: 8080 }),
 );
 
 // データベース接続の確認を行うシミュレーション関数
 const checkDatabaseConnectivity = Effect.promise(() =>
-  Promise.resolve("データベースに接続しました")
+  Promise.resolve("データベースに接続しました"),
 );
 
 // スタートアップチェックを実行するために両方の効果を組み合わせる
@@ -435,7 +435,7 @@ const addServiceCharge = (amount: number) => amount + 1;
 // 取引金額に安全に割引を適用する関数
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -451,10 +451,10 @@ const fetchDiscountRate = Effect.promise(() => Promise.resolve(5));
 const program = pipe(
   Effect.all([fetchTransactionAmount, fetchDiscountRate]),
   Effect.flatMap(([transactionAmount, discountRate]) =>
-    applyDiscount(transactionAmount, discountRate)
+    applyDiscount(transactionAmount, discountRate),
   ),
   Effect.map(addServiceCharge),
-  Effect.map((finalAmount) => `請求額: ${finalAmount}`)
+  Effect.map((finalAmount) => `請求額: ${finalAmount}`),
 );
 
 // プログラムを実行して結果をログに記録
@@ -488,7 +488,7 @@ const addServiceCharge = (amount: number) => amount + 1;
 
 const applyDiscount = (
   total: number,
-  discountRate: number
+  discountRate: number,
 ): Effect.Effect<number, Error> =>
   discountRate === 0
     ? Effect.fail(new Error("割引率はゼロにできません"))
@@ -501,10 +501,10 @@ const fetchDiscountRate = Effect.promise(() => Promise.resolve(5));
 // ---cut---
 const program = Effect.all([fetchTransactionAmount, fetchDiscountRate]).pipe(
   Effect.flatMap(([transactionAmount, discountRate]) =>
-    applyDiscount(transactionAmount, discountRate)
+    applyDiscount(transactionAmount, discountRate),
   ),
   Effect.map(addServiceCharge),
-  Effect.map((finalAmount) => `請求額: ${finalAmount}`)
+  Effect.map((finalAmount) => `請求額: ${finalAmount}`),
 );
 ```
 

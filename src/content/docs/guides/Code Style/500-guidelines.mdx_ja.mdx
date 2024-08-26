@@ -9,23 +9,25 @@ bottomNavigation: pagination
 Effectにおいて、`runMain`はNode上でEffectアプリケーションを実行するための主要なエントリポイントです。
 
 ```ts
-import { Effect, Console, Schedule, pipe } from "effect"
-import { NodeRuntime } from "@effect/platform-node"
+import { Effect, Console, Schedule, pipe } from "effect";
+import { NodeRuntime } from "@effect/platform-node";
 
 const program = pipe(
-  Effect.addFinalizer(() => Console.log("アプリケーションが終了しようとしています！")),
+  Effect.addFinalizer(() =>
+    Console.log("アプリケーションが終了しようとしています！"),
+  ),
   Effect.andThen(Console.log("アプリケーションが開始されました！")),
   Effect.andThen(
     Effect.repeat(Console.log("まだ生きています..."), {
-      schedule: Schedule.spaced("1秒")
-    })
+      schedule: Schedule.spaced("1秒"),
+    }),
   ),
-  Effect.scoped
-)
+  Effect.scoped,
+);
 
 // Effect.runFork(program) // CTRL+Cでは優雅なクリーンアップなし
 
-NodeRuntime.runMain(program) // CTRL+Cで優雅なクリーンアップ
+NodeRuntime.runMain(program); // CTRL+Cで優雅なクリーンアップ
 ```
 
 `runMain`関数は、すべてのファイバーを見つけて中断する役割を担っています。内部では、`sigint`をリッスンすることでファイバーのためのオブザーバーが追加され、すべてのファイバーが中断されます。

@@ -261,7 +261,7 @@ const Int = Brand.refined<Int>(
   // 値が整数であるかどうかの検証
   (n) => Number.isInteger(n),
   // 検証が失敗した場合のエラーを提供
-  (n) => Brand.error(`Expected ${n} to be an integer`)
+  (n) => Brand.error(`Expected ${n} to be an integer`),
 );
 ```
 
@@ -274,7 +274,7 @@ type Int = number & Brand.Brand<"Int">;
 
 const Int = Brand.refined<Int>(
   (n) => Number.isInteger(n), // 値が整数であるかどうかのチェック
-  (n) => Brand.error(`Expected ${n} to be an integer`) // 値が整数でない場合のエラーメッセージ
+  (n) => Brand.error(`Expected ${n} to be an integer`), // 値が整数でない場合のエラーメッセージ
 );
 
 // ---cut---
@@ -296,7 +296,7 @@ type Int = number & Brand.Brand<"Int">;
 
 const Int = Brand.refined<Int>(
   (n) => Number.isInteger(n),
-  (n) => Brand.error(`Expected ${n} to be an integer`)
+  (n) => Brand.error(`Expected ${n} to be an integer`),
 );
 
 // ---cut---
@@ -322,14 +322,14 @@ type Int = number & Brand.Brand<"Int">;
 
 const Int = Brand.refined<Int>(
   (n) => Number.isInteger(n),
-  (n) => Brand.error(`Expected ${n} to be an integer`)
+  (n) => Brand.error(`Expected ${n} to be an integer`),
 );
 
 type Positive = number & Brand.Brand<"Positive">;
 
 const Positive = Brand.refined<Positive>(
   (n) => n > 0,
-  (n) => Brand.error(`Expected ${n} to be positive`)
+  (n) => Brand.error(`Expected ${n} to be positive`),
 );
 
 // Int と Positive のコンストラクタを組み合わせて新しいブランドコンストラクタ PositiveInt を作成

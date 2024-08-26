@@ -50,15 +50,16 @@ TWIEが初めての方に向けて、TWIEが何であるか、何を目指して
 それでは、本題に戻りましょう！
 
 ## 技術
+
 遠回しなことは言いませんので、今週の大きなニュースにいきましょう：Effect 3.0をリリースし、Effectのコアパッケージが安定しました。このリリースは、チームの5年間の努力とコミュニティのサポートの結果です。
 
 <YouTube url="https://www.youtube.com/embed/ViSiXfBKElQ?si=65O07HfOc3qFzqAI" />
 
 3.0からは、メインパッケージ`effect`がセマンティックバージョニングに従います：
 
-1) メジャーリリースには破壊的変更が含まれます
-2) マイナーリリースには新機能や新モジュールが含まれます
-3) パッチリリースにはバグ修正が含まれます
+1. メジャーリリースには破壊的変更が含まれます
+2. マイナーリリースには新機能や新モジュールが含まれます
+3. パッチリリースにはバグ修正が含まれます
 
 今後の私たちのコミットメントは、他のEffectエコシステムライブラリも安定させることです。
 
@@ -67,94 +68,106 @@ TWIEが初めての方に向けて、TWIEが何であるか、何を目指して
 それでは、先週の全ての変更点を見てみましょう。
 
 ### Effect Core
-+ [mapAccumループでマッピング関数に正しい値が渡されるように確認](https://github.com/Effect-TS/effect/pull/2507) (バグ修正)
-+ [Fiber.joinAllの戻り値の型を配列に変更](https://github.com/Effect-TS/effect/pull/2521) (バグ修正)
-+ [globalThis.locationがundefinedに設定されているときのUrlParams.makeUrlを修正](https://github.com/Effect-TS/effect/pull/2514) (バグ修正)
-+ [実行中のファイバーへの参照を保持するためのFiberHandleモジュールを追加](https://github.com/Effect-TS/effect/pull/2524) (新機能、次のマイナー)
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [必要ない場合にFiberHandle/Mapでエフェクトをスキップ](https://github.com/Effect-TS/effect/pull/2539) (改善)
-+ [Array.isArrayの型定義を改善](https://github.com/Effect-TS/effect/pull/2552) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
-+ [Stream.fromEventListenerを追加](https://github.com/Effect-TS/effect/pull/2513) (新機能、次のマイナー)
-+ [Effect.timeoutOptionを追加](https://github.com/Effect-TS/effect/pull/2541) (新機能、次のマイナー)
-+ [Match.withReturnType APIを追加](https://github.com/Effect-TS/effect/pull/2568) (新機能)
+
+- [mapAccumループでマッピング関数に正しい値が渡されるように確認](https://github.com/Effect-TS/effect/pull/2507) (バグ修正)
+- [Fiber.joinAllの戻り値の型を配列に変更](https://github.com/Effect-TS/effect/pull/2521) (バグ修正)
+- [globalThis.locationがundefinedに設定されているときのUrlParams.makeUrlを修正](https://github.com/Effect-TS/effect/pull/2514) (バグ修正)
+- [実行中のファイバーへの参照を保持するためのFiberHandleモジュールを追加](https://github.com/Effect-TS/effect/pull/2524) (新機能、次のマイナー)
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [必要ない場合にFiberHandle/Mapでエフェクトをスキップ](https://github.com/Effect-TS/effect/pull/2539) (改善)
+- [Array.isArrayの型定義を改善](https://github.com/Effect-TS/effect/pull/2552) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+- [Stream.fromEventListenerを追加](https://github.com/Effect-TS/effect/pull/2513) (新機能、次のマイナー)
+- [Effect.timeoutOptionを追加](https://github.com/Effect-TS/effect/pull/2541) (新機能、次のマイナー)
+- [Match.withReturnType APIを追加](https://github.com/Effect-TS/effect/pull/2568) (新機能)
 
 ### Effect SQL
-+ [sqlfx/sqlを@effect/sqlパッケージに移動](https://github.com/Effect-TS/effect/pull/2104) (新機能)
-+ [sqlパッケージの出所を無効にする](https://github.com/Effect-TS/effect/pull/2528) (バグ修正)
-+ [sql Migratorモジュールのクリーンアップ](https://github.com/Effect-TS/effect/pull/2530) (リファクタリング)
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [sqlfxの移行ノートを/sqlに追加](https://github.com/Effect-TS/effect/pull/2544) (改善)
-+ [README内のsql.inの例を更新](https://github.com/Effect-TS/effect/pull/2545) (ドキュメント更新)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
-+ [sqlite react nativeのためにop-sqliteを使用](https://github.com/Effect-TS/effect/pull/2569) (新機能)
+
+- [sqlfx/sqlを@effect/sqlパッケージに移動](https://github.com/Effect-TS/effect/pull/2104) (新機能)
+- [sqlパッケージの出所を無効にする](https://github.com/Effect-TS/effect/pull/2528) (バグ修正)
+- [sql Migratorモジュールのクリーンアップ](https://github.com/Effect-TS/effect/pull/2530) (リファクタリング)
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [sqlfxの移行ノートを/sqlに追加](https://github.com/Effect-TS/effect/pull/2544) (改善)
+- [README内のsql.inの例を更新](https://github.com/Effect-TS/effect/pull/2545) (ドキュメント更新)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+- [sqlite react nativeのためにop-sqliteを使用](https://github.com/Effect-TS/effect/pull/2569) (新機能)
 
 ### Effect Platform
-+ [httpハンドラーを中断不可能にする](https://github.com/Effect-TS/effect/pull/2515) (新機能)
-+ [中断不可能をルートオプションに移動](https://github.com/Effect-TS/effect/pull/2517) (新機能)
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [fs.watchバックエンドをカスタマイズ可能にする](https://github.com/Effect-TS/effect/pull/2542) (新機能)
-+ [Commandのstdinが早すぎるタイミングで閉じられないよう修正](https://github.com/Effect-TS/effect/pull/2556) (バグ修正)
-+ [テスト用のno-opファイルシステムコンストラクタを追加](https://github.com/Effect-TS/effect/pull/2558) (新機能)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
-+ [Stream.fromEventListenerを追加](https://github.com/Effect-TS/effect/pull/2513) (新機能、次のマイナー)
-+ [Http.response.voidヘルパーを追加、voidを返すhttpリクエストを作成するための](https://github.com/Effect-TS/effect/pull/2565) (新機能)
-+ [httpトレースにスパン属性を追加](https://github.com/Effect-TS/effect/pull/2567) (新機能)
+
+- [httpハンドラーを中断不可能にする](https://github.com/Effect-TS/effect/pull/2515) (新機能)
+- [中断不可能をルートオプションに移動](https://github.com/Effect-TS/effect/pull/2517) (新機能)
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [fs.watchバックエンドをカスタマイズ可能にする](https://github.com/Effect-TS/effect/pull/2542) (新機能)
+- [Commandのstdinが早すぎるタイミングで閉じられないよう修正](https://github.com/Effect-TS/effect/pull/2556) (バグ修正)
+- [テスト用のno-opファイルシステムコンストラクタを追加](https://github.com/Effect-TS/effect/pull/2558) (新機能)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+- [Stream.fromEventListenerを追加](https://github.com/Effect-TS/effect/pull/2513) (新機能、次のマイナー)
+- [Http.response.voidヘルパーを追加、voidを返すhttpリクエストを作成するための](https://github.com/Effect-TS/effect/pull/2565) (新機能)
+- [httpトレースにスパン属性を追加](https://github.com/Effect-TS/effect/pull/2567) (新機能)
 
 ### Effect RPC
-+ [rpc httpストリームでコンテキストが利用できるようにする](https://github.com/Effect-TS/effect/pull/2516) (新機能)
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+- [rpc httpストリームでコンテキストが利用できるようにする](https://github.com/Effect-TS/effect/pull/2516) (新機能)
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
 
 ### Effect Typeclass
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
-+ [typeclassパッケージのREADMEを更新](https://github.com/Effect-TS/effect/pull/2571) (ドキュメント更新)
+
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+- [typeclassパッケージのREADMEを更新](https://github.com/Effect-TS/effect/pull/2571) (ドキュメント更新)
 
 ### Effect Opentelemetry
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
-+ [@opentelemetry/*のピア依存関係を更新し、許可されたバージョンに使用されたインポートが含まれることを保証](https://github.com/Effect-TS/effect/pull/2572) (バグ修正)
-+ [env変数からリソースを構築するためのotel Resource.layerFromEnvを追加](https://github.com/Effect-TS/effect/pull/2575) (新機能)
+
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+- [@opentelemetry/\*のピア依存関係を更新し、許可されたバージョンに使用されたインポートが含まれることを保証](https://github.com/Effect-TS/effect/pull/2572) (バグ修正)
+- [env変数からリソースを構築するためのotel Resource.layerFromEnvを追加](https://github.com/Effect-TS/effect/pull/2575) (新機能)
 
 ### Effect Experimental
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
 
 ### Effect Printer
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
 
 ### Effect Schema
-+ [FastCheckを再エクスポート](https://github.com/Effect-TS/effect/pull/2505) (バグ修正)
-+ [LazyArbitraryと新しいmakeを導入](https://github.com/Effect-TS/effect/pull/2508) (新機能)
-+ [AST.pickでキーのリネームを正しく処理するように修正](https://github.com/Effect-TS/effect/pull/2511) (バグ修正)
-+ [Schema: スキーマ名を統合](https://github.com/Effect-TS/effect/pull/2497) (リファクタリング)
-+ [codemodの実行に関する指示を追加](https://github.com/Effect-TS/effect/pull/2519) (ドキュメント更新)
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [Schema: CとB間で双方向のサブタイプ関係を有効にするためにcomposeのオーバーロードを追加](https://github.com/Effect-TS/effect/pull/2531) (新機能)
-+ [transformOrFailとtransformOrFailFromの署名をexported Classインターフェース内で追加の省略可能な引数を含むように修正](https://github.com/Effect-TS/effect/pull/2550) (バグ修正)
-+ [Schema: テストファイル名を新しい命名規則に合わせてリファクタリング](https://github.com/Effect-TS/effect/pull/2560) (リファクタリング)
-+ [Schema: Zod比較セクションを拡大し、有用なマイグレーションガイドとなるコード比較のリストを含める](https://github.com/Effect-TS/effect/pull/2563) (ドキュメント更新)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
-+ [Schema: 部分的/必須: プロパティ署名の変換でプロパティキーのリネームを追加](https://github.com/Effect-TS/effect/pull/2577) (バグ修正)
+
+- [FastCheckを再エクスポート](https://github.com/Effect-TS/effect/pull/2505) (バグ修正)
+- [LazyArbitraryと新しいmakeを導入](https://github.com/Effect-TS/effect/pull/2508) (新機能)
+- [AST.pickでキーのリネームを正しく処理するように修正](https://github.com/Effect-TS/effect/pull/2511) (バグ修正)
+- [Schema: スキーマ名を統合](https://github.com/Effect-TS/effect/pull/2497) (リファクタリング)
+- [codemodの実行に関する指示を追加](https://github.com/Effect-TS/effect/pull/2519) (ドキュメント更新)
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [Schema: CとB間で双方向のサブタイプ関係を有効にするためにcomposeのオーバーロードを追加](https://github.com/Effect-TS/effect/pull/2531) (新機能)
+- [transformOrFailとtransformOrFailFromの署名をexported Classインターフェース内で追加の省略可能な引数を含むように修正](https://github.com/Effect-TS/effect/pull/2550) (バグ修正)
+- [Schema: テストファイル名を新しい命名規則に合わせてリファクタリング](https://github.com/Effect-TS/effect/pull/2560) (リファクタリング)
+- [Schema: Zod比較セクションを拡大し、有用なマイグレーションガイドとなるコード比較のリストを含める](https://github.com/Effect-TS/effect/pull/2563) (ドキュメント更新)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+- [Schema: 部分的/必須: プロパティ署名の変換でプロパティキーのリネームを追加](https://github.com/Effect-TS/effect/pull/2577) (バグ修正)
 
 ### Effect Vitest
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
 
 ### Effect CLI
-+ [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
-+ [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
+
+- [ReadonlyArrayとReadonlyRecordモジュールの名前を変更](https://github.com/Effect-TS/effect/pull/2529) (リファクタリング)
+- [出所の公開を再有効化](https://github.com/Effect-TS/effect/pull/2562) (新機能)
 
 ### 一般的な雑務
-+ [Effect 3.0の変更セットを追加](https://github.com/Effect-TS/effect/pull/2526)
-+ [パッケージ説明を洗練](https://github.com/Effect-TS/effect/pull/2532)
-+ [AsyncFiberExceptionのタイプミスを修正](https://github.com/Effect-TS/effect/pull/2533)
-+ [devDependenciesを更新](https://github.com/Effect-TS/effect/pull/2534)
-+ [残り物を削除](https://github.com/Effect-TS/effect/pull/2536)
-+ [イントロ動画を更新](https://github.com/Effect-TS/effect/pull/2549)
-+ [コード例の言語にJSONCを使用](https://github.com/Effect-TS/effect/pull/2554)
-+ [pnpmバージョンを更新](https://github.com/Effect-TS/effect/pull/2574)
+
+- [Effect 3.0の変更セットを追加](https://github.com/Effect-TS/effect/pull/2526)
+- [パッケージ説明を洗練](https://github.com/Effect-TS/effect/pull/2532)
+- [AsyncFiberExceptionのタイプミスを修正](https://github.com/Effect-TS/effect/pull/2533)
+- [devDependenciesを更新](https://github.com/Effect-TS/effect/pull/2534)
+- [残り物を削除](https://github.com/Effect-TS/effect/pull/2536)
+- [イントロ動画を更新](https://github.com/Effect-TS/effect/pull/2549)
+- [コード例の言語にJSONCを使用](https://github.com/Effect-TS/effect/pull/2554)
+- [pnpmバージョンを更新](https://github.com/Effect-TS/effect/pull/2574)
 
 ## コミュニティ
 

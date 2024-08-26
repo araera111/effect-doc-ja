@@ -45,62 +45,71 @@ Effectの旅を存分に楽しみ、コミュニティに積極的に関与で�
 先週発生した技術的な変更に関する情報を以下に示します。
 
 ### Effect Core
-+ [Config.arrayをReadonlyArrayではなくArrayを返すように変更](https://github.com/Effect-TS/effect/pull/2952) (機能)
-+ [CatchTag: より多くの型レベルテストを追加](https://github.com/Effect-TS/effect/pull/2962) (機能)
-+ [Struct.evolveのランタイムエラーを修正し、コンパイル時チェックを強化](https://github.com/Effect-TS/effect/pull/2954) (バグ修正)
-+ [Chunk.toArrayおよびChunk.toReadonlyArrayを更新。変換中にチャンクの非空状態を保持するために関数シグネチャを改善。](https://github.com/Effect-TS/effect/pull/2970) (改善)
-+ [StreamのUnifyを修正](https://github.com/Effect-TS/effect/pull/2917) (バグ修正)
-+ [Effect.allのdiscardオプションを修正](https://github.com/Effect-TS/effect/pull/2977) (バグ修正)
-+ [マルチラインエラーメッセージが原因のレンダリングにおいて保持されることを確認](https://github.com/Effect-TS/effect/pull/2981) (バグ修正)
-+ [ChunkモジュールにlastNonEmpty関数を追加](https://github.com/Effect-TS/effect/pull/2951) (機能、次のマイナー)
-+ [Feat(Stream): Success、Error、Context型アクセッサを実装](https://github.com/Effect-TS/effect/pull/2959) (機能、次のマイナー)
-+ [Option.liftPredicateを双方向にする](https://github.com/Effect-TS/effect/pull/2957) (機能、次のマイナー)
-+ [タプルのためのatメソッドを実装](https://github.com/Effect-TS/effect/pull/2976) (機能、次のマイナー)
+
+- [Config.arrayをReadonlyArrayではなくArrayを返すように変更](https://github.com/Effect-TS/effect/pull/2952) (機能)
+- [CatchTag: より多くの型レベルテストを追加](https://github.com/Effect-TS/effect/pull/2962) (機能)
+- [Struct.evolveのランタイムエラーを修正し、コンパイル時チェックを強化](https://github.com/Effect-TS/effect/pull/2954) (バグ修正)
+- [Chunk.toArrayおよびChunk.toReadonlyArrayを更新。変換中にチャンクの非空状態を保持するために関数シグネチャを改善。](https://github.com/Effect-TS/effect/pull/2970) (改善)
+- [StreamのUnifyを修正](https://github.com/Effect-TS/effect/pull/2917) (バグ修正)
+- [Effect.allのdiscardオプションを修正](https://github.com/Effect-TS/effect/pull/2977) (バグ修正)
+- [マルチラインエラーメッセージが原因のレンダリングにおいて保持されることを確認](https://github.com/Effect-TS/effect/pull/2981) (バグ修正)
+- [ChunkモジュールにlastNonEmpty関数を追加](https://github.com/Effect-TS/effect/pull/2951) (機能、次のマイナー)
+- [Feat(Stream): Success、Error、Context型アクセッサを実装](https://github.com/Effect-TS/effect/pull/2959) (機能、次のマイナー)
+- [Option.liftPredicateを双方向にする](https://github.com/Effect-TS/effect/pull/2957) (機能、次のマイナー)
+- [タプルのためのatメソッドを実装](https://github.com/Effect-TS/effect/pull/2976) (機能、次のマイナー)
 
 ### Effect Platform
-+ [React NativeのためにKeyValueStoreを修正し、コンストラクタを遅延させる](https://github.com/Effect-TS/effect/pull/2966) (バグ修正)
-+ [ワークスペースのための例を更新](https://github.com/Effect-TS/effect/pull/2963) (リファクタリング)
-+ [README.mdの例のソースコードにタイプミスを修正](https://github.com/Effect-TS/effect/pull/2983) (ドキュメント更新)
-+ [Socketをdoノーテーションを使用してリファクタリング](https://github.com/Effect-TS/effect/pull/2988) (リファクタリング)
+
+- [React NativeのためにKeyValueStoreを修正し、コンストラクタを遅延させる](https://github.com/Effect-TS/effect/pull/2966) (バグ修正)
+- [ワークスペースのための例を更新](https://github.com/Effect-TS/effect/pull/2963) (リファクタリング)
+- [README.mdの例のソースコードにタイプミスを修正](https://github.com/Effect-TS/effect/pull/2983) (ドキュメント更新)
+- [Socketをdoノーテーションを使用してリファクタリング](https://github.com/Effect-TS/effect/pull/2988) (リファクタリング)
 
 ### Effect Experimental
-+ [maxバッチサイズに達した際のdataLoaderの並行性を改善](https://github.com/Effect-TS/effect/pull/2980) (改善)
+
+- [maxバッチサイズに達した際のdataLoaderの並行性を改善](https://github.com/Effect-TS/effect/pull/2980) (改善)
 
 ### Effect Schema
-+ [minItemsフィルターが1未満の無効な引数nをチェックするようになり、妥当な場合にはタイプをNonEmptyReadonlyArray"A"に絞り込みます。](https://github.com/Effect-TS/effect/pull/2955) (機能)
-+ [Schema.isの使用法および動作をドキュメントで明確化](https://github.com/Effect-TS/effect/pull/2960) (ドキュメント更新)
-+ [README内のpropertyOrderオプションを"input"から"original"に更新](https://github.com/Effect-TS/effect/pull/2964) (ドキュメント更新)
-+ [イタリア語の余分なテキストを削除](https://github.com/Effect-TS/effect/pull/2969) (ドキュメント更新)
-+ [Schema.NonEmptyChunkFromSelfおよびSchema.NonEmptyChunkを追加](https://github.com/Effect-TS/effect/pull/2971) (機能)
-+ [JSON Schema生成におけるサポートされていないタイプの取り扱いについての指示をREADMEに追加](https://github.com/Effect-TS/effect/pull/2984) (ドキュメント更新)
-+ [スキーマ変換および任意のデータ生成のベストプラクティスに関するガイドラインをREADMEに追加](https://github.com/Effect-TS/effect/pull/2987) (ドキュメント更新)
+
+- [minItemsフィルターが1未満の無効な引数nをチェックするようになり、妥当な場合にはタイプをNonEmptyReadonlyArray"A"に絞り込みます。](https://github.com/Effect-TS/effect/pull/2955) (機能)
+- [Schema.isの使用法および動作をドキュメントで明確化](https://github.com/Effect-TS/effect/pull/2960) (ドキュメント更新)
+- [README内のpropertyOrderオプションを"input"から"original"に更新](https://github.com/Effect-TS/effect/pull/2964) (ドキュメント更新)
+- [イタリア語の余分なテキストを削除](https://github.com/Effect-TS/effect/pull/2969) (ドキュメント更新)
+- [Schema.NonEmptyChunkFromSelfおよびSchema.NonEmptyChunkを追加](https://github.com/Effect-TS/effect/pull/2971) (機能)
+- [JSON Schema生成におけるサポートされていないタイプの取り扱いについての指示をREADMEに追加](https://github.com/Effect-TS/effect/pull/2984) (ドキュメント更新)
+- [スキーマ変換および任意のデータ生成のベストプラクティスに関するガイドラインをREADMEに追加](https://github.com/Effect-TS/effect/pull/2987) (ドキュメント更新)
 
 ## コミュニティのハイライト
 
 先週、私たちはDiscordコミュニティに50人以上の新しいEffecterを迎え、新たに3000人以上のメンバーが加わりました！皆さんが加わってくれてとても嬉しいです！
 
 今週のエキサイティングなニュースがあります！Effectは、[JSNation](https://x.com/thejsnation)カンファレンス2024で「最もエキサイティングな技術の使用2024」賞を受賞しました。サンドロ・マリオーネがアムステルダムへ行き、トロフィーを受け取ってきました🏆。私たちは、Effectのために支援してくれたコミュニティに心から感謝しています。この初めての公式賞を受賞できましたことを非常に嬉しく思います。
+
 <Tweet id="1801252695862382752" />
 
-+ [ゲオルゲ・ピンザル](https://x.com/Ferossgp)は、[3loop.io](https://3loop.io/)を構築し、Effectをトランザクションデコーダープラットフォームとして使用する理由についてのフィードバックを共有してくれました。
-<Tweet id="1800970332158804116" />
+- [ゲオルゲ・ピンザル](https://x.com/Ferossgp)は、[3loop.io](https://3loop.io/)を構築し、Effectをトランザクションデコーダープラットフォームとして使用する理由についてのフィードバックを共有してくれました。
 
-+ [ヨハネス・シッキング](https://x.com/schickling)は、Effect DXおよびパワーユーザーとして、Effectの重要な基本を思い出させてくれました。「コンパイルされるなら、動く」ということです。
-<Tweet id="1800175761116311941" />
+  <Tweet id="1800970332158804116" />
 
-+ ソフトウェアエンジニアでEffectの推進者、[サインランゲージテック](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の創設者である[ミラド・バファイファルド](https://x.com/miladvafaeifard)が、6月27日に[JSConf Budapest](https://jsconfbp.com/)で「生産規模のTypeScriptへの道をナビゲートする方法：Effectが複雑に溺れることなく目標を達成するのにどのように役立つか」についての講演を行います。
-<Tweet id="1800828171685871670" />
+- [ヨハネス・シッキング](https://x.com/schickling)は、Effect DXおよびパワーユーザーとして、Effectの重要な基本を思い出させてくれました。「コンパイルされるなら、動く」ということです。
 
-+ [Evryg](https://www.evryg.com)チームは、第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)の開催日を発表しました：**6月25日火曜日 午後7時**。講演の募集を開始しました—[今すぐ提出してください](https://github.com/evryg-org/effect-paris/issues/new?template=talk.yml)! リマインダーとして、このミートアップはフランス語で行われる予定です。
-<Tweet id="1793661086291710258" />
+  <Tweet id="1800175761116311941" />
+
+- ソフトウェアエンジニアでEffectの推進者、[サインランゲージテック](https://www.youtube.com/channel/UCIPaBhc8mQHrt6o0OTuCUXQ)の創設者である[ミラド・バファイファルド](https://x.com/miladvafaeifard)が、6月27日に[JSConf Budapest](https://jsconfbp.com/)で「生産規模のTypeScriptへの道をナビゲートする方法：Effectが複雑に溺れることなく目標を達成するのにどのように役立つか」についての講演を行います。
+
+  <Tweet id="1800828171685871670" />
+
+- [Evryg](https://www.evryg.com)チームは、第二回[Effect Paris Meetup](https://www.meetup.com/effect-paris/#)の開催日を発表しました：**6月25日火曜日 午後7時**。講演の募集を開始しました—[今すぐ提出してください](https://github.com/evryg-org/effect-paris/issues/new?template=talk.yml)! リマインダーとして、このミートアップはフランス語で行われる予定です。
+  <Tweet id="1793661086291710258" />
 
 ### コンテンツ更新
 
-+ 月曜日にEffect Daysカンファレンスからの新しい講演を公開しました。マクスウェル・ブラウンによる「Effect CLI - 渇望から開放された開発者へのラブレター」です。彼のプレゼンテーションでは、効果的なCLI開発者体験を向上させるために設計されたEffect CLIを紹介し、その機能を例のCLIアプリケーションを通じてデモしました。以下の動画をご覧ください。
-<YouTube url="https://www.youtube.com/embed/BiEuN6lbXzw?si=b1zionIsUgQNGK3S" />
+- 月曜日にEffect Daysカンファレンスからの新しい講演を公開しました。マクスウェル・ブラウンによる「Effect CLI - 渇望から開放された開発者へのラブレター」です。彼のプレゼンテーションでは、効果的なCLI開発者体験を向上させるために設計されたEffect CLIを紹介し、その機能を例のCLIアプリケーションを通じてデモしました。以下の動画をご覧ください。
 
-+ オープンソースバックエンドのオールインワンプラットフォーム[Convex](https://x.com/convex_dev)が、X（Twitter）のアカウントでConvex + Effect → Confect統合のライブストリームを行いました。
-<Tweet id="1800558928251744377" />
+  <YouTube url="https://www.youtube.com/embed/BiEuN6lbXzw?si=b1zionIsUgQNGK3S" />
+
+- オープンソースバックエンドのオールインワンプラットフォーム[Convex](https://x.com/convex_dev)が、X（Twitter）のアカウントでConvex + Effect → Confect統合のライブストリームを行いました。
+  <Tweet id="1800558928251744377" />
 
 ## 閉会の言葉
 

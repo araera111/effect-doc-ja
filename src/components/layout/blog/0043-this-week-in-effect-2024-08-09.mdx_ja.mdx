@@ -20,7 +20,7 @@ relatedPosts:
   - this-week-in-effect-2024-08-16
 ---
 
-Hi Effecters! 
+Hi Effecters!
 
 「この1週間のEffect（**TWIE**）」へようこそ。最新のEffectコミュニティとエコシステムでの developmentsをお届けする週刊更新です。
 
@@ -38,72 +38,81 @@ Effectは、開発者が複雑な同期および非同期プログラムを作�
 - 我々の[Discordコミュニティ](https://discord.gg/effect-ts)が3360人以上のメンバーに達しました！
 - Effect Days 2024の全ての発表が[EffectのYouTubeチャンネル](https://www.youtube.com/@effect-ts)で視聴可能です。
 
-
 ## 技術
 
-+ 先週の発表を見逃した方のために、[Effect Playground](https://effect.website/play)を紹介しています。これは、APIを探索するためのインタラクティブなコーディング体験で、Monacoエディタやファイルツリー、ターミナル、Effect Developer Toolsとの統合などの機能を提供しています。詳細な[Effect Playgroundのリリース記事](https://effect.website/blog/playground-release)を読んで、楽しいコーディングをお楽しみください！
-<YouTube url="https://www.youtube.com/embed/zrMY9r9CRoc?si=UzeFoqTLv0Bx4441" />
+- 先週の発表を見逃した方のために、[Effect Playground](https://effect.website/play)を紹介しています。これは、APIを探索するためのインタラクティブなコーディング体験で、Monacoエディタやファイルツリー、ターミナル、Effect Developer Toolsとの統合などの機能を提供しています。詳細な[Effect Playgroundのリリース記事](https://effect.website/blog/playground-release)を読んで、楽しいコーディングをお楽しみください！
+  <YouTube url="https://www.youtube.com/embed/zrMY9r9CRoc?si=UzeFoqTLv0Bx4441" />
 
 以下は、先週起こった技術的な変更の全てです。
 
 ### Effect Core
-+ [Effect.repeatのtimesオプションが誤った値を返す問題を修正](https://github.com/Effect-TS/effect/pull/3405)（バグ修正）
-+ [Fiberの「Handle, Set, Map」にpropagateInterruptionオプションを追加](https://github.com/Effect-TS/effect/pull/3407)（機能追加、次のマイナーリリース）
-+ [FiberHandle.unsafeSetでFiberが正しくクリアされることを確認](https://github.com/Effect-TS/effect/pull/3435)（バグ修正）
+
+- [Effect.repeatのtimesオプションが誤った値を返す問題を修正](https://github.com/Effect-TS/effect/pull/3405)（バグ修正）
+- [Fiberの「Handle, Set, Map」にpropagateInterruptionオプションを追加](https://github.com/Effect-TS/effect/pull/3407)（機能追加、次のマイナーリリース）
+- [FiberHandle.unsafeSetでFiberが正しくクリアされることを確認](https://github.com/Effect-TS/effect/pull/3435)（バグ修正）
 
 ### Effect Experimental
-+ [TimeToLiveトレイトをtimeToLiveオプションに置き換え](https://github.com/Effect-TS/effect/pull/3417)（機能強化）
-+ [最終化中にDevToolsクライアントを適切に中断](https://github.com/Effect-TS/effect/pull/3420)（バグ修正）
+
+- [TimeToLiveトレイトをtimeToLiveオプションに置き換え](https://github.com/Effect-TS/effect/pull/3417)（機能強化）
+- [最終化中にDevToolsクライアントを適切に中断](https://github.com/Effect-TS/effect/pull/3420)（バグ修正）
 
 ### Effect Platform
-+ [HttpMiddlewareの失敗がレスポンスを生成することを確認](https://github.com/Effect-TS/effect/pull/3408)（バグ修正）
-+ [壊れたHttpMiddlewareが失敗しなくてもレスポンスが返されることを確認](https://github.com/Effect-TS/effect/pull/3414)（バグ修正）
-+ [httpサーバーのテスト用に'Bun, Node'HttpServer.layerTestを追加](https://github.com/Effect-TS/effect/pull/3409)（機能追加）
-+ [グローバルundiciディスパッチャーがない問題を修正](https://github.com/Effect-TS/effect/pull/3428)（バグ修正）
-+ [HttpServerRequestのURLからホストを削除](https://github.com/Effect-TS/effect/pull/3436)（バグ修正）
-+ [Cookies.get/getValue APIを追加](https://github.com/Effect-TS/effect/pull/3437)（機能追加）
+
+- [HttpMiddlewareの失敗がレスポンスを生成することを確認](https://github.com/Effect-TS/effect/pull/3408)（バグ修正）
+- [壊れたHttpMiddlewareが失敗しなくてもレスポンスが返されることを確認](https://github.com/Effect-TS/effect/pull/3414)（バグ修正）
+- [httpサーバーのテスト用に'Bun, Node'HttpServer.layerTestを追加](https://github.com/Effect-TS/effect/pull/3409)（機能追加）
+- [グローバルundiciディスパッチャーがない問題を修正](https://github.com/Effect-TS/effect/pull/3428)（バグ修正）
+- [HttpServerRequestのURLからホストを削除](https://github.com/Effect-TS/effect/pull/3436)（バグ修正）
+- [Cookies.get/getValue APIを追加](https://github.com/Effect-TS/effect/pull/3437)（機能追加）
 
 ### Effect Cluster
-+ [README.mdを更新](https://github.com/Effect-TS/effect/pull/3434)（ドキュメント更新）
+
+- [README.mdを更新](https://github.com/Effect-TS/effect/pull/3434)（ドキュメント更新）
 
 ### Effect SQL
-+ [README.mdを更新](https://github.com/Effect-TS/effect/pull/3401)（ドキュメント更新）
+
+- [README.mdを更新](https://github.com/Effect-TS/effect/pull/3401)（ドキュメント更新）
 
 ### Effect Schema
-+ [never型を使ったオプショナルフィールドの表現](https://github.com/Effect-TS/effect/pull/3419)（ドキュメント更新）
-+ [attachPropertySignature関数の戻り値の型を修正](https://github.com/Effect-TS/effect/pull/3430)（バグ修正）
+
+- [never型を使ったオプショナルフィールドの表現](https://github.com/Effect-TS/effect/pull/3419)（ドキュメント更新）
+- [attachPropertySignature関数の戻り値の型を修正](https://github.com/Effect-TS/effect/pull/3430)（バグ修正）
 
 ### Effect Vitest
-+ [テスト終了時にeffectを中断](https://github.com/Effect-TS/effect/pull/3416)（バグ修正）
+
+- [テスト終了時にeffectを中断](https://github.com/Effect-TS/effect/pull/3416)（バグ修正）
 
 ### Effect RPC
-+ [bunにおける/rpcストリームが早く中断されないことを確認](https://github.com/Effect-TS/effect/pull/3426)（バグ修正）
+
+- [bunにおける/rpcストリームが早く中断されないことを確認](https://github.com/Effect-TS/effect/pull/3426)（バグ修正）
 
 ### 一般的な雑務
-+ [ciで使用するnodeのバージョンを更新](https://github.com/Effect-TS/effect/pull/3402)（最適化）
 
+- [ciで使用するnodeのバージョンを更新](https://github.com/Effect-TS/effect/pull/3402)（最適化）
 
 ## コミュニティのハイライト
 
 先週、私たちは50人以上の新しいEffectersを[Discordコミュニティ](https://discord.gg/effect-ts)に迎えました。皆さんをお迎えできてとても嬉しいです！
 
-+ [Ethan Niser](https://x.com/ethanniser)、Effectの教育者でEffect Days 2024のワークショップ講師が、自身の[ブログ](https://ethanniser.dev/)を始め、最初の記事で一連の[Effectのベストプラクティス](https://ethanniser.dev/blog/effect-best-practices/)を共有しました。
-<Tweet id="1819537530393710839" />
+- [Ethan Niser](https://x.com/ethanniser)、Effectの教育者でEffect Days 2024のワークショップ講師が、自身の[ブログ](https://ethanniser.dev/)を始め、最初の記事で一連の[Effectのベストプラクティス](https://ethanniser.dev/blog/effect-best-practices/)を共有しました。
 
-+ [David Siegel](https://x.com/dvdsgl)、[Glide](https://www.glideapps.com/)のCEOが、EffectサービスをLLMの構造的生成にどのように使用できるかを示しました。
-<Tweet id="1821000372317794653" />
+  <Tweet id="1819537530393710839" />
 
-+ [Wayne Maurer](https://x.com/waynemaurer)、[Lambda IT](https://x.com/Lambda_IT)の共同創設者が、[Matt Pocock](https://x.com/mattpocockuk)のツイートに回答し、私たちが共鳴する声明を発表しました。
-<Tweet id="1819326023885877440" />
+- [David Siegel](https://x.com/dvdsgl)、[Glide](https://www.glideapps.com/)のCEOが、EffectサービスをLLMの構造的生成にどのように使用できるかを示しました。
+
+  <Tweet id="1821000372317794653" />
+
+- [Wayne Maurer](https://x.com/waynemaurer)、[Lambda IT](https://x.com/Lambda_IT)の共同創設者が、[Matt Pocock](https://x.com/mattpocockuk)のツイートに回答し、私たちが共鳴する声明を発表しました。
+  <Tweet id="1819326023885877440" />
 
 ## Effectコンテンツの更新
 
-+ [Michael Arnaldi](https://x.com/MichaelArnaldi)、[Maxwell Brown](https://x.com/imax153)、[Mattia Manzati](https://x.com/MattiaManzati)と共に行われたEffect Clusterの最初のデザイン同期セッション。
-<YouTube url="https://www.youtube.com/embed/8AhJNkTpA1w?si=tHLRA59kNaMbQIhA" />
+- [Michael Arnaldi](https://x.com/MichaelArnaldi)、[Maxwell Brown](https://x.com/imax153)、[Mattia Manzati](https://x.com/MattiaManzati)と共に行われたEffect Clusterの最初のデザイン同期セッション。
 
-+ [Maxwell Brown](https://x.com/imax153)と[Tim Smart](https://x.com/tim_smart)による「Effectを使ったContentLayerの再構築」の第3回エピソード。
-<YouTube url="https://www.youtube.com/embed/2b2LZjp8490?si=maZbeJFKWlRgLjy1" />
+  <YouTube url="https://www.youtube.com/embed/8AhJNkTpA1w?si=tHLRA59kNaMbQIhA" />
 
+- [Maxwell Brown](https://x.com/imax153)と[Tim Smart](https://x.com/tim_smart)による「Effectを使ったContentLayerの再構築」の第3回エピソード。
+  <YouTube url="https://www.youtube.com/embed/2b2LZjp8490?si=maZbeJFKWlRgLjy1" />
 
 ## 締めの言葉
 

@@ -21,7 +21,7 @@ import { Stream, Schedule, Console, Effect } from "effect";
 const stream = Stream.zipLatestAll(
   Stream.fromSchedule(Schedule.spaced("1 millis")),
   Stream.fromSchedule(Schedule.spaced("2 millis")),
-  Stream.fromSchedule(Schedule.spaced("4 millis"))
+  Stream.fromSchedule(Schedule.spaced("4 millis")),
 ).pipe(Stream.take(6), Stream.tap(Console.log));
 
 Effect.runPromise(Stream.runDrain(stream));

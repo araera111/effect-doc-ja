@@ -35,13 +35,13 @@ Effectの`Deferred`は、JavaScriptの`Promise`に概念的に似ています。
 `Deferred`から値を取得するには、`Deferred.await`を使用します。この操作は、呼び出しファイバーを`Deferred`が値またはエラーで完了するまで suspend します。
 
 ```ts twoslash
-import { Effect, Deferred } from "effect"
+import { Effect, Deferred } from "effect";
 
-const effectDeferred = Deferred.make<string, Error>()
+const effectDeferred = Deferred.make<string, Error>();
 
 const effectGet = effectDeferred.pipe(
-  Effect.andThen((deferred) => Deferred.await(deferred))
-)
+  Effect.andThen((deferred) => Deferred.await(deferred)),
+);
 ```
 
 ### 完了
@@ -60,29 +60,29 @@ const effectGet = effectDeferred.pipe(
 以下の例は、これらの完了メソッドの使用法を示しています。
 
 ```ts twoslash
-import { Effect, Deferred, Exit, Cause } from "effect"
+import { Effect, Deferred, Exit, Cause } from "effect";
 
 const program = Effect.gen(function* () {
-  const deferred = yield* Deferred.make<number, string>()
+  const deferred = yield* Deferred.make<number, string>();
 
   // 対応する方法で Deferred を完了します
-  yield* Deferred.succeed(deferred, 1).pipe(Effect.fork)
-  yield* Deferred.complete(deferred, Effect.succeed(2)).pipe(Effect.fork)
-  yield* Deferred.completeWith(deferred, Effect.succeed(3)).pipe(Effect.fork)
-  yield* Deferred.done(deferred, Exit.succeed(4)).pipe(Effect.fork)
-  yield* Deferred.fail(deferred, "5").pipe(Effect.fork)
+  yield* Deferred.succeed(deferred, 1).pipe(Effect.fork);
+  yield* Deferred.complete(deferred, Effect.succeed(2)).pipe(Effect.fork);
+  yield* Deferred.completeWith(deferred, Effect.succeed(3)).pipe(Effect.fork);
+  yield* Deferred.done(deferred, Exit.succeed(4)).pipe(Effect.fork);
+  yield* Deferred.fail(deferred, "5").pipe(Effect.fork);
   yield* Deferred.failCause(deferred, Cause.die(new Error("6"))).pipe(
-    Effect.fork
-  )
-  yield* Deferred.die(deferred, new Error("7")).pipe(Effect.fork)
-  yield* Deferred.interrupt(deferred).pipe(Effect.fork)
+    Effect.fork,
+  );
+  yield* Deferred.die(deferred, new Error("7")).pipe(Effect.fork);
+  yield* Deferred.interrupt(deferred).pipe(Effect.fork);
 
   // Deferred の値を取得するために待機する
-  const value = yield* Deferred.await(deferred)
-  return value
-})
+  const value = yield* Deferred.await(deferred);
+  return value;
+});
 
-Effect.runPromise(program).then(console.log, console.error) // 出力: 1
+Effect.runPromise(program).then(console.log, console.error); // 出力: 1
 ```
 
 `Deferred`を完了させると、`Effect<boolean>`の結果が得られます。この効果は、`Deferred`の値が設定された場合は`true`を返し、完了前にすでに設定されていた場合は`false`を返します。これにより、`Deferred`の状態を確認することができます。
@@ -90,16 +90,16 @@ Effect.runPromise(program).then(console.log, console.error) // 出力: 1
 以下は、`Deferred`の状態の変化を示す例です。
 
 ```ts twoslash
-import { Effect, Deferred } from "effect"
+import { Effect, Deferred } from "effect";
 
 const program = Effect.gen(function* () {
-  const deferred = yield* Deferred.make<number, string>()
-  const b1 = yield* Deferred.fail(deferred, "oh no!")
-  const b2 = yield* Deferred.succeed(deferred, 1)
-  return [b1, b2]
-})
+  const deferred = yield* Deferred.make<number, string>();
+  const b1 = yield* Deferred.fail(deferred, "oh no!");
+  const b2 = yield* Deferred.succeed(deferred, 1);
+  return [b1, b2];
+});
 
-Effect.runPromise(program).then(console.log) // 出力: [ true, false ]
+Effect.runPromise(program).then(console.log); // 出力: [ true, false ]
 ```
 
 ### ポーリング
@@ -115,21 +115,21 @@ Effect.runPromise(program).then(console.log) // 出力: [ true, false ]
 以下は実用的な例です。
 
 ```ts twoslash
-import { Effect, Deferred } from "effect"
+import { Effect, Deferred } from "effect";
 
 const program = Effect.gen(function* () {
-  const deferred = yield* Deferred.make<number, string>()
+  const deferred = yield* Deferred.make<number, string>();
 
   // Deferredをポーリングする
-  const done1 = yield* Deferred.poll(deferred)
+  const done1 = yield* Deferred.poll(deferred);
 
   // Deferredがすでに完了しているかどうかを確認する
-  const done2 = yield* Deferred.isDone(deferred)
+  const done2 = yield* Deferred.isDone(deferred);
 
-  return [done1, done2]
-})
+  return [done1, done2];
+});
 
-Effect.runPromise(program).then(console.log) // 出力: [ none(), false ]
+Effect.runPromise(program).then(console.log); // 出力: [ none(), false ]
 ```
 
 この例では、最初に`Deferred`を作成し、その後`Deferred.poll`を使用して完了状況を確認します。まだ完了していないため、`done1`は`none()`です。また、`Deferred.isDone`を使用して、`Deferred`が完了していないことを確認し、`done2`が`false`であることを示します。
@@ -139,33 +139,33 @@ Effect.runPromise(program).then(console.log) // 出力: [ none(), false ]
 以下は、`Deferred`を使用して2つのファイバー間で値を受け渡すシナリオです。
 
 ```ts twoslash
-import { Effect, Deferred, Fiber } from "effect"
+import { Effect, Deferred, Fiber } from "effect";
 
 const program = Effect.gen(function* () {
-  const deferred = yield* Deferred.make<string, string>()
+  const deferred = yield* Deferred.make<string, string>();
 
   // ファイバーA: 1秒待機してからDeferred値を設定
   const sendHelloWorld = Effect.gen(function* () {
-    yield* Effect.sleep("1 second")
-    return yield* Deferred.succeed(deferred, "hello world")
-  })
+    yield* Effect.sleep("1 second");
+    return yield* Deferred.succeed(deferred, "hello world");
+  });
 
   // ファイバーB: Deferredを待機して値を表示
   const getAndPrint = Effect.gen(function* () {
-    const s = yield* Deferred.await(deferred)
-    console.log(s)
-    return s
-  })
+    const s = yield* Deferred.await(deferred);
+    console.log(s);
+    return s;
+  });
 
   // 両方のファイバーを並行して実行
-  const fiberA = yield* Effect.fork(sendHelloWorld)
-  const fiberB = yield* Effect.fork(getAndPrint)
+  const fiberA = yield* Effect.fork(sendHelloWorld);
+  const fiberB = yield* Effect.fork(getAndPrint);
 
   // 両方のファイバーが完了するのを待つ
-  return yield* Fiber.join(Fiber.zip(fiberA, fiberB))
-})
+  return yield* Fiber.join(Fiber.zip(fiberA, fiberB));
+});
 
-Effect.runPromise(program).then(console.log, console.error)
+Effect.runPromise(program).then(console.log, console.error);
 /*
 出力:
 hello world

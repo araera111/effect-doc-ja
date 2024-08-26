@@ -53,8 +53,8 @@ import { Effect, Config, Console } from "effect";
 
 const program = Effect.all([Config.string("HOST"), Config.number("PORT")]).pipe(
   Effect.andThen(([host, port]) =>
-    Console.log(`アプリケーションが開始されました: ${host}:${port}`)
-  )
+    Console.log(`アプリケーションが開始されました: ${host}:${port}`),
+  ),
 );
 
 Effect.runSync(program);
@@ -129,8 +129,8 @@ const program = Effect.all([
   Config.number("PORT").pipe(Config.withDefault(8080)),
 ]).pipe(
   Effect.andThen(([host, port]) =>
-    Console.log(`アプリケーションが開始されました: ${host}:${port}`)
-  )
+    Console.log(`アプリケーションが開始されました: ${host}:${port}`),
+  ),
 );
 
 Effect.runSync(program);
@@ -212,7 +212,7 @@ const program = Effect.gen(function* () {
     Config.validate({
       message: "少なくとも4文字の文字列が期待されています",
       validation: (s) => s.length >= 4,
-    })
+    }),
   );
   console.log(config);
 });
@@ -251,18 +251,18 @@ const provider1 = ConfigProvider.fromMap(
   new Map([
     ["A", "A"],
     // Bは欠落
-  ])
+  ]),
 );
 
 const provider2 = ConfigProvider.fromMap(
   new Map([
     // Aは欠落
     ["B", "B"],
-  ])
+  ]),
 );
 
 const layer = Layer.setConfigProvider(
-  provider1.pipe(ConfigProvider.orElse(() => provider2))
+  provider1.pipe(ConfigProvider.orElse(() => provider2)),
 );
 
 Effect.runSync(Effect.provide(program, layer));
@@ -287,7 +287,10 @@ A: A B: B
 
 ```ts
 class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 }
 ```
 
@@ -297,7 +300,10 @@ class HostPort {
 import { Config } from "effect";
 
 export class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 
   get url() {
     return `${this.host}:${this.port}`;
@@ -308,7 +314,7 @@ const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
 
 export const config = Config.map(
   both,
-  ([host, port]) => new HostPort(host, port)
+  ([host, port]) => new HostPort(host, port),
 );
 ```
 
@@ -327,7 +333,10 @@ export const config = Config.map(
 import { Config } from "effect";
 
 export class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 
   get url() {
     return `${this.host}:${this.port}`;
@@ -338,7 +347,7 @@ const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
 
 export const config = Config.map(
   both,
-  ([host, port]) => new HostPort(host, port)
+  ([host, port]) => new HostPort(host, port),
 );
 
 // @filename: App.ts
@@ -362,7 +371,10 @@ export const program = Effect.gen(function* () {
 import { Config } from "effect";
 
 export class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 
   get url() {
     return `${this.host}:${this.port}`;
@@ -373,7 +385,7 @@ const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
 
 export const config = Config.map(
   both,
-  ([host, port]) => new HostPort(host, port)
+  ([host, port]) => new HostPort(host, port),
 );
 
 // @filename: App.ts
@@ -383,8 +395,8 @@ import * as HostPort from "./HostPort";
 
 export const program = HostPort.config.pipe(
   Effect.andThen((hostPort) =>
-    Console.log(`アプリケーションが開始されました: ${hostPort.url}`)
-  )
+    Console.log(`アプリケーションが開始されました: ${hostPort.url}`),
+  ),
 );
 ```
 
@@ -410,7 +422,10 @@ HOST=localhost PORT=8080 npx ts-node HostPort.ts
 import { Config } from "effect";
 
 export class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 
   get url() {
     return `${this.host}:${this.port}`;
@@ -421,7 +436,7 @@ const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
 
 export const config = Config.map(
   both,
-  ([host, port]) => new HostPort(host, port)
+  ([host, port]) => new HostPort(host, port),
 );
 
 // @filename: ServiceConfig.ts
@@ -430,12 +445,15 @@ import * as HostPort from "./HostPort";
 import { Config } from "effect";
 
 class ServiceConfig {
-  constructor(readonly hostPort: HostPort.HostPort, readonly timeout: number) {}
+  constructor(
+    readonly hostPort: HostPort.HostPort,
+    readonly timeout: number,
+  ) {}
 }
 
 const config = Config.map(
   Config.all([HostPort.config, Config.number("TIMEOUT")]),
-  ([hostPort, timeout]) => new ServiceConfig(hostPort, timeout)
+  ([hostPort, timeout]) => new ServiceConfig(hostPort, timeout),
 );
 ```
 
@@ -450,7 +468,10 @@ const config = Config.map(
 import { Config } from "effect";
 
 export class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 
   get url() {
     return `${this.host}:${this.port}`;
@@ -461,7 +482,7 @@ const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
 
 export const config = Config.map(
   both,
-  ([host, port]) => new HostPort(host, port)
+  ([host, port]) => new HostPort(host, port),
 );
 
 // @filename: ServiceConfig.ts
@@ -469,7 +490,10 @@ import * as HostPort from "./HostPort";
 import { Config } from "effect";
 
 class ServiceConfig {
-  constructor(readonly hostPort: HostPort.HostPort, readonly timeout: number) {}
+  constructor(
+    readonly hostPort: HostPort.HostPort,
+    readonly timeout: number,
+  ) {}
 }
 
 // ---cut---
@@ -478,7 +502,7 @@ const config = Config.map(
     Config.nested(HostPort.config, "HOSTPORT"),
     Config.number("TIMEOUT"),
   ]),
-  ([hostPort, timeout]) => new ServiceConfig(hostPort, timeout)
+  ([hostPort, timeout]) => new ServiceConfig(hostPort, timeout),
 );
 ```
 
@@ -499,7 +523,10 @@ const config = Config.map(
 import { Config } from "effect";
 
 export class HostPort {
-  constructor(readonly host: string, readonly port: number) {}
+  constructor(
+    readonly host: string,
+    readonly port: number,
+  ) {}
 
   get url() {
     return `${this.host}:${this.port}`;
@@ -510,7 +537,7 @@ const both = Config.all([Config.string("HOST"), Config.number("PORT")]);
 
 export const config = Config.map(
   both,
-  ([host, port]) => new HostPort(host, port)
+  ([host, port]) => new HostPort(host, port),
 );
 
 // @filename: App.ts
@@ -519,8 +546,8 @@ import * as HostPort from "./HostPort";
 
 export const program = HostPort.config.pipe(
   Effect.andThen((hostPort) =>
-    Console.log(`アプリケーションが開始されました: ${hostPort.url}`)
-  )
+    Console.log(`アプリケーションが開始されました: ${hostPort.url}`),
+  ),
 );
 
 // @filename: mockConfigProvider.ts
@@ -533,7 +560,7 @@ const mockConfigProvider = ConfigProvider.fromMap(
   new Map([
     ["HOST", "localhost"],
     ["PORT", "8080"],
-  ])
+  ]),
 );
 
 // デフォルトの設定プロバイダーをオーバーライドするためにLayer.setConfigProviderを使用してレイヤーを作成
@@ -559,7 +586,9 @@ import { Effect, Config, Console, Redacted } from "effect";
 
 const program = Config.redacted("API_KEY").pipe(
   Effect.tap((redacted) => Console.log(`コンソール出力: ${redacted}`)),
-  Effect.tap((redacted) => Console.log(`実際の値: ${Redacted.value(redacted)}`))
+  Effect.tap((redacted) =>
+    Console.log(`実際の値: ${Redacted.value(redacted)}`),
+  ),
 );
 
 Effect.runSync(program);
@@ -592,7 +621,7 @@ import { Effect, Config, Console, Secret } from "effect";
 
 const program = Config.secret("API_KEY").pipe(
   Effect.tap((secret) => Console.log(`コンソール出力: ${secret}`)),
-  Effect.tap((secret) => Console.log(`秘匿値: ${Secret.value(secret)}`))
+  Effect.tap((secret) => Console.log(`秘匿値: ${Secret.value(secret)}`)),
 );
 
 Effect.runSync(program);

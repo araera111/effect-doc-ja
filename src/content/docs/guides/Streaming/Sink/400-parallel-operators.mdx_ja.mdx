@@ -11,24 +11,24 @@ bottomNavigation: pagination
 2つのシンクを同時に実行し、それらの結果を結合したい場合、`Sink.zip` を使用します。この操作は、両方のシンクを同時に実行し、その結果をタプルに結合します。
 
 ```ts twoslash
-import { Sink, Console, Stream, Schedule, Effect } from "effect"
+import { Sink, Console, Stream, Schedule, Effect } from "effect";
 
 const s1 = Sink.forEach((s: string) => Console.log(`sink 1: ${s}`)).pipe(
-  Sink.as(1)
-)
+  Sink.as(1),
+);
 
 const s2 = Sink.forEach((s: string) => Console.log(`sink 2: ${s}`)).pipe(
-  Sink.as(2)
-)
+  Sink.as(2),
+);
 
-const sink = s1.pipe(Sink.zip(s2, { concurrent: true }))
+const sink = s1.pipe(Sink.zip(s2, { concurrent: true }));
 
 Effect.runPromise(
   Stream.make("1", "2", "3", "4", "5").pipe(
     Stream.schedule(Schedule.spaced("10 millis")),
-    Stream.run(sink)
-  )
-).then(console.log)
+    Stream.run(sink),
+  ),
+).then(console.log);
 /*
 Output:
 sink 1: 1
@@ -50,24 +50,24 @@ sink 2: 5
 もう一つの便利な操作は `Sink.race` であり、複数のシンクを同時にレースさせることができます。最初に完了したシンクがプログラムの結果を提供します。
 
 ```ts twoslash
-import { Sink, Console, Stream, Schedule, Effect } from "effect"
+import { Sink, Console, Stream, Schedule, Effect } from "effect";
 
 const s1 = Sink.forEach((s: string) => Console.log(`sink 1: ${s}`)).pipe(
-  Sink.as(1)
-)
+  Sink.as(1),
+);
 
 const s2 = Sink.forEach((s: string) => Console.log(`sink 2: ${s}`)).pipe(
-  Sink.as(2)
-)
+  Sink.as(2),
+);
 
-const sink = s1.pipe(Sink.race(s2))
+const sink = s1.pipe(Sink.race(s2));
 
 Effect.runPromise(
   Stream.make("1", "2", "3", "4", "5").pipe(
     Stream.schedule(Schedule.spaced("10 millis")),
-    Stream.run(sink)
-  )
-).then(console.log)
+    Stream.run(sink),
+  ),
+).then(console.log);
 /*
 Output:
 sink 1: 1

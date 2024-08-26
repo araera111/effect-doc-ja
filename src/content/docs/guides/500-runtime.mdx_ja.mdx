@@ -110,7 +110,7 @@ import { Logger, Effect } from "effect";
 // 設定レイヤーを定義する
 const addSimpleLogger = Logger.replace(
   Logger.defaultLogger,
-  Logger.make(({ message }) => console.log(message))
+  Logger.make(({ message }) => console.log(message)),
 );
 
 const program = Effect.gen(function* () {
@@ -144,7 +144,7 @@ import { Logger, Effect } from "effect";
 // 設定レイヤーを定義する
 const addSimpleLogger = Logger.replace(
   Logger.defaultLogger,
-  Logger.make(({ message }) => console.log(message))
+  Logger.make(({ message }) => console.log(message)),
 );
 
 const program = Effect.gen(function* () {
@@ -152,10 +152,10 @@ const program = Effect.gen(function* () {
   yield* Effect.gen(function* () {
     yield* Effect.log("これはログに記録されません！");
     yield* Effect.log("これはシンプルなロガーで記録されます。").pipe(
-      Effect.provide(addSimpleLogger)
+      Effect.provide(addSimpleLogger),
     );
     yield* Effect.log(
-      "前の設定にリセットしましたので、これはログに記録されません。"
+      "前の設定にリセットしましたので、これはログに記録されません。",
     );
   }).pipe(Effect.provide(Logger.remove(Logger.defaultLogger)));
   yield* Effect.log("アプリケーションが終了しようとしています！");
@@ -185,7 +185,7 @@ import { Effect, ManagedRuntime, Logger } from "effect";
 // 設定レイヤーを定義する
 const appLayer = Logger.replace(
   Logger.defaultLogger,
-  Logger.make(({ message }) => console.log(message))
+  Logger.make(({ message }) => console.log(message)),
 );
 
 // 設定レイヤーを実行時に変換する

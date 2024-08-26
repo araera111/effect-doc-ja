@@ -12,17 +12,17 @@ JavaScriptは組み込みの制御フローストラクチャを提供してい�
 Effect値を扱う際には、標準のJavaScriptのif-then-else式を使用できます：
 
 ```ts twoslash
-import { Effect, Option } from "effect"
+import { Effect, Option } from "effect";
 
 const validateWeightOption = (
-  weight: number
+  weight: number,
 ): Effect.Effect<Option.Option<number>> => {
   if (weight >= 0) {
-    return Effect.succeed(Option.some(weight))
+    return Effect.succeed(Option.some(weight));
   } else {
-    return Effect.succeed(Option.none())
+    return Effect.succeed(Option.none());
   }
-}
+};
 ```
 
 ここでは、有効な値がないことを表すために[Option](../other/data-types/option)データタイプを使用しています。
@@ -30,17 +30,17 @@ const validateWeightOption = (
 無効な入力をエラーチャンネルを使用して処理することもできます：
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const validateWeightOrFail = (
-  weight: number
+  weight: number,
 ): Effect.Effect<number, string> => {
   if (weight >= 0) {
-    return Effect.succeed(weight)
+    return Effect.succeed(weight);
   } else {
-    return Effect.fail(`negative input: ${weight}`)
+    return Effect.fail(`negative input: ${weight}`);
   }
-}
+};
 ```
 
 ## 条件演算子
@@ -50,12 +50,12 @@ const validateWeightOrFail = (
 `if (condition) expression`を使用する代わりに、`Effect.when`関数を使用できます：
 
 ```ts twoslash
-import { Effect, Option } from "effect"
+import { Effect, Option } from "effect";
 
 const validateWeightOption = (
-  weight: number
+  weight: number,
 ): Effect.Effect<Option.Option<number>> =>
-  Effect.succeed(weight).pipe(Effect.when(() => weight >= 0))
+  Effect.succeed(weight).pipe(Effect.when(() => weight >= 0));
 ```
 
 ここでも、[Option](../other/data-types/option)データタイプを用いて有効な値の不存在を表示しています。
@@ -63,15 +63,15 @@ const validateWeightOption = (
 条件が`true`に評価されると、`Effect.when`内のエフェクトが実行され、その結果は`Some`でラップされます。それ以外の場合は`None`が返されます：
 
 ```ts twoslash
-import { Effect, Option } from "effect"
+import { Effect, Option } from "effect";
 
 const validateWeightOption = (
-  weight: number
+  weight: number,
 ): Effect.Effect<Option.Option<number>> =>
-  Effect.succeed(weight).pipe(Effect.when(() => weight >= 0))
+  Effect.succeed(weight).pipe(Effect.when(() => weight >= 0));
 
 // ---cut---
-Effect.runPromise(validateWeightOption(100)).then(console.log)
+Effect.runPromise(validateWeightOption(100)).then(console.log);
 /*
 Output:
 {
@@ -81,7 +81,7 @@ Output:
 }
 */
 
-Effect.runPromise(validateWeightOption(-5)).then(console.log)
+Effect.runPromise(validateWeightOption(-5)).then(console.log);
 /*
 Output:
 {
@@ -96,11 +96,11 @@ Output:
 例えば、次の関数では整数の値のランダムオプションを生成します：
 
 ```ts twoslash
-import { Effect, Random } from "effect"
+import { Effect, Random } from "effect";
 
 const randomIntOption = Random.nextInt.pipe(
-  Effect.whenEffect(Random.nextBoolean)
-)
+  Effect.whenEffect(Random.nextBoolean),
+);
 ```
 
 ### unless
@@ -114,14 +114,14 @@ const randomIntOption = Random.nextInt.pipe(
 この関数を使用して、シンプルな仮想コイン投げ関数を作成してみましょう：
 
 ```ts twoslash
-import { Effect, Random, Console } from "effect"
+import { Effect, Random, Console } from "effect";
 
 const flipTheCoin = Effect.if(Random.nextBoolean, {
   onTrue: () => Console.log("Head"),
-  onFalse: () => Console.log("Tail")
-})
+  onFalse: () => Console.log("Tail"),
+});
 
-Effect.runPromise(flipTheCoin)
+Effect.runPromise(flipTheCoin);
 ```
 
 この例では、`Random.nextBoolean`を使用してランダムなブール値を生成しています。値が`true`の場合、エフェクト`onTrue`が実行され、「Head」とログが記録されます。そうでなければ、値が`false`の場合、エフェクト`onFalse`が実行され、「Tail」と記録されます。
@@ -133,20 +133,20 @@ Effect.runPromise(flipTheCoin)
 `Effect.zip`関数を使用すると、2つのエフェクトを1つのエフェクトに組み合わせることができます。この組み合わせたエフェクトは、両方の入力エフェクトの結果をタプルとして返します：
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const task1 = Effect.succeed(1).pipe(
   Effect.delay("200 millis"),
-  Effect.tap(Effect.log("task1 done"))
-)
+  Effect.tap(Effect.log("task1 done")),
+);
 const task2 = Effect.succeed("hello").pipe(
   Effect.delay("100 millis"),
-  Effect.tap(Effect.log("task2 done"))
-)
+  Effect.tap(Effect.log("task2 done")),
+);
 
-const task3 = Effect.zip(task1, task2)
+const task3 = Effect.zip(task1, task2);
 
-Effect.runPromise(task3).then(console.log)
+Effect.runPromise(task3).then(console.log);
 /*
 Output:
 timestamp=... level=INFO fiber=#0 message="task1 done"
@@ -160,20 +160,20 @@ timestamp=... level=INFO fiber=#0 message="task2 done"
 エフェクトを同時に実行したい場合は、`concurrent`オプションを使用できます：
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const task1 = Effect.succeed(1).pipe(
   Effect.delay("200 millis"),
-  Effect.tap(Effect.log("task1 done"))
-)
+  Effect.tap(Effect.log("task1 done")),
+);
 const task2 = Effect.succeed("hello").pipe(
   Effect.delay("100 millis"),
-  Effect.tap(Effect.log("task2 done"))
-)
+  Effect.tap(Effect.log("task2 done")),
+);
 // ---cut---
-const task3 = Effect.zip(task1, task2, { concurrent: true })
+const task3 = Effect.zip(task1, task2, { concurrent: true });
 
-Effect.runPromise(task3).then(console.log)
+Effect.runPromise(task3).then(console.log);
 /*
 Output:
 timestamp=... level=INFO fiber=#3 message="task2 done"
@@ -187,24 +187,24 @@ timestamp=... level=INFO fiber=#2 message="task1 done"
 `Effect.zipWith`関数は、[Effect.zip](#zip)と同様に2つのエフェクトを組み合わせます。ただし、タプルを返すのではなく、組み合わされたエフェクトの結果に関数を適用して単一の値に変換することができます：
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const task1 = Effect.succeed(1).pipe(
   Effect.delay("200 millis"),
-  Effect.tap(Effect.log("task1 done"))
-)
+  Effect.tap(Effect.log("task1 done")),
+);
 const task2 = Effect.succeed("hello").pipe(
   Effect.delay("100 millis"),
-  Effect.tap(Effect.log("task2 done"))
-)
+  Effect.tap(Effect.log("task2 done")),
+);
 
 const task3 = Effect.zipWith(
   task1,
   task2,
-  (number, string) => number + string.length
-)
+  (number, string) => number + string.length,
+);
 
-Effect.runPromise(task3).then(console.log)
+Effect.runPromise(task3).then(console.log);
 /*
 Output:
 timestamp=... level=INFO fiber=#3 message="task1 done"
@@ -228,32 +228,32 @@ Effect.loop(initial, options: { while, step, body })
 `Effect.loop`はJavaScriptの`while`ループに相当すると考えることができます：
 
 ```ts
-let state = initial
-const result = []
+let state = initial;
+const result = [];
 
 while (options.while(state)) {
-  result.push(options.body(state))
-  state = options.step(state)
+  result.push(options.body(state));
+  state = options.step(state);
 }
 
-return result
+return result;
 ```
 
 **例**
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const result = Effect.loop(
   1, // 初期状態
   {
     while: (state) => state <= 5, // ループを続ける条件
     step: (state) => state + 1, // 状態の更新関数
-    body: (state) => Effect.succeed(state) // 各反復で実行されるエフェクト
-  }
-)
+    body: (state) => Effect.succeed(state), // 各反復で実行されるエフェクト
+  },
+);
 
-Effect.runPromise(result).then(console.log) // Output: [1, 2, 3, 4, 5]
+Effect.runPromise(result).then(console.log); // Output: [1, 2, 3, 4, 5]
 ```
 
 この例では、ループは初期状態`1`から始まります。ループは条件`n <= 5`が`true`である限り続き、各反復で状態`n`が`1`ずつ増加します。エフェクト`Effect.succeed(n)`が各反復で実行され、すべての中間状態が配列に収集されます。
@@ -263,7 +263,7 @@ Effect.runPromise(result).then(console.log) // Output: [1, 2, 3, 4, 5]
 **例**（`discard: true`）
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const result = Effect.loop(
   1, // 初期状態
@@ -271,11 +271,11 @@ const result = Effect.loop(
     while: (state) => state <= 5, // ループを続ける条件,
     step: (state) => state + 1, // 状態の更新関数,
     body: (state) => Console.log(`Currently at state ${state}`), // 各反復で実行される効果,
-    discard: true
-  }
-)
+    discard: true,
+  },
+);
 
-Effect.runPromise(result).then(console.log)
+Effect.runPromise(result).then(console.log);
 /*
 Output:
 Currently at state 1
@@ -300,29 +300,29 @@ Effect.iterate(initial, options: { while, body })
 `Effect.iterate`はJavaScriptの`while`ループに相当すると考えることができます：
 
 ```ts
-let result = initial
+let result = initial;
 
 while (options.while(result)) {
-  result = options.body(result)
+  result = options.body(result);
 }
 
-return result
+return result;
 ```
 
 次の例でその動作を見てみましょう：
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const result = Effect.iterate(
   1, // 初期結果
   {
     while: (result) => result <= 5, // 反復を続ける条件
-    body: (result) => Effect.succeed(result + 1) // 結果を変更する操作
-  }
-)
+    body: (result) => Effect.succeed(result + 1), // 結果を変更する操作
+  },
+);
 
-Effect.runPromise(result).then(console.log) // Output: 6
+Effect.runPromise(result).then(console.log); // Output: 6
 ```
 
 ### forEach
@@ -332,9 +332,9 @@ Effect.runPromise(result).then(console.log) // Output: 6
 `forEach`の構文は次のようになります：
 
 ```ts
-import { Effect } from "effect"
+import { Effect } from "effect";
 
-const combinedEffect = Effect.forEach(iterable, operation, options)
+const combinedEffect = Effect.forEach(iterable, operation, options);
 ```
 
 指定された効果を各要素に適用します。デフォルトでは、各エフェクトは**順次**実行されます（これらのエフェクトの実行を管理するためのオプションについては、[並行処理オプション](./concurrency/concurrency-options)のドキュメントを参照してください）。
@@ -344,13 +344,13 @@ const combinedEffect = Effect.forEach(iterable, operation, options)
 例を見てみましょう：
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const result = Effect.forEach([1, 2, 3, 4, 5], (n, index) =>
-  Console.log(`Currently at index ${index}`).pipe(Effect.as(n * 2))
-)
+  Console.log(`Currently at index ${index}`).pipe(Effect.as(n * 2)),
+);
 
-Effect.runPromise(result).then(console.log)
+Effect.runPromise(result).then(console.log);
 /*
 Output:
 Currently at index 0
@@ -369,16 +369,16 @@ Currently at index 4
 `discard`オプションも利用可能で、これが`true`に設定されていると、各効果の操作の結果が破棄されます：
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const result = Effect.forEach(
   [1, 2, 3, 4, 5],
   (n, index) =>
     Console.log(`Currently at index ${index}`).pipe(Effect.as(n * 2)),
-  { discard: true }
-)
+  { discard: true },
+);
 
-Effect.runPromise(result).then(console.log)
+Effect.runPromise(result).then(console.log);
 /*
 Output:
 Currently at index 0
@@ -399,9 +399,9 @@ Effectライブラリの`Effect.all`関数は、複数のエフェクトを1つ�
 `all`の構文は次のようになります：
 
 ```ts
-import { Effect } from "effect"
+import { Effect } from "effect";
 
-const combinedEffect = Effect.all(effects, options)
+const combinedEffect = Effect.all(effects, options);
 ```
 
 ここで、`effects`はマージしたい個々のエフェクトのコレクションです。
@@ -415,16 +415,16 @@ const combinedEffect = Effect.all(effects, options)
 **タプル**
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const tuple = [
   Effect.succeed(42).pipe(Effect.tap(Console.log)),
-  Effect.succeed("Hello").pipe(Effect.tap(Console.log))
-] as const
+  Effect.succeed("Hello").pipe(Effect.tap(Console.log)),
+] as const;
 
-const combinedEffect = Effect.all(tuple)
+const combinedEffect = Effect.all(tuple);
 
-Effect.runPromise(combinedEffect).then(console.log)
+Effect.runPromise(combinedEffect).then(console.log);
 /*
 Output:
 42
@@ -436,15 +436,15 @@ Hello
 **Iterable**
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const iterable: Iterable<Effect.Effect<number>> = [1, 2, 3].map((n) =>
-  Effect.succeed(n).pipe(Effect.tap(Console.log))
-)
+  Effect.succeed(n).pipe(Effect.tap(Console.log)),
+);
 
-const combinedEffect = Effect.all(iterable)
+const combinedEffect = Effect.all(iterable);
 
-Effect.runPromise(combinedEffect).then(console.log)
+Effect.runPromise(combinedEffect).then(console.log);
 /*
 Output:
 1
@@ -457,16 +457,16 @@ Output:
 **構造体**
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const struct = {
   a: Effect.succeed(42).pipe(Effect.tap(Console.log)),
-  b: Effect.succeed("Hello").pipe(Effect.tap(Console.log))
-}
+  b: Effect.succeed("Hello").pipe(Effect.tap(Console.log)),
+};
 
-const combinedEffect = Effect.all(struct)
+const combinedEffect = Effect.all(struct);
 
-Effect.runPromise(combinedEffect).then(console.log)
+Effect.runPromise(combinedEffect).then(console.log);
 /*
 Output:
 42
@@ -478,16 +478,16 @@ Hello
 **レコード**
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const record: Record<string, Effect.Effect<number>> = {
   key1: Effect.succeed(1).pipe(Effect.tap(Console.log)),
-  key2: Effect.succeed(2).pipe(Effect.tap(Console.log))
-}
+  key2: Effect.succeed(2).pipe(Effect.tap(Console.log)),
+};
 
-const combinedEffect = Effect.all(record)
+const combinedEffect = Effect.all(record);
 
-Effect.runPromise(combinedEffect).then(console.log)
+Effect.runPromise(combinedEffect).then(console.log);
 /*
 Output:
 1
@@ -505,17 +505,17 @@ Output:
 簡単に言えば、ショートサーキットの動作によって、プログラムの任意のステップで何かがうまくいかない場合には即座に停止し、エラーを返して何かがうまくいかなかったことを知らせます。
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const effects = [
   Effect.succeed("Task1").pipe(Effect.tap(Console.log)),
   Effect.fail("Task2: Oh no!").pipe(Effect.tap(Console.log)),
-  Effect.succeed("Task3").pipe(Effect.tap(Console.log)) // このタスクは実行されません
-]
+  Effect.succeed("Task3").pipe(Effect.tap(Console.log)), // このタスクは実行されません
+];
 
-const program = Effect.all(effects)
+const program = Effect.all(effects);
 
-Effect.runPromiseExit(program).then(console.log)
+Effect.runPromiseExit(program).then(console.log);
 /*
 Output:
 Task1
@@ -536,17 +536,17 @@ Task1
 以下はその例です：
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const effects = [
   Effect.succeed("Task1").pipe(Effect.tap(Console.log)),
   Effect.fail("Task2: Oh no!").pipe(Effect.tap(Console.log)),
-  Effect.succeed("Task3").pipe(Effect.tap(Console.log))
-]
+  Effect.succeed("Task3").pipe(Effect.tap(Console.log)),
+];
 
-const program = Effect.all(effects, { mode: "either" })
+const program = Effect.all(effects, { mode: "either" });
 
-Effect.runPromiseExit(program).then(console.log)
+Effect.runPromiseExit(program).then(console.log);
 /*
 Output:
 Task1
@@ -568,17 +568,17 @@ Task3
 以下はその例です：
 
 ```ts twoslash
-import { Effect, Console } from "effect"
+import { Effect, Console } from "effect";
 
 const effects = [
   Effect.succeed("Task1").pipe(Effect.tap(Console.log)),
   Effect.fail("Task2: Oh no!").pipe(Effect.tap(Console.log)),
-  Effect.succeed("Task3").pipe(Effect.tap(Console.log))
-]
+  Effect.succeed("Task3").pipe(Effect.tap(Console.log)),
+];
 
-const program = Effect.all(effects, { mode: "validate" })
+const program = Effect.all(effects, { mode: "validate" });
 
-Effect.runPromiseExit(program).then((result) => console.log("%o", result))
+Effect.runPromiseExit(program).then((result) => console.log("%o", result));
 /*
 Output:
 Task1

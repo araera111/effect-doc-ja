@@ -82,7 +82,7 @@ import { Metric, Effect, Console } from "effect";
 
 // 'task_count'という名前のカウンタを作成し、呼び出されるたびに1増やす
 const taskCount = Metric.counter("task_count").pipe(
-  Metric.withConstantInput(1)
+  Metric.withConstantInput(1),
 );
 
 const task1 = Effect.succeed(1).pipe(Effect.delay("100 millis"));
@@ -228,15 +228,15 @@ import { Effect, Metric, MetricBoundaries, Random } from "effect";
 
 const latencyHistogram = Metric.histogram(
   "request_latency",
-  MetricBoundaries.linear({ start: 0, width: 10, count: 11 })
+  MetricBoundaries.linear({ start: 0, width: 10, count: 11 }),
 );
 
 const program = latencyHistogram(Random.nextIntBetween(1, 120)).pipe(
-  Effect.repeatN(99)
+  Effect.repeatN(99),
 );
 
 Effect.runPromise(
-  program.pipe(Effect.andThen(Metric.value(latencyHistogram)))
+  program.pipe(Effect.andThen(Metric.value(latencyHistogram))),
 ).then((histogramState) => console.log("%o", histogramState));
 /*
 出力:
@@ -277,11 +277,11 @@ const timer = Metric.timerWithBoundaries("timer", Array.range(1, 10));
 const program = Random.nextIntBetween(1, 10).pipe(
   Effect.andThen((n) => Effect.sleep(`${n} millis`)),
   Metric.trackDuration(timer),
-  Effect.repeatN(99)
+  Effect.repeatN(99),
 );
 
 Effect.runPromise(program.pipe(Effect.andThen(Metric.value(timer)))).then(
-  (histogramState) => console.log("%o", histogramState)
+  (histogramState) => console.log("%o", histogramState),
 );
 /*
 出力:
@@ -353,11 +353,11 @@ const responseTimeSummary = Metric.summary({
 });
 
 const program = responseTimeSummary(Random.nextIntBetween(1, 120)).pipe(
-  Effect.repeatN(99)
+  Effect.repeatN(99),
 );
 
 Effect.runPromise(
-  program.pipe(Effect.andThen(Metric.value(responseTimeSummary)))
+  program.pipe(Effect.andThen(Metric.value(responseTimeSummary))),
 ).then((summaryState) => console.log("%o", summaryState));
 /*
 出力:
@@ -395,11 +395,11 @@ import { Metric, Random, Effect } from "effect";
 const errorFrequency = Metric.frequency("error_frequency");
 
 const program = errorFrequency(
-  Random.nextIntBetween(1, 10).pipe(Effect.andThen((n) => `Error-${n}`))
+  Random.nextIntBetween(1, 10).pipe(Effect.andThen((n) => `Error-${n}`)),
 ).pipe(Effect.repeatN(99));
 
 Effect.runPromise(
-  program.pipe(Effect.andThen(Metric.value(errorFrequency)))
+  program.pipe(Effect.andThen(Metric.value(errorFrequency))),
 ).then((frequencyState) => console.log("%o", frequencyState));
 /*
 出力:
@@ -449,6 +449,6 @@ Effect.gen(function* () {
 import { Metric } from "effect";
 
 const counter = Metric.counter("request_count").pipe(
-  Metric.tagged("environment", "production")
+  Metric.tagged("environment", "production"),
 );
 ```

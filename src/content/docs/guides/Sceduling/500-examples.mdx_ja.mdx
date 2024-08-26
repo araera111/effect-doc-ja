@@ -25,14 +25,14 @@ const getJson = (url: string) =>
       }
       console.log("成功");
       return res.json() as unknown;
-    })
+    }),
   );
 
 const program = (url: string) =>
   getJson(url).pipe(
     Effect.retry({ times: 2 }),
     Effect.timeout("4 seconds"),
-    Effect.catchAll(Console.error)
+    Effect.catchAll(Console.error),
   );
 
 // ハッピーパスのテスト
@@ -73,7 +73,10 @@ import { NodeRuntime } from "@effect/platform-node";
 import { Console, Effect } from "effect";
 
 class Err extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
     super(message);
   }
 }
@@ -95,12 +98,12 @@ const program = (url: string) =>
   getJson(url).pipe(
     // エラーが403の場合に再試行
     Effect.retry({ while: (err) => err.status === 403 }),
-    Effect.catchAll(Console.error)
+    Effect.catchAll(Console.error),
   );
 
 // 403のテスト
 NodeRuntime.runMain(
-  program("https://dummyjson.com/auth/products/1?delay=1000")
+  program("https://dummyjson.com/auth/products/1?delay=1000"),
 );
 /*
 出力：

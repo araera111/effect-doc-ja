@@ -87,7 +87,7 @@ class MyService extends Context.Tag("MyService")<
 
 const effect: Effect.Effect<void, never, MyService> = Effect.flatMap(
   MyService,
-  (_) => _.methodA
+  (_) => _.methodA,
 );
 ```
 
@@ -137,7 +137,7 @@ export class GetUserIds extends Rpc.StreamRequest<GetUserIds>()(
   "GetUserIds",
   S.never,
   UserId,
-  {}
+  {},
 ) {}
 export class GetUser extends S.TaggedRequest<GetUser>()(
   "GetUser",
@@ -145,7 +145,7 @@ export class GetUser extends S.TaggedRequest<GetUser>()(
   User,
   {
     id: UserId,
-  }
+  },
 ) {}
 ```
 
@@ -164,8 +164,8 @@ import { GetUser, GetUserIds, User, UserId } from "./schema.js";
 const router = Router.make(
   Rpc.stream(GetUserIds, () => Stream.fromIterable(Array.makeBy(1000, UserId))),
   Rpc.effect(GetUser, ({ id }) =>
-    Effect.succeed(new User({ id, name: "John Doe" }))
-  )
+    Effect.succeed(new User({ id, name: "John Doe" })),
+  ),
 );
 
 export type UserRouter = typeof router;
@@ -175,7 +175,7 @@ const HttpLive = Http.router.empty.pipe(
   Http.router.post("/rpc", HttpRouter.toHttpApp(router)),
   Http.server.serve(Http.middleware.logger),
   Http.server.withLogAddress,
-  Layer.provide(NodeHttpServer.server.layer(createServer, { port: 3000 }))
+  Layer.provide(NodeHttpServer.server.layer(createServer, { port: 3000 })),
 );
 
 Layer.launch(HttpLive).pipe(NodeRuntime.runMain);
@@ -197,19 +197,19 @@ const client = HttpResolver.make<UserRouter>(
     .fetchOk()
     .pipe(
       Http.client.mapRequest(
-        Http.request.prependUrl("http://localhost:3000/rpc")
-      )
-    )
+        Http.request.prependUrl("http://localhost:3000/rpc"),
+      ),
+    ),
 ).pipe(Resolver.toClient);
 
 // クライアントを使用する
 client(new GetUserIds()).pipe(
   Stream.runCollect,
   Effect.flatMap(
-    Effect.forEach((id) => client(new GetUser({ id })), { batching: true })
+    Effect.forEach((id) => client(new GetUser({ id })), { batching: true }),
   ),
   Effect.tap(Console.log),
-  Effect.runFork
+  Effect.runFork,
 );
 ```
 
@@ -223,7 +223,7 @@ class ApiLimiter extends Context.Tag("@services/ApiLimiter")<
   RateLimiter.RateLimiter
 >() {
   static Live = RateLimiter.make(10, "2 seconds").pipe(
-    Layer.scoped(ApiLimiter)
+    Layer.scoped(ApiLimiter),
   );
 }
 

@@ -1,0 +1,10 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+---
+
+<div style="display: flex; gap: 1.6rem;">
+  <a href="./docs">Docs</a>
+  <a href="./blog">Blog</a>
+</div>
+<Default {...Astro.props}><slot /></Default>

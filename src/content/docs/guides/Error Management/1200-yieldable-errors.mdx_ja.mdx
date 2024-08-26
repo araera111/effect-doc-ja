@@ -52,13 +52,13 @@ export const program = Effect.gen(function* () {
   return n > 0.5
     ? "やった！"
     : n < 0.2
-    ? yield* new FooError({ message: "ああ、やばい！" })
-    : yield* new BarError({ randomNumber: n });
+      ? yield* new FooError({ message: "ああ、やばい！" })
+      : yield* new BarError({ randomNumber: n });
 }).pipe(
   Effect.catchTags({
     Foo: (error) => Effect.succeed(`Fooエラー: ${error.message}`),
     Bar: (error) => Effect.succeed(`Barエラー: ${error.randomNumber}`),
-  })
+  }),
 );
 
 Effect.runPromise(program).then(console.log, console.error);

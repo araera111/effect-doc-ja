@@ -33,8 +33,8 @@ Cacheの主な機能:
 
 ```ts
 export type Lookup<Key, Value, Error = never, Environment = never> = (
-  key: Key
-) => Effect.Effect<Value, Error, Environment>
+  key: Key,
+) => Effect.Effect<Value, Error, Environment>;
 ```
 
 ルックアップ関数は、`Key`型のキーを受け取り、`Environment`型の環境を必要とし、`Error`型のエラーで失敗するか、`Value`型の値で成功する`Effect`を返します。ルックアップ関数は`Effect`を返すため、同期的および非同期的なワークフローを記述できます。
@@ -48,12 +48,12 @@ export declare const make: <
   Key,
   Value,
   Error = never,
-  Environment = never
+  Environment = never,
 >(options: {
-  readonly capacity: number
-  readonly timeToLive: Duration.DurationInput
-  readonly lookup: Lookup<Key, Value, Error, Environment>
-}) => Effect.Effect<Cache<Key, Value, Error>, never, Environment>
+  readonly capacity: number;
+  readonly timeToLive: Duration.DurationInput;
+  readonly lookup: Lookup<Key, Value, Error, Environment>;
+}) => Effect.Effect<Cache<Key, Value, Error>, never, Environment>;
 ```
 
 キャッシュが作成されると、最も一般的な使い方は`get`オペレーターを使用することです。`get`オペレーターは、キャッシュに存在する場合は現在の値を返し、存在しない場合は新しい値を計算しキャッシュに入れ、返します。
@@ -65,34 +65,32 @@ export declare const make: <
 この例では、同じキーで`timeConsumingEffect`を3回並行して呼び出します。Cacheはこのエフェクトを一度だけ実行するため、並行するルックアップは値が利用可能になるまで待機します。
 
 ```ts twoslash
-import { Effect, Cache, Duration } from "effect"
+import { Effect, Cache, Duration } from "effect";
 
 const timeConsumingEffect = (key: string) =>
-  Effect.sleep("2 seconds").pipe(Effect.as(key.length))
+  Effect.sleep("2 seconds").pipe(Effect.as(key.length));
 
 const program = Effect.gen(function* () {
   const cache = yield* Cache.make({
     capacity: 100,
     timeToLive: Duration.infinity,
-    lookup: timeConsumingEffect
-  })
+    lookup: timeConsumingEffect,
+  });
   const result = yield* cache
     .get("key1")
     .pipe(
       Effect.zip(cache.get("key1"), { concurrent: true }),
-      Effect.zip(cache.get("key1"), { concurrent: true })
-    )
-  console.log(
-    `同じキーでの3つのエフェクトを並行して実行した結果: ${result}`
-  )
+      Effect.zip(cache.get("key1"), { concurrent: true }),
+    );
+  console.log(`同じキーでの3つのエフェクトを並行して実行した結果: ${result}`);
 
-  const hits = yield* cache.cacheStats.pipe(Effect.map((_) => _.hits))
-  const misses = yield* cache.cacheStats.pipe(Effect.map((_) => _.misses))
-  console.log(`キャッシュヒット数: ${hits}`)
-  console.log(`キャッシュミス数: ${misses}`)
-})
+  const hits = yield* cache.cacheStats.pipe(Effect.map((_) => _.hits));
+  const misses = yield* cache.cacheStats.pipe(Effect.map((_) => _.misses));
+  console.log(`キャッシュヒット数: ${hits}`);
+  console.log(`キャッシュミス数: ${misses}`);
+});
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 /*
 出力:
 同じキーでの3つのエフェクトを並行して実行した結果: 4,4,4

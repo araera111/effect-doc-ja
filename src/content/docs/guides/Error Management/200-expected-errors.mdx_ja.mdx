@@ -109,18 +109,18 @@ export class ValidationError {
 
 const httpResult = Random.next.pipe(
   Effect.andThen((n1) =>
-    n1 > 0.5 ? Effect.succeed("yay!") : Effect.fail(new HttpError())
-  )
+    n1 > 0.5 ? Effect.succeed("yay!") : Effect.fail(new HttpError()),
+  ),
 );
 
 const validationResult = Random.next.pipe(
   Effect.andThen((n2) =>
-    n2 > 0.5 ? Effect.succeed("yay!") : Effect.fail(new ValidationError())
-  )
+    n2 > 0.5 ? Effect.succeed("yay!") : Effect.fail(new ValidationError()),
+  ),
 );
 
 export const program = Effect.all([httpResult, validationResult]).pipe(
-  Effect.andThen(([http, validation]) => http + validation)
+  Effect.andThen(([http, validation]) => http + validation),
 );
 ```
 
@@ -200,7 +200,7 @@ const task3 = Console.log("タスク3を実行中...");
 // もし1つのタスクが失敗すると、後続のタスクは実行されません。
 const program = task1.pipe(
   Effect.andThen(task2), // task1の後にtask2が実行されるが、エラーで失敗する
-  Effect.andThen(task3) // 先行のタスクが失敗したため、これは実行されません
+  Effect.andThen(task3), // 先行のタスクが失敗したため、これは実行されません
 );
 
 Effect.runPromiseExit(program).then(console.log);
@@ -294,7 +294,7 @@ import { Effect } from "effect";
 import { program } from "./error-tracking";
 
 const recovered = program.pipe(
-  Effect.catchAll((error) => Effect.succeed(`エラーから回復: ${error._tag}`))
+  Effect.catchAll((error) => Effect.succeed(`エラーから回復: ${error._tag}`)),
 );
 ```
 
@@ -376,7 +376,7 @@ const recovered = program.pipe(
       return Option.some(Effect.succeed("HttpErrorから回復"));
     }
     return Option.none();
-  })
+  }),
 );
 ```
 
@@ -400,8 +400,8 @@ import { program } from "./error-tracking";
 const recovered = program.pipe(
   Effect.catchIf(
     (error) => error._tag === "HttpError",
-    () => Effect.succeed("HttpErrorから回復")
-  )
+    () => Effect.succeed("HttpErrorから回復"),
+  ),
 );
 ```
 
@@ -421,8 +421,8 @@ import { program, HttpError } from "./error-tracking";
 const recovered = program.pipe(
   Effect.catchIf(
     (error): error is HttpError => error._tag === "HttpError",
-    () => Effect.succeed("HttpErrorから回復")
-  )
+    () => Effect.succeed("HttpErrorから回復"),
+  ),
 );
 ```
 
@@ -441,8 +441,8 @@ import { program } from "./error-tracking";
 
 const recovered = program.pipe(
   Effect.catchTag("HttpError", (_HttpError) =>
-    Effect.succeed("HttpErrorから回復")
-  )
+    Effect.succeed("HttpErrorから回復"),
+  ),
 );
 ```
 
@@ -464,11 +464,11 @@ import { program } from "./error-tracking";
 
 const recovered = program.pipe(
   Effect.catchTag("HttpError", (_HttpError) =>
-    Effect.succeed("HttpErrorから回復")
+    Effect.succeed("HttpErrorから回復"),
   ),
   Effect.catchTag("ValidationError", (_ValidationError) =>
-    Effect.succeed("ValidationErrorから回復")
-  )
+    Effect.succeed("ValidationErrorから回復"),
+  ),
 );
 ```
 
@@ -498,7 +498,7 @@ const recovered = program.pipe(
     HttpError: (_HttpError) => Effect.succeed(`HttpErrorから回復`),
     ValidationError: (_ValidationError) =>
       Effect.succeed(`ValidationErrorから回復`),
-  })
+  }),
 );
 ```
 

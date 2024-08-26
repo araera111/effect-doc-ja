@@ -80,7 +80,7 @@ import { Schema } from "@effect/schema";
 
 const MyBrand = Schema.Number.pipe(
   Schema.between(1, 10),
-  Schema.brand("MyNumber")
+  Schema.brand("MyNumber"),
 );
 
 // const n: number & Brand<"MyNumber">
@@ -114,7 +114,7 @@ const PersonSchema = Schema.Struct({
   name: Schema.NonEmpty,
   age: Schema.Number.pipe(
     Schema.propertySignature,
-    Schema.withConstructorDefault(() => 0)
+    Schema.withConstructorDefault(() => 0),
   ),
 });
 
@@ -132,11 +132,11 @@ const PersonSchema = Schema.Struct({
   name: Schema.NonEmpty,
   age: Schema.Number.pipe(
     Schema.propertySignature,
-    Schema.withConstructorDefault(() => 0)
+    Schema.withConstructorDefault(() => 0),
   ),
   timestamp: Schema.Number.pipe(
     Schema.propertySignature,
-    Schema.withConstructorDefault(() => new Date().getTime())
+    Schema.withConstructorDefault(() => new Date().getTime()),
   ),
 });
 
@@ -157,11 +157,11 @@ class Person extends Schema.Class<Person>("Person")({
   name: Schema.NonEmpty,
   age: Schema.Number.pipe(
     Schema.propertySignature,
-    Schema.withConstructorDefault(() => 0)
+    Schema.withConstructorDefault(() => 0),
   ),
   timestamp: Schema.Number.pipe(
     Schema.propertySignature,
-    Schema.withConstructorDefault(() => new Date().getTime())
+    Schema.withConstructorDefault(() => new Date().getTime()),
   ),
 }) {}
 
@@ -200,7 +200,7 @@ const MySchema = Schema.Struct({
     Schema.withDefaults({
       decoding: () => "",
       constructor: () => "-",
-    })
+    }),
   ),
 });
 
@@ -228,7 +228,7 @@ import { Schema } from "@effect/schema";
 
 const MyString = Schema.String.pipe(
   Schema.minLength(1),
-  Schema.maxLength(2)
+  Schema.maxLength(2),
 ).annotations({
   // このメッセージは常に優先されます
   // したがって、任意のエラーに対して常に同じメッセージが表示されます
@@ -253,7 +253,7 @@ import { Schema } from "@effect/schema";
 
 const MyString = Schema.String.pipe(
   Schema.minLength(1),
-  Schema.maxLength(2)
+  Schema.maxLength(2),
 ).annotations({
   // このメッセージは maxLength フィルタが失敗した場合のみ表示されます
   message: () => "私のカスタムメッセージ",
@@ -273,7 +273,7 @@ import { Schema } from "@effect/schema";
 
 const MyString = Schema.String.pipe(
   Schema.minLength(1),
-  Schema.maxLength(2)
+  Schema.maxLength(2),
 ).annotations({
   // `override` フラグを `true` に設定することで
   // このメッセージは任意のエラーに対して常に表示されます
@@ -322,7 +322,7 @@ predicate: (a: A, options: ParseOptions, self: AST.Refinement) =>
 import { Schema } from "@effect/schema";
 
 const Positive = Schema.Number.pipe(
-  Schema.filter((n) => (n > 0 ? undefined : "正の値でなければなりません"))
+  Schema.filter((n) => (n > 0 ? undefined : "正の値でなければなりません")),
 );
 
 Schema.decodeUnknownSync(Positive)(-1);
@@ -413,7 +413,7 @@ type Encoded = {
 
 ```ts
 console.log(
-  JSON.stringify(JSONSchema.make(Schema.encodedSchema(MySchema)), null, 2)
+  JSON.stringify(JSONSchema.make(Schema.encodedSchema(MySchema)), null, 2),
 );
 ```
 

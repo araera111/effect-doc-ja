@@ -231,7 +231,7 @@ const task2 = Effect.delay(Console.log("task2"), "2 seconds");
 const program = Effect.zip(task1, task2);
 
 Effect.runPromise(Effect.timed(program)).then(([duration]) =>
-  console.log(String(duration))
+  console.log(String(duration)),
 );
 /*
 出力:
@@ -252,7 +252,7 @@ const task2 = Effect.delay(Console.log("task2"), "2 seconds");
 const program = Effect.zip(task1, task2, { concurrent: true });
 
 Effect.runPromise(Effect.timed(program)).then(([duration]) =>
-  console.log(String(duration))
+  console.log(String(duration)),
 );
 /*
 出力:

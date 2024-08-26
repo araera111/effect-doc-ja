@@ -46,7 +46,7 @@ export const log = <A, Out>(
 ```ts
 declare const log: <A, Out>(
   action: Effect.Effect<A>,
-  schedule: Schedule.Schedule<Out, void>
+  schedule: Schedule.Schedule<Out, void>,
 ) => void;
 ```
 
@@ -91,7 +91,7 @@ import { log } from "./Delay";
 
 const schedule = Schedule.union(
   Schedule.exponential("100 millis"),
-  Schedule.spaced("1 second")
+  Schedule.spaced("1 second"),
 );
 const action = Effect.void;
 log(action, schedule);
@@ -128,7 +128,7 @@ import { log } from "./Delay";
 
 const schedule = Schedule.intersect(
   Schedule.exponential("10 millis"),
-  Schedule.recurs(5)
+  Schedule.recurs(5),
 );
 const action = Effect.void;
 log(action, schedule);
@@ -161,7 +161,7 @@ import { log } from "./Delay";
 
 const schedule = Schedule.andThen(
   Schedule.recurs(5),
-  Schedule.spaced("1 second")
+  Schedule.spaced("1 second"),
 );
 const action = Effect.void;
 log(action, schedule);
@@ -264,7 +264,7 @@ import { log } from "./Delay";
 
 const schedule = Schedule.modifyDelay(
   Schedule.spaced("1 second"),
-  (_) => "100 millis"
+  (_) => "100 millis",
 );
 const action = Effect.void;
 log(action, schedule);
@@ -300,7 +300,7 @@ import { Schedule, Effect, Console } from "effect";
 import { log } from "./Delay";
 
 const schedule = Schedule.tapOutput(Schedule.recurs(2), (n) =>
-  Console.log(`repeating ${n}`)
+  Console.log(`repeating ${n}`),
 );
 const action = Effect.void;
 log(action, schedule);

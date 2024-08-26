@@ -20,23 +20,23 @@ Queueが値を**配布**する問題に対する最適なソリューション�
 PubSubの使い方を理解するために、以下の例を見てみましょう：
 
 ```ts twoslash
-import { Effect, PubSub, Queue, Console } from "effect"
+import { Effect, PubSub, Queue, Console } from "effect";
 
 const program = PubSub.bounded<string>(2).pipe(
   Effect.andThen((pubsub) =>
     Effect.scoped(
       Effect.gen(function* () {
-        const dequeue1 = yield* PubSub.subscribe(pubsub)
-        const dequeue2 = yield* PubSub.subscribe(pubsub)
-        yield* PubSub.publish(pubsub, "Hello from a PubSub!")
-        yield* Queue.take(dequeue1).pipe(Effect.andThen(Console.log))
-        yield* Queue.take(dequeue2).pipe(Effect.andThen(Console.log))
-      })
-    )
-  )
-)
+        const dequeue1 = yield* PubSub.subscribe(pubsub);
+        const dequeue2 = yield* PubSub.subscribe(pubsub);
+        yield* PubSub.publish(pubsub, "Hello from a PubSub!");
+        yield* Queue.take(dequeue1).pipe(Effect.andThen(Console.log));
+        yield* Queue.take(dequeue2).pipe(Effect.andThen(Console.log));
+      }),
+    ),
+  ),
+);
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 /*
 出力:
 Hello from a PubSub!
@@ -55,9 +55,9 @@ PubSubモジュールが提供するさまざまなコンストラクターを�
 制限付きPubSubは、容量がいっぱいのときにパブリッシャーにバックプレッシャーを適用します。つまり、PubSubが満杯の場合、パブリッシャーはブロックされます。
 
 ```ts twoslash
-import { PubSub } from "effect"
+import { PubSub } from "effect";
 
-const boundedPubSub = PubSub.bounded<string>(2)
+const boundedPubSub = PubSub.bounded<string>(2);
 ```
 
 バックプレッシャーにより、すべてのサブスクライバーはサブスクライブしている間、すべてのメッセージを受信することが保証されます。ただし、サブスクライバーが遅い場合、メッセージの配信が遅くなる可能性があります。
@@ -67,9 +67,9 @@ const boundedPubSub = PubSub.bounded<string>(2)
 ドロップ型PubSubは、満杯の場合に値を単純に破棄します。PubSub.publish関数は、PubSubが満杯のときに`false`を返します。
 
 ```ts twoslash
-import { PubSub } from "effect"
+import { PubSub } from "effect";
 
-const droppingPubSub = PubSub.dropping<string>(2)
+const droppingPubSub = PubSub.dropping<string>(2);
 ```
 
 ドロップ型PubSubでは、パブリッシャーは新しい値を公開し続けることができますが、サブスクライバーがすべてのメッセージを受信できる保証はありません。
@@ -79,9 +79,9 @@ const droppingPubSub = PubSub.dropping<string>(2)
 スライディング型PubSubは、満杯のときに最も古い値を破棄し、パブリッシュを常に即座に成功させます。
 
 ```ts twoslash
-import { PubSub } from "effect"
+import { PubSub } from "effect";
 
-const slidingPubSub = PubSub.sliding<string>(2)
+const slidingPubSub = PubSub.sliding<string>(2);
 ```
 
 スライディング型PubSubは、遅いサブスクライバーの影響を受けずにメッセージの配信レートを確保します。ただし、遅いサブスクライバーが一部のメッセージを見逃すリスクは依然として存在します。
@@ -91,9 +91,9 @@ const slidingPubSub = PubSub.sliding<string>(2)
 無制限PubSubは決して満杯にはならず、パブリッシュは常に即座に成功します。
 
 ```ts twoslash
-import { PubSub } from "effect"
+import { PubSub } from "effect";
 
-const unboundedPubSub = PubSub.unbounded<string>()
+const unboundedPubSub = PubSub.unbounded<string>();
 ```
 
 無制限PubSubでは、すべてのサブスクライバーがすべてのメッセージを受信でき、メッセージ配信が遅れることはありません。ただし、メッセージが消費されるよりも早くパブリッシュされる場合、無制限PubSubは無限に成長する可能性があります。
@@ -109,21 +109,21 @@ PubSubは、キューに利用できるオペレーションに類似したさ�
 `PubSub.publishAll`オペレーターを使用して、一度に複数の値をPubSubにパブリッシュできます。
 
 ```ts twoslash
-import { Effect, PubSub, Queue, Console } from "effect"
+import { Effect, PubSub, Queue, Console } from "effect";
 
 const program = PubSub.bounded<string>(2).pipe(
   Effect.andThen((pubsub) =>
     Effect.scoped(
       Effect.gen(function* () {
-        const dequeue = yield* PubSub.subscribe(pubsub)
-        yield* PubSub.publishAll(pubsub, ["Message 1", "Message 2"])
-        yield* Queue.takeAll(dequeue).pipe(Effect.andThen(Console.log))
-      })
-    )
-  )
-)
+        const dequeue = yield* PubSub.subscribe(pubsub);
+        yield* PubSub.publishAll(pubsub, ["Message 1", "Message 2"]);
+        yield* Queue.takeAll(dequeue).pipe(Effect.andThen(Console.log));
+      }),
+    ),
+  ),
+);
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 /*
 出力:
 {
@@ -138,18 +138,18 @@ Effect.runPromise(program)
 `PubSub.capacity`と`PubSub.size`を使用して、PubSubの容量と現在のサイズを確認できます。
 
 ```ts twoslash
-import { Effect, PubSub, Console } from "effect"
+import { Effect, PubSub, Console } from "effect";
 
 const program = PubSub.bounded<number>(2).pipe(
   Effect.tap((pubsub) => Console.log(`capacity: ${PubSub.capacity(pubsub)}`)),
   Effect.tap((pubsub) =>
     PubSub.size(pubsub).pipe(
-      Effect.andThen((size) => Console.log(`size: ${size}`))
-    )
-  )
-)
+      Effect.andThen((size) => Console.log(`size: ${size}`)),
+    ),
+  ),
+);
 
-Effect.runPromise(program)
+Effect.runPromise(program);
 /*
 出力:
 capacity: 2

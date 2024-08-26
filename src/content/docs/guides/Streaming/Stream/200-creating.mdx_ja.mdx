@@ -72,7 +72,7 @@ import { Stream, Effect } from "effect";
 const stream = Stream.iterate(1, (n) => n + 1); // 1, 2, 3, ...
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 // { _id: 'Chunk', values: [ 1, 2, 3, 4, 5 ] }
 ```
@@ -89,8 +89,8 @@ const stream = Stream.scoped(
   Effect.acquireUseRelease(
     Console.log("acquire"),
     () => Console.log("use"),
-    () => Console.log("release")
-  )
+    () => Console.log("release"),
+  ),
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -186,7 +186,7 @@ const stream = Stream.async(
         }
       }, 100 * n);
     });
-  }
+  },
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -243,9 +243,9 @@ Effect.runPromise(
     stream.pipe(
       Stream.provideService(Database, {
         getUsers: Effect.succeed(["user1", "user2"]),
-      })
-    )
-  )
+      }),
+    ),
+  ),
 ).then(console.log);
 // { _id: 'Chunk', values: [ 'user1', 'user2' ] }
 ```
@@ -266,7 +266,7 @@ const myAsyncIterable = async function* () {
 
 const stream = Stream.fromAsyncIterable(
   myAsyncIterable(),
-  (e) => new Error(String(e)) // エラーハンドリング
+  (e) => new Error(String(e)), // エラーハンドリング
 );
 
 Effect.runPromise(Stream.runCollect(stream)).then(console.log);
@@ -287,7 +287,7 @@ import { Stream, Effect } from "effect";
 const stream = Stream.repeatValue(0);
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 // { _id: 'Chunk', values: [ 0, 0, 0, 0, 0 ] }
 ```
@@ -303,7 +303,7 @@ import { Stream, Effect, Schedule } from "effect";
 const stream = Stream.repeat(Stream.succeed(1), Schedule.forever);
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 // { _id: 'Chunk', values: [ 1, 1, 1, 1, 1 ] }
 ```
@@ -320,7 +320,7 @@ import { Stream, Effect, Random } from "effect";
 const stream = Stream.repeatEffect(Random.nextInt);
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 /*
 出力例:
@@ -348,8 +348,8 @@ const drainIterator = <A>(it: Iterator<A>): Stream.Stream<A> =>
           return Effect.fail(Option.none());
         }
         return Effect.succeed(res.value);
-      })
-    )
+      }),
+    ),
   );
 ```
 
@@ -363,7 +363,7 @@ import { Stream, Effect } from "effect";
 const stream = Stream.tick("100 millis");
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 /*
 出力:
@@ -391,7 +391,7 @@ Stream モジュールには、次のように定義された`unfold`関数が�
 ```ts
 declare const unfold: <S, A>(
   initialState: S,
-  step: (s: S) => Option.Option<readonly [A, S]>
+  step: (s: S) => Option.Option<readonly [A, S]>,
 ) => Stream<A>;
 ```
 
@@ -408,7 +408,7 @@ import { Stream, Effect, Option } from "effect";
 const stream = Stream.unfold(1, (n) => Option.some([n, n + 1]));
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 // { _id: 'Chunk', values: [ 1, 2, 3, 4, 5 ] }
 ```
@@ -424,12 +424,12 @@ import { Stream, Effect, Option, Random } from "effect";
 
 const stream = Stream.unfoldEffect(1, (n) =>
   Random.nextBoolean.pipe(
-    Effect.map((b) => (b ? Option.some([n, -n]) : Option.some([n, n])))
-  )
+    Effect.map((b) => (b ? Option.some([n, -n]) : Option.some([n, n]))),
+  ),
 );
 
 Effect.runPromise(Stream.runCollect(stream.pipe(Stream.take(5)))).then(
-  console.log
+  console.log,
 );
 // 出力例: { _id: 'Chunk', values: [ 1, 1, 1, 1, -1 ] }
 ```
@@ -481,23 +481,23 @@ export type RawData = string;
 export class PageResult {
   constructor(
     readonly results: Chunk.Chunk<RawData>,
-    readonly isLast: boolean
+    readonly isLast: boolean,
   ) {}
 }
 
 const pageSize = 2;
 
 export const listPaginated = (
-  pageNumber: number
+  pageNumber: number,
 ): Effect.Effect<PageResult, Error> => {
   return Effect.succeed(
     new PageResult(
       Chunk.map(
         Chunk.range(1, pageSize),
-        (index) => `Result ${pageNumber}-${index}`
+        (index) => `Result ${pageNumber}-${index}`,
       ),
-      pageNumber === 2 // 3ページ返す
-    )
+      pageNumber === 2, // 3ページ返す
+    ),
   );
 };
 ```
@@ -526,8 +526,8 @@ const firstAttempt: Stream.Stream<RawData, Error> = Stream.unfoldChunkEffect(
           return Option.none();
         }
         return Option.some([page.results, pageNumber + 1] as const);
-      })
-    )
+      }),
+    ),
 );
 
 Effect.runPromise(Stream.runCollect(firstAttempt)).then(console.log);
@@ -564,10 +564,10 @@ const secondAttempt: Stream.Stream<RawData, Error> = Stream.unfoldChunkEffect(
             Option.some([
               page.results,
               page.isLast ? Option.none() : Option.some(pageNumber + 1),
-            ])
-          )
+            ]),
+          ),
         ),
-    })
+    }),
 );
 
 Effect.runPromise(Stream.runCollect(secondAttempt)).then(console.log);
@@ -609,8 +609,8 @@ const finalAttempt: Stream.Stream<RawData, Error> = Stream.paginateChunkEffect(
           page.results,
           page.isLast ? Option.none<number>() : Option.some(pageNumber + 1),
         ];
-      })
-    )
+      }),
+    ),
 );
 
 Effect.runPromise(Stream.runCollect(finalAttempt)).then(console.log);
@@ -643,7 +643,7 @@ import { Effect, Stream, Schedule } from "effect";
 
 // 1秒ごとに合計10回発行される値
 const schedule = Schedule.spaced("1 second").pipe(
-  Schedule.compose(Schedule.recurs(10))
+  Schedule.compose(Schedule.recurs(10)),
 );
 
 const stream = Stream.fromSchedule(schedule);

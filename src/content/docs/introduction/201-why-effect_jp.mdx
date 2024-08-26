@@ -15,10 +15,10 @@ Effectは、より良いアプリケーションやライブラリの構築を�
 ```ts twoslash
 const divide = (a: number, b: number): number => {
   if (b === 0) {
-    throw new Error("ゼロで割ることはできません")
+    throw new Error("ゼロで割ることはできません");
   }
-  return a / b
-}
+  return a / b;
+};
 ```
 
 型から見て、この関数が例外をスローする可能性があるか、まったくわかりません。コードを読むことでしかわかりません。コードベースに関数が1つしかない場合はそれほど問題ではないかもしれませんが、数百や数千の関数があると、その影響は非常に大きくなります。関数が例外をスローする可能性を忘れたり、例外を処理することを忘れたりするかもしれません。
@@ -36,12 +36,12 @@ Effectの核心となる独自の洞察(major unique insight)は、上述した`
 以下は、上記の`devide`と同じものですが、Effectパターンを使用しています：
 
 ```ts twoslash
-import { Effect } from "effect"
+import { Effect } from "effect";
 
 const divide = (a: number, b: number): Effect.Effect<number, Error, never> =>
   b === 0
     ? Effect.fail(new Error("ゼロで割ることはできません"))
-    : Effect.succeed(a / b)
+    : Effect.succeed(a / b);
 ```
 
 型シグネチャを見ることで、成功値が何であるか（`number`）、どのようなエラーがスローされる可能性があるか（`Error`）、関数が必要とするコンテキスト（ここでは`never`、つまり必要なコンテキストはありません）を正確に知ることができます。この関数は、もはや例外をスローせず、エラーを呼び出し元にきれいに返すことができます。

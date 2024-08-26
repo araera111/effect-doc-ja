@@ -17,8 +17,8 @@ Effect 3.2.0がリリースされました！このリリースには、新機�
 
 ```ts
 expect(
-  Chunk.difference(Chunk.make(1, 2, 3, 4, 5), Chunk.make(1, 2, 3))
-).toEqual(Chunk.make(4, 5))
+  Chunk.difference(Chunk.make(1, 2, 3, 4, 5), Chunk.make(1, 2, 3)),
+).toEqual(Chunk.make(4, 5));
 ```
 
 ## Spanがソース位置をキャプチャ
@@ -30,7 +30,7 @@ expect(
 ```ts
 Effect.log("Hello World").pipe(
   Effect.withSpan("my span", { captureStackTrace: false }),
-)
+);
 ```
 
 ## Cause.prettyErrors
@@ -65,10 +65,13 @@ Do表記が`Array`モジュールに追加され、配列を逐次的に構築�
 const props = pipe(
   Array.Do,
   Array.bind("size", () => ["small", "medium", "large"] as const),
-  Array.bind("theme", () => ["dark", "light", "contrast-light", "contrast-dark"] as const),
+  Array.bind(
+    "theme",
+    () => ["dark", "light", "contrast-light", "contrast-dark"] as const,
+  ),
   Array.bind("disabled", () => [false, true]),
   Array.bind("loading", () => [false, true]),
-)
+);
 ```
 
 ## Stream.toReadableStreamEffect
@@ -81,26 +84,26 @@ const props = pipe(
 
 ```ts
 type Result<E, A> = Data.TaggedEnum<{
-  Success: { value: A }
+  Success: { value: A };
   Failure: {
-    error: E
-    message?: string
-  }
-}>
+    error: E;
+    message?: string;
+  };
+}>;
 interface ResultDefinition extends Data.TaggedEnum.WithGenerics<2> {
-  readonly taggedEnum: Result<this["A"], this["B"]>
+  readonly taggedEnum: Result<this["A"], this["B"]>;
 }
-const { $is, $match, Failure, Success } = Data.taggedEnum<ResultDefinition>()
+const { $is, $match, Failure, Success } = Data.taggedEnum<ResultDefinition>();
 
-const result: Result<string, number> = Success({ value: 1 })
+const result: Result<string, number> = Success({ value: 1 });
 
 pipe(
   result,
   $match({
     Success: (_) => _.value,
-    Failure: (_) => _.error
-  })
-) satisfies string | number
+    Failure: (_) => _.error,
+  }),
+) satisfies string | number;
 ```
 
 ## その他の変更

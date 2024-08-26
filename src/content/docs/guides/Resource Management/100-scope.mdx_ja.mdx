@@ -38,16 +38,16 @@ const program =
   Scope.make().pipe(
     // ファイナライザ1を追加
     Effect.tap((scope) =>
-      Scope.addFinalizer(scope, Console.log("ファイナライザ 1"))
+      Scope.addFinalizer(scope, Console.log("ファイナライザ 1")),
     ),
     // ファイナライザ2を追加
     Effect.tap((scope) =>
-      Scope.addFinalizer(scope, Console.log("ファイナライザ 2"))
+      Scope.addFinalizer(scope, Console.log("ファイナライザ 2")),
     ),
     // スコープを閉じる
     Effect.andThen((scope) =>
-      Scope.close(scope, Exit.succeed("スコープは正常に閉じられました"))
-    )
+      Scope.close(scope, Exit.succeed("スコープは正常に閉じられました")),
+    ),
   );
 
 Effect.runPromise(program);
@@ -80,7 +80,7 @@ import { Effect, Console } from "effect";
 
 const program = Effect.gen(function* () {
   yield* Effect.addFinalizer((exit) =>
-    Console.log(`ファイナライザの後: ${exit._tag}`)
+    Console.log(`ファイナライザの後: ${exit._tag}`),
   );
   return 1;
 });
@@ -104,7 +104,7 @@ Effect.runPromise(runnable).then(console.log, console.error);
 import { Effect, Console } from "effect";
 
 const program = Effect.addFinalizer((exit) =>
-  Console.log(`ファイナライザの後: ${exit._tag}`)
+  Console.log(`ファイナライザの後: ${exit._tag}`),
 ).pipe(Effect.andThen(Effect.succeed(1)));
 
 const runnable = Effect.scoped(program);
@@ -142,7 +142,7 @@ import { Effect, Console } from "effect";
 
 const program = Effect.gen(function* () {
   yield* Effect.addFinalizer((exit) =>
-    Console.log(`ファイナライザの後: ${exit._tag}`)
+    Console.log(`ファイナライザの後: ${exit._tag}`),
   );
   return yield* Effect.fail("あちゃ！");
 });
@@ -170,7 +170,7 @@ Effect.runPromiseExit(runnable).then(console.log);
 import { Effect, Console } from "effect";
 
 const program = Effect.addFinalizer((exit) =>
-  Console.log(`ファイナライザの後: ${exit._tag}`)
+  Console.log(`ファイナライザの後: ${exit._tag}`),
 ).pipe(Effect.andThen(Effect.fail("あちゃ！")));
 
 const runnable = Effect.scoped(program);
@@ -202,7 +202,7 @@ import { Effect, Console } from "effect";
 
 const program = Effect.gen(function* () {
   yield* Effect.addFinalizer((exit) =>
-    Console.log(`ファイナライザの後: ${exit._tag}`)
+    Console.log(`ファイナライザの後: ${exit._tag}`),
   );
   return yield* Effect.interrupt;
 });
@@ -239,7 +239,7 @@ Effect.runPromiseExit(runnable).then(console.log);
 import { Effect, Console } from "effect";
 
 const program = Effect.addFinalizer((exit) =>
-  Console.log(`ファイナライザの後: ${exit._tag}`)
+  Console.log(`ファイナライザの後: ${exit._tag}`),
 ).pipe(Effect.andThen(Effect.interrupt));
 
 const runnable = Effect.scoped(program);
@@ -318,14 +318,14 @@ import { Effect, Console } from "effect";
 
 const task1 = Console.log("タスク 1").pipe(
   Effect.tap(() =>
-    Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ"))
-  )
+    Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ")),
+  ),
 );
 
 const task2 = Console.log("タスク 2").pipe(
   Effect.tap(() =>
-    Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ"))
-  )
+    Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ")),
+  ),
 );
 
 const program =
@@ -404,14 +404,14 @@ import { Console, Effect, Exit, Scope } from "effect";
 
 const task1 = Console.log("タスク 1").pipe(
   Effect.tap(() =>
-    Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ"))
-  )
+    Effect.addFinalizer(() => Console.log("タスク 1の後のファイナライザ")),
+  ),
 );
 
 const task2 = Console.log("タスク 2").pipe(
   Effect.tap(() =>
-    Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ"))
-  )
+    Effect.addFinalizer(() => Console.log("タスク 2の後のファイナライザ")),
+  ),
 );
 
 const program = Effect.all([Scope.make(), Scope.make()]).pipe(
@@ -420,9 +420,9 @@ const program = Effect.all([Scope.make(), Scope.make()]).pipe(
       Effect.andThen(Scope.extend(task2, scope2)),
       Effect.andThen(Scope.close(scope1, Exit.void)),
       Effect.andThen(Console.log("他の処理を実行")),
-      Effect.andThen(Scope.close(scope2, Exit.void))
-    )
-  )
+      Effect.andThen(Scope.close(scope2, Exit.void)),
+    ),
+  ),
 );
 
 Effect.runPromise(program);
@@ -552,7 +552,7 @@ import { Effect, Console } from "effect";
 import { resource } from "./resource";
 
 const program = resource.pipe(
-  Effect.andThen((res) => Console.log(`コンテンツ: ${res.contents}`))
+  Effect.andThen((res) => Console.log(`コンテンツ: ${res.contents}`)),
 );
 ```
 
@@ -579,7 +579,7 @@ const program = Effect.scoped(
   Effect.gen(function* () {
     const res = yield* resource;
     console.log(`コンテンツ: ${res.contents}`);
-  })
+  }),
 );
 ```
 
@@ -599,8 +599,8 @@ import { resource } from "./resource";
 
 const program = Effect.scoped(
   resource.pipe(
-    Effect.andThen((res) => Console.log(`コンテンツ: ${res.contents}`))
-  )
+    Effect.andThen((res) => Console.log(`コンテンツ: ${res.contents}`)),
+  ),
 );
 ```
 

@@ -166,7 +166,7 @@ const expensiveTask = Effect.promise<string>(() => {
 const program = Effect.gen(function* () {
   const [cached, invalidate] = yield* Effect.cachedInvalidateWithTTL(
     expensiveTask,
-    "1 hour"
+    "1 hour",
   );
   yield* cached.pipe(Effect.andThen(Console.log));
   yield* cached.pipe(Effect.andThen(Console.log));

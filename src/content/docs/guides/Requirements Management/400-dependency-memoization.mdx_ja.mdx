@@ -34,7 +34,7 @@ class C extends Context.Tag("C")<C, { readonly c: boolean }>() {}
 
 const a = Layer.effect(
   A,
-  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized"))),
 );
 
 const b = Layer.effect(
@@ -42,7 +42,7 @@ const b = Layer.effect(
   Effect.gen(function* () {
     const { a } = yield* A;
     return { b: String(a) };
-  })
+  }),
 );
 
 const c = Layer.effect(
@@ -50,7 +50,7 @@ const c = Layer.effect(
   Effect.gen(function* () {
     const { a } = yield* A;
     return { c: a > 0 };
-  })
+  }),
 );
 
 const program = Effect.gen(function* () {
@@ -60,7 +60,7 @@ const program = Effect.gen(function* () {
 
 const runnable = Effect.provide(
   program,
-  Layer.merge(Layer.provide(b, a), Layer.provide(c, a))
+  Layer.merge(Layer.provide(b, a), Layer.provide(c, a)),
 );
 
 Effect.runPromise(runnable);
@@ -87,7 +87,7 @@ class C extends Context.Tag("C")<C, { readonly c: boolean }>() {}
 
 const a = Layer.effect(
   A,
-  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized"))),
 );
 
 const b = Layer.effect(
@@ -95,7 +95,7 @@ const b = Layer.effect(
   Effect.gen(function* () {
     const { a } = yield* A;
     return { b: String(a) };
-  })
+  }),
 );
 
 const c = Layer.effect(
@@ -103,7 +103,7 @@ const c = Layer.effect(
   Effect.gen(function* () {
     const { a } = yield* A;
     return { c: a > 0 };
-  })
+  }),
 );
 
 const program = Effect.gen(function* () {
@@ -116,8 +116,8 @@ const runnable = Effect.provide(
   program,
   Layer.merge(
     Layer.provide(b, Layer.fresh(a)),
-    Layer.provide(c, Layer.fresh(a))
-  )
+    Layer.provide(c, Layer.fresh(a)),
+  ),
 );
 
 Effect.runPromise(runnable);
@@ -141,7 +141,7 @@ class A extends Context.Tag("A")<A, { readonly a: number }>() {}
 
 const a = Layer.effect(
   A,
-  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized"))),
 );
 
 const program = Effect.gen(function* () {
@@ -168,7 +168,7 @@ class A extends Context.Tag("A")<A, { readonly a: number }>() {}
 
 const a = Layer.effect(
   A,
-  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized")))
+  Effect.succeed({ a: 5 }).pipe(Effect.tap(() => Effect.log("initialized"))),
 );
 
 const program = Effect.scoped(
@@ -177,9 +177,9 @@ const program = Effect.scoped(
       Effect.gen(function* () {
         yield* Effect.provide(A, memoized);
         yield* Effect.provide(A, memoized);
-      })
-    )
-  )
+      }),
+    ),
+  ),
 );
 
 Effect.runPromise(program);
